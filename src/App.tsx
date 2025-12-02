@@ -79,6 +79,9 @@ import DashboardReportingPage from "./pages/rapports/DashboardReportingPage";
 import SYSCOHADAPage from "./pages/rapports/SYSCOHADAPage";
 import IFRPage from "./pages/rapports/IFRPage";
 
+// Administration pages
+import UtilitairesPage from "./pages/administration/UtilitairesPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -152,6 +155,7 @@ const App = () => (
             <Route path="/utilisateurs" element={<ProtectedRoute requiredRole="admin"><Utilisateurs /></ProtectedRoute>} />
             <Route path="/securite" element={<ProtectedRoute requiredRole="admin"><Securite /></ProtectedRoute>} />
             <Route path="/parametres" element={<ProtectedRoute requiredRole="admin"><Parametres /></ProtectedRoute>} />
+            <Route path="/utilitaires" element={<ProtectedRoute requiredRole="admin"><UtilitairesPage /></ProtectedRoute>} />
             <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -39,6 +39,7 @@ import {
   SplitSquareHorizontal,
   Building,
   TrendingUp,
+  Database,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -174,6 +175,7 @@ const otherNavItems: NavItem[] = [
 const adminNavItems: NavItem[] = [
   { title: "Utilisateurs", href: "/utilisateurs", icon: Users },
   { title: "Sécurité", href: "/securite", icon: Shield },
+  { title: "Utilitaires", href: "/utilitaires", icon: Database },
   { title: "Paramètres", href: "/parametres", icon: Settings },
 ];
 
