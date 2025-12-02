@@ -14,11 +14,24 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
   LogOut,
   User,
   HelpCircle,
-  UserCog,
   ChevronUp,
+  Wallet,
+  CreditCard,
+  Receipt,
+  FileCheck,
+  BookOpen,
+  Scale,
+  Link2,
+  Landmark,
+  Coins,
+  Clock,
+  RefreshCw,
+  Lock,
+  Printer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +47,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 interface NavItem {
   title: string;
@@ -42,10 +60,40 @@ interface NavItem {
   badge?: number;
 }
 
+interface NavGroup {
+  title: string;
+  icon: React.ComponentType<{ className?: string }>;
+  items: NavItem[];
+}
+
 const mainNavItems: NavItem[] = [
   { title: "Tableau de bord", href: "/", icon: LayoutDashboard },
   { title: "Projets", href: "/projets", icon: FolderKanban, badge: 12 },
-  { title: "Comptabilité", href: "/comptabilite", icon: Calculator },
+];
+
+const comptabiliteGroup: NavGroup = {
+  title: "Comptabilité Générale",
+  icon: Calculator,
+  items: [
+    { title: "Journal", href: "/comptabilite", icon: BookOpen },
+    { title: "Dépenses", href: "/comptabilite/depenses", icon: Wallet },
+    { title: "Financements", href: "/comptabilite/financements", icon: CreditCard },
+    { title: "Décaissements", href: "/comptabilite/decaissements", icon: Receipt },
+    { title: "Prises en charge", href: "/comptabilite/prises-en-charge", icon: FileCheck },
+    { title: "Tiers", href: "/comptabilite/tiers", icon: Users },
+    { title: "Grand Livre", href: "/comptabilite/grand-livre", icon: FileText },
+    { title: "Balances", href: "/comptabilite/balances", icon: Scale },
+    { title: "Lettrage", href: "/comptabilite/lettrage", icon: Link2 },
+    { title: "Rapprochement", href: "/comptabilite/rapprochement", icon: Landmark },
+    { title: "Caisse", href: "/comptabilite/caisse", icon: Coins },
+    { title: "Échéances", href: "/comptabilite/echeances", icon: Clock },
+    { title: "À-nouveaux", href: "/comptabilite/a-nouveaux", icon: RefreshCw },
+    { title: "Clôtures", href: "/comptabilite/clotures", icon: Lock },
+    { title: "Éditions", href: "/comptabilite/editions", icon: Printer },
+  ],
+};
+
+const otherNavItems: NavItem[] = [
   { title: "Bailleurs", href: "/bailleurs", icon: Building2, badge: 5 },
   { title: "Conventions", href: "/conventions", icon: FileText },
   { title: "Immobilisations", href: "/immobilisations", icon: Package },
@@ -62,6 +110,7 @@ const adminNavItems: NavItem[] = [
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
+  const [comptaOpen, setComptaOpen] = useState(true);
   const location = useLocation();
   const navigate = useNavigate();
   const { profile, roles, signOut } = useAuth();
@@ -89,6 +138,8 @@ export function AppSidebar() {
   };
 
   const primaryRole = roles.length > 0 ? roles[0].name : "Utilisateur";
+  
+  const isComptaActive = location.pathname.startsWith("/comptabilite");
 
   const NavItemComponent = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.href;
@@ -107,6 +158,25 @@ export function AppSidebar() {
             )}
           </>
         )}
+      </Link>
+    );
+  };
+
+  const SubNavItem = ({ item }: { item: NavItem }) => {
+    const isActive = location.pathname === item.href;
+    const Icon = item.icon;
+
+    return (
+      <Link
+        to={item.href}
+        className={cn(
+          "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+          "text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+          isActive && "bg-sidebar-accent text-sidebar-primary font-medium"
+        )}
+      >
+        <Icon className="h-4 w-4 shrink-0" />
+        <span className="truncate">{item.title}</span>
       </Link>
     );
   };
@@ -150,7 +220,49 @@ export function AppSidebar() {
               </span>
             )}
           </div>
+          
           {mainNavItems.map((item) => (
+            <NavItemComponent key={item.href} item={item} />
+          ))}
+
+          {/* Comptabilité Générale Group */}
+          {collapsed ? (
+            <Link
+              to="/comptabilite"
+              className={cn("sidebar-nav-item group", isComptaActive && "active")}
+            >
+              <Calculator className="h-5 w-5 shrink-0" />
+            </Link>
+          ) : (
+            <Collapsible open={comptaOpen} onOpenChange={setComptaOpen}>
+              <CollapsibleTrigger asChild>
+                <button
+                  className={cn(
+                    "sidebar-nav-item group w-full justify-between",
+                    isComptaActive && "active"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <Calculator className="h-5 w-5 shrink-0" />
+                    <span className="flex-1 text-left">Comptabilité</span>
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform duration-200",
+                      comptaOpen && "rotate-180"
+                    )}
+                  />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
+                {comptabiliteGroup.items.map((item) => (
+                  <SubNavItem key={item.href} item={item} />
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
+          {otherNavItems.map((item) => (
             <NavItemComponent key={item.href} item={item} />
           ))}
 
