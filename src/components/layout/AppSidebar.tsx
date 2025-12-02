@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -141,11 +141,34 @@ const adminNavItems: NavItem[] = [
 ];
 
 export function AppSidebar() {
-  const [collapsed, setCollapsed] = useState(false);
-  const [comptaOpen, setComptaOpen] = useState(false);
-  const [analytiqueOpen, setAnalytiqueOpen] = useState(false);
-  const [budgetOpen, setBudgetOpen] = useState(false);
+  // Load menu states from localStorage
+  const getStoredState = (key: string, defaultValue: boolean) => {
+    const stored = localStorage.getItem(`sidebar_${key}`);
+    return stored !== null ? JSON.parse(stored) : defaultValue;
+  };
+
+  const [collapsed, setCollapsed] = useState(() => getStoredState('collapsed', false));
+  const [comptaOpen, setComptaOpen] = useState(() => getStoredState('comptaOpen', false));
+  const [analytiqueOpen, setAnalytiqueOpen] = useState(() => getStoredState('analytiqueOpen', false));
+  const [budgetOpen, setBudgetOpen] = useState(() => getStoredState('budgetOpen', false));
   const location = useLocation();
+
+  // Persist menu states to localStorage
+  useEffect(() => {
+    localStorage.setItem('sidebar_collapsed', JSON.stringify(collapsed));
+  }, [collapsed]);
+
+  useEffect(() => {
+    localStorage.setItem('sidebar_comptaOpen', JSON.stringify(comptaOpen));
+  }, [comptaOpen]);
+
+  useEffect(() => {
+    localStorage.setItem('sidebar_analytiqueOpen', JSON.stringify(analytiqueOpen));
+  }, [analytiqueOpen]);
+
+  useEffect(() => {
+    localStorage.setItem('sidebar_budgetOpen', JSON.stringify(budgetOpen));
+  }, [budgetOpen]);
   const navigate = useNavigate();
   const { profile, roles, signOut } = useAuth();
 
