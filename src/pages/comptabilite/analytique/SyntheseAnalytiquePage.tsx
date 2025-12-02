@@ -3,7 +3,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PieChart, Download, RefreshCw, Activity, Layers, MapPin, Building } from "lucide-react";
+import { PieChart as PieChartIcon, Download, RefreshCw, Activity, Layers, MapPin, Building } from "lucide-react";
 import { useFiscalYears } from "@/hooks/useParametrage";
 import { useAnalyticalSummary, useAnalyticalAllocations } from "@/hooks/useComptabiliteAnalytique";
 import {
@@ -22,6 +22,23 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+} from "recharts";
+
+const COLORS = ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#ef4444', '#06b6d4', '#eab308', '#ec4899'];
 
 export default function SyntheseAnalytiquePage() {
   const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>("");
@@ -38,6 +55,85 @@ export default function SyntheseAnalytiquePage() {
   const byComponent = allAllocations?.filter(a => a.allocation_type === 'component') || [];
   const byGeographic = allAllocations?.filter(a => a.allocation_type === 'geographic') || [];
   const byCostCenter = allAllocations?.filter(a => a.allocation_type === 'cost_center') || [];
+
+  // Pie chart data
+  const pieData = [
+    { name: 'Par Activité', value: summary?.by_activity || 0, color: COLORS[0] },
+    { name: 'Par Composante', value: summary?.by_component || 0, color: COLORS[1] },
+    { name: 'Par Zone Géo.', value: summary?.by_geographic || 0, color: COLORS[2] },
+    { name: 'Par Centre de Coûts', value: summary?.by_cost_center || 0, color: COLORS[3] },
+  ].filter(item => item.value > 0);
+
+  // Bar chart data by allocation method
+  const methodData = [
+    {
+      name: 'A Priori',
+      activity: allAllocations?.filter(a => a.allocation_type === 'activity' && a.allocation_method === 'a_priori').reduce((sum, a) => sum + Number(a.amount), 0) || 0,
+      component: allAllocations?.filter(a => a.allocation_type === 'component' && a.allocation_method === 'a_priori').reduce((sum, a) => sum + Number(a.amount), 0) || 0,
+      geographic: allAllocations?.filter(a => a.allocation_type === 'geographic' && a.allocation_method === 'a_priori').reduce((sum, a) => sum + Number(a.amount), 0) || 0,
+      cost_center: allAllocations?.filter(a => a.allocation_type === 'cost_center' && a.allocation_method === 'a_priori').reduce((sum, a) => sum + Number(a.amount), 0) || 0,
+    },
+    {
+      name: 'A Posteriori',
+      activity: allAllocations?.filter(a => a.allocation_type === 'activity' && a.allocation_method === 'a_posteriori').reduce((sum, a) => sum + Number(a.amount), 0) || 0,
+      component: allAllocations?.filter(a => a.allocation_type === 'component' && a.allocation_method === 'a_posteriori').reduce((sum, a) => sum + Number(a.amount), 0) || 0,
+      geographic: allAllocations?.filter(a => a.allocation_type === 'geographic' && a.allocation_method === 'a_posteriori').reduce((sum, a) => sum + Number(a.amount), 0) || 0,
+      cost_center: allAllocations?.filter(a => a.allocation_type === 'cost_center' && a.allocation_method === 'a_posteriori').reduce((sum, a) => sum + Number(a.amount), 0) || 0,
+    },
+    {
+      name: 'Réimputation',
+      activity: allAllocations?.filter(a => a.allocation_type === 'activity' && a.allocation_method === 'reallocation').reduce((sum, a) => sum + Number(a.amount), 0) || 0,
+      component: allAllocations?.filter(a => a.allocation_type === 'component' && a.allocation_method === 'reallocation').reduce((sum, a) => sum + Number(a.amount), 0) || 0,
+      geographic: allAllocations?.filter(a => a.allocation_type === 'geographic' && a.allocation_method === 'reallocation').reduce((sum, a) => sum + Number(a.amount), 0) || 0,
+      cost_center: allAllocations?.filter(a => a.allocation_type === 'cost_center' && a.allocation_method === 'reallocation').reduce((sum, a) => sum + Number(a.amount), 0) || 0,
+    },
+  ];
+
+  // Horizontal bar chart data for comparison
+  const comparisonData = [
+    { name: 'Activités', montant: summary?.by_activity || 0, fill: COLORS[0] },
+    { name: 'Composantes', montant: summary?.by_component || 0, fill: COLORS[1] },
+    { name: 'Zones Géo.', montant: summary?.by_geographic || 0, fill: COLORS[2] },
+    { name: 'Centres Coûts', montant: summary?.by_cost_center || 0, fill: COLORS[3] },
+  ];
+
+  // Group by activity for detailed bar chart
+  const activityBarData = byActivity.reduce((acc, alloc) => {
+    const name = alloc.activity?.name || 'Non défini';
+    const existing = acc.find(item => item.name === name);
+    if (existing) {
+      existing.montant += Number(alloc.amount);
+    } else {
+      acc.push({ name, montant: Number(alloc.amount) });
+    }
+    return acc;
+  }, [] as { name: string; montant: number }[]).slice(0, 8);
+
+  const formatCurrency = (value: number) => {
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)}M`;
+    }
+    if (value >= 1000) {
+      return `${(value / 1000).toFixed(0)}K`;
+    }
+    return value.toString();
+  };
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-background border border-border rounded-lg p-3 shadow-lg">
+          <p className="font-medium text-sm mb-1">{label || payload[0]?.name}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} className="text-sm" style={{ color: entry.color || entry.fill }}>
+              {entry.dataKey || 'Montant'}: {Number(entry.value).toLocaleString('fr-FR')} FCFA
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
 
   const StatCard = ({ icon: Icon, title, value, color }: { icon: any, title: string, value: number, color: string }) => (
     <Card>
@@ -100,11 +196,12 @@ export default function SyntheseAnalytiquePage() {
           </div>
         ) : (
           <>
+            {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-5">
               <Card className="md:col-span-1">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <PieChart className="h-4 w-4" />
+                    <PieChartIcon className="h-4 w-4" />
                     Total Analytique
                   </CardTitle>
                 </CardHeader>
@@ -140,10 +237,162 @@ export default function SyntheseAnalytiquePage() {
               />
             </div>
 
+            {/* Charts Row */}
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Pie Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <PieChartIcon className="h-5 w-5" />
+                    Répartition par Type
+                  </CardTitle>
+                  <CardDescription>Distribution des affectations analytiques</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {pieData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={pieData}
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={60}
+                          outerRadius={100}
+                          paddingAngle={5}
+                          dataKey="value"
+                          label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                          labelLine={false}
+                        >
+                          {pieData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip content={<CustomTooltip />} />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+                      <PieChartIcon className="h-12 w-12 mb-4 opacity-50" />
+                      <p>Aucune donnée à afficher</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Horizontal Bar Chart */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Comparaison par Dimension</CardTitle>
+                  <CardDescription>Montants par type d'affectation</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {comparisonData.some(d => d.montant > 0) ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart
+                        data={comparisonData}
+                        layout="vertical"
+                        margin={{ top: 5, right: 30, left: 80, bottom: 5 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis 
+                          type="number" 
+                          tickFormatter={formatCurrency}
+                          className="text-xs"
+                        />
+                        <YAxis 
+                          dataKey="name" 
+                          type="category" 
+                          width={75}
+                          className="text-xs"
+                        />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Bar dataKey="montant" radius={[0, 4, 4, 0]}>
+                          {comparisonData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.fill} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
+                      <Activity className="h-12 w-12 mb-4 opacity-50" />
+                      <p>Aucune donnée à afficher</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Stacked Bar Chart by Method */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Répartition par Méthode d'Affectation</CardTitle>
+                <CardDescription>Comparaison A Priori / A Posteriori / Réimputation</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart
+                    data={methodData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="name" className="text-xs" />
+                    <YAxis tickFormatter={formatCurrency} className="text-xs" />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend />
+                    <Bar dataKey="activity" name="Activités" stackId="a" fill={COLORS[0]} radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="component" name="Composantes" stackId="a" fill={COLORS[1]} />
+                    <Bar dataKey="geographic" name="Zones Géo." stackId="a" fill={COLORS[2]} />
+                    <Bar dataKey="cost_center" name="Centres Coûts" stackId="a" fill={COLORS[3]} radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Detailed Activity Bar Chart */}
+            {activityBarData.length > 0 && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-blue-500" />
+                    Top Activités par Montant
+                  </CardTitle>
+                  <CardDescription>Les 8 activités avec les plus grands montants affectés</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={activityBarData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 60 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis 
+                        dataKey="name" 
+                        className="text-xs"
+                        angle={-45}
+                        textAnchor="end"
+                        height={80}
+                      />
+                      <YAxis tickFormatter={formatCurrency} className="text-xs" />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Bar 
+                        dataKey="montant" 
+                        name="Montant"
+                        fill={COLORS[0]} 
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Detailed Tables */}
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <PieChart className="h-5 w-5" />
+                  <PieChartIcon className="h-5 w-5" />
                   Détail des Affectations
                 </CardTitle>
                 <CardDescription>Analyse détaillée par dimension analytique</CardDescription>
