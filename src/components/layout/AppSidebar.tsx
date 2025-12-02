@@ -114,6 +114,17 @@ const analytiqueGroup: NavGroup = {
   ],
 };
 
+const budgetGroup: NavGroup = {
+  title: "Suivi Budgétaire",
+  icon: Wallet,
+  items: [
+    { title: "Budgets", href: "/budget", icon: FileText },
+    { title: "Tableau de Bord", href: "/budget/dashboard", icon: BarChart3 },
+    { title: "Comparaison", href: "/budget/comparaison", icon: Scale },
+    { title: "Alertes", href: "/budget/alertes", icon: Activity },
+  ],
+};
+
 const otherNavItems: NavItem[] = [
   { title: "Bailleurs", href: "/bailleurs", icon: Building2, badge: 5 },
   { title: "Conventions", href: "/conventions", icon: FileText },
@@ -133,6 +144,7 @@ export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [comptaOpen, setComptaOpen] = useState(true);
   const [analytiqueOpen, setAnalytiqueOpen] = useState(false);
+  const [budgetOpen, setBudgetOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { profile, roles, signOut } = useAuth();
@@ -163,6 +175,7 @@ export function AppSidebar() {
   
   const isComptaActive = location.pathname.startsWith("/comptabilite") && !location.pathname.includes("/analytique");
   const isAnalytiqueActive = location.pathname.includes("/comptabilite/analytique");
+  const isBudgetActive = location.pathname.startsWith("/budget");
 
   const NavItemComponent = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.href;
@@ -316,6 +329,43 @@ export function AppSidebar() {
               </CollapsibleTrigger>
               <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
                 {analytiqueGroup.items.map((item) => (
+                  <SubNavItem key={item.href} item={item} />
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
+          {/* Suivi Budgétaire Group */}
+          {collapsed ? (
+            <Link
+              to="/budget"
+              className={cn("sidebar-nav-item group", isBudgetActive && "active")}
+            >
+              <Wallet className="h-5 w-5 shrink-0" />
+            </Link>
+          ) : (
+            <Collapsible open={budgetOpen} onOpenChange={setBudgetOpen}>
+              <CollapsibleTrigger asChild>
+                <button
+                  className={cn(
+                    "sidebar-nav-item group w-full justify-between",
+                    isBudgetActive && "active"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <Wallet className="h-5 w-5 shrink-0" />
+                    <span className="flex-1 text-left">Budgétaire</span>
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform duration-200",
+                      budgetOpen && "rotate-180"
+                    )}
+                  />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
+                {budgetGroup.items.map((item) => (
                   <SubNavItem key={item.href} item={item} />
                 ))}
               </CollapsibleContent>
