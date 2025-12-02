@@ -9,7 +9,9 @@ import {
   Ruler,
   FileText,
   GitBranch,
-  Settings2
+  Bell,
+  Palette,
+  Database
 } from "lucide-react";
 import { FiscalYearsTab } from "@/components/parametrage/FiscalYearsTab";
 import { CurrenciesTab } from "@/components/parametrage/CurrenciesTab";
@@ -20,6 +22,10 @@ import { WorkUnitsTab } from "@/components/parametrage/WorkUnitsTab";
 import { PlansTab } from "@/components/parametrage/PlansTab";
 import { TrackingAxesTab } from "@/components/parametrage/TrackingAxesTab";
 import { OrganizationTab } from "@/components/parametrage/OrganizationTab";
+import { ComptabiliteTab } from "@/components/parametrage/ComptabiliteTab";
+import { NotificationsTab } from "@/components/parametrage/NotificationsTab";
+import { InterfaceTab } from "@/components/parametrage/InterfaceTab";
+import { SystemeTab } from "@/components/parametrage/SystemeTab";
 
 const tabs = [
   { value: "organisation", label: "Organisation", icon: Building2 },
@@ -31,13 +37,17 @@ const tabs = [
   { value: "unites-oeuvre", label: "Unités d'œuvre", icon: Ruler },
   { value: "plans", label: "Plans", icon: FileText },
   { value: "axes-suivi", label: "Axes de suivi", icon: GitBranch },
+  { value: "comptabilite", label: "Comptabilité", icon: FileText },
+  { value: "notifications", label: "Notifications", icon: Bell },
+  { value: "interface", label: "Interface", icon: Palette },
+  { value: "systeme", label: "Système", icon: Database },
 ];
 
 const Parametrage = () => {
   return (
     <AppLayout 
-      title="Paramétrage" 
-      subtitle="Configuration des données de référence du système"
+      title="Paramètres" 
+      subtitle="Configuration générale et données de référence du système"
     >
       <div className="space-y-6">
         <Tabs defaultValue="organisation" className="space-y-6">
@@ -91,6 +101,22 @@ const Parametrage = () => {
 
           <TabsContent value="axes-suivi">
             <TrackingAxesTab />
+          </TabsContent>
+
+          <TabsContent value="comptabilite">
+            <ComptabiliteTab />
+          </TabsContent>
+
+          <TabsContent value="notifications">
+            <NotificationsTab />
+          </TabsContent>
+
+          <TabsContent value="interface">
+            <InterfaceTab />
+          </TabsContent>
+
+          <TabsContent value="systeme">
+            <SystemeTab />
           </TabsContent>
         </Tabs>
       </div>

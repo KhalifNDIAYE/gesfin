@@ -12,7 +12,6 @@ import {
   BarChart3,
   Shield,
   Settings,
-  Settings2,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -44,7 +43,6 @@ const mainNavItems: NavItem[] = [
 const adminNavItems: NavItem[] = [
   { title: "Utilisateurs", href: "/utilisateurs", icon: Users },
   { title: "Sécurité", href: "/securite", icon: Shield },
-  { title: "Paramétrage", href: "/parametrage", icon: Settings2 },
   { title: "Paramètres", href: "/parametres", icon: Settings },
 ];
 
