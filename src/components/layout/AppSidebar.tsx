@@ -153,11 +153,22 @@ const rapportsGroup: NavGroup = {
   ],
 };
 
+const decaissementsGroup: NavGroup = {
+  title: "Décaissements",
+  icon: ArrowDownUp,
+  items: [
+    { title: "Vue d'ensemble", href: "/decaissements", icon: ArrowDownUp },
+    { title: "Par Projet", href: "/decaissements/projet", icon: FolderKanban },
+    { title: "Par Bailleur", href: "/decaissements/bailleur", icon: Building2 },
+    { title: "Par Budget", href: "/decaissements/budget", icon: Wallet },
+    { title: "Monitoring", href: "/decaissements/monitoring", icon: Activity },
+  ],
+};
+
 const otherNavItems: NavItem[] = [
   { title: "Bailleurs", href: "/bailleurs", icon: Building2, badge: 5 },
   { title: "Conventions", href: "/conventions", icon: FileText },
   { title: "Marchés", href: "/marches", icon: ArrowDownUp },
-  { title: "Décaissements", href: "/decaissements", icon: ArrowDownUp },
 ];
 
 const adminNavItems: NavItem[] = [
@@ -179,6 +190,7 @@ export function AppSidebar() {
   const [budgetOpen, setBudgetOpen] = useState(() => getStoredState('budgetOpen', false));
   const [immoOpen, setImmoOpen] = useState(() => getStoredState('immoOpen', false));
   const [rapportsOpen, setRapportsOpen] = useState(() => getStoredState('rapportsOpen', false));
+  const [decaissementsOpen, setDecaissementsOpen] = useState(() => getStoredState('decaissementsOpen', false));
   const location = useLocation();
 
   // Persist menu states to localStorage
@@ -205,6 +217,10 @@ export function AppSidebar() {
   useEffect(() => {
     localStorage.setItem('sidebar_rapportsOpen', JSON.stringify(rapportsOpen));
   }, [rapportsOpen]);
+
+  useEffect(() => {
+    localStorage.setItem('sidebar_decaissementsOpen', JSON.stringify(decaissementsOpen));
+  }, [decaissementsOpen]);
   const navigate = useNavigate();
   const { profile, roles, signOut } = useAuth();
 
@@ -237,6 +253,7 @@ export function AppSidebar() {
   const isBudgetActive = location.pathname.startsWith("/budget");
   const isImmoActive = location.pathname.startsWith("/immobilisations");
   const isRapportsActive = location.pathname.startsWith("/rapports");
+  const isDecaissementsActive = location.pathname.startsWith("/decaissements");
 
   const NavItemComponent = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.href;
@@ -473,6 +490,43 @@ export function AppSidebar() {
           {otherNavItems.map((item) => (
             <NavItemComponent key={item.href} item={item} />
           ))}
+
+          {/* Décaissements Group */}
+          {collapsed ? (
+            <Link
+              to="/decaissements"
+              className={cn("sidebar-nav-item group", isDecaissementsActive && "active")}
+            >
+              <ArrowDownUp className="h-5 w-5 shrink-0" />
+            </Link>
+          ) : (
+            <Collapsible open={decaissementsOpen} onOpenChange={setDecaissementsOpen}>
+              <CollapsibleTrigger asChild>
+                <button
+                  className={cn(
+                    "sidebar-nav-item group w-full justify-between",
+                    isDecaissementsActive && "active"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <ArrowDownUp className="h-5 w-5 shrink-0" />
+                    <span className="flex-1 text-left">Décaissements</span>
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform duration-200",
+                      decaissementsOpen && "rotate-180"
+                    )}
+                  />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
+                {decaissementsGroup.items.map((item) => (
+                  <SubNavItem key={item.href} item={item} />
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
 
           {/* Rapports Group */}
           {collapsed ? (

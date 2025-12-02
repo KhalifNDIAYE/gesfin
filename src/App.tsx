@@ -17,8 +17,14 @@ import SortiesPage from "./pages/immobilisations/SortiesPage";
 import RapprochementImmoPage from "./pages/immobilisations/RapprochementPage";
 import MarchesPage from "./pages/marches/MarchesPage";
 import ContractDetailPage from "./pages/marches/ContractDetailPage";
-import Decaissements from "./pages/Decaissements";
 import Utilisateurs from "./pages/Utilisateurs";
+
+// Decaissements pages
+import DecaissementsPage from "./pages/decaissements/DecaissementsPage";
+import SuiviProjetPage from "./pages/decaissements/SuiviProjetPage";
+import SuiviBailleurPage from "./pages/decaissements/SuiviBailleurPage";
+import SuiviBudgetPage from "./pages/decaissements/SuiviBudgetPage";
+import MonitoringDashboardPage from "./pages/decaissements/MonitoringDashboardPage";
 import Securite from "./pages/Securite";
 import Parametres from "./pages/Parametrage";
 import Profil from "./pages/Profil";
@@ -128,7 +134,12 @@ const App = () => (
             <Route path="/immobilisations/rapprochement" element={<ProtectedRoute><RapprochementImmoPage /></ProtectedRoute>} />
             <Route path="/marches" element={<ProtectedRoute><MarchesPage /></ProtectedRoute>} />
             <Route path="/marches/:id" element={<ProtectedRoute><ContractDetailPage /></ProtectedRoute>} />
-            <Route path="/decaissements" element={<ProtectedRoute><Decaissements /></ProtectedRoute>} />
+            {/* Decaissements routes */}
+            <Route path="/decaissements" element={<ProtectedRoute><DecaissementsPage /></ProtectedRoute>} />
+            <Route path="/decaissements/projet" element={<ProtectedRoute><SuiviProjetPage /></ProtectedRoute>} />
+            <Route path="/decaissements/bailleur" element={<ProtectedRoute><SuiviBailleurPage /></ProtectedRoute>} />
+            <Route path="/decaissements/budget" element={<ProtectedRoute><SuiviBudgetPage /></ProtectedRoute>} />
+            <Route path="/decaissements/monitoring" element={<ProtectedRoute><MonitoringDashboardPage /></ProtectedRoute>} />
             {/* Rapports routes */}
             <Route path="/rapports" element={<ProtectedRoute><RapportsPage /></ProtectedRoute>} />
             <Route path="/rapports/bilan" element={<ProtectedRoute><BilanPage /></ProtectedRoute>} />
