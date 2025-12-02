@@ -157,9 +157,9 @@ export function useBailleur(id: string) {
         .from("bailleurs")
         .select("*, country:countries(*)")
         .eq("id", id)
-        .single();
+        .maybeSingle();
       if (error) throw error;
-      return data as Bailleur;
+      return data as Bailleur | null;
     },
     enabled: !!id,
   });
@@ -250,9 +250,9 @@ export function useConvention(id: string) {
         .from("conventions")
         .select("*, bailleur:bailleurs(*), currency:currencies(*)")
         .eq("id", id)
-        .single();
+        .maybeSingle();
       if (error) throw error;
-      return data as Convention;
+      return data as Convention | null;
     },
     enabled: !!id,
   });
