@@ -157,6 +157,222 @@ export type Database = {
         }
         Relationships: []
       }
+      journal_entries: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          currency_id: string
+          description: string
+          entry_date: string
+          entry_number: string
+          entry_type: Database["public"]["Enums"]["entry_type"]
+          exchange_rate: number | null
+          fiscal_year_id: string
+          id: string
+          journal_id: string
+          reference: string | null
+          status: Database["public"]["Enums"]["entry_status"]
+          third_party_id: string | null
+          updated_at: string | null
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          currency_id: string
+          description: string
+          entry_date: string
+          entry_number: string
+          entry_type?: Database["public"]["Enums"]["entry_type"]
+          exchange_rate?: number | null
+          fiscal_year_id: string
+          id?: string
+          journal_id: string
+          reference?: string | null
+          status?: Database["public"]["Enums"]["entry_status"]
+          third_party_id?: string | null
+          updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          currency_id?: string
+          description?: string
+          entry_date?: string
+          entry_number?: string
+          entry_type?: Database["public"]["Enums"]["entry_type"]
+          exchange_rate?: number | null
+          fiscal_year_id?: string
+          id?: string
+          journal_id?: string
+          reference?: string | null
+          status?: Database["public"]["Enums"]["entry_status"]
+          third_party_id?: string | null
+          updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entries_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_third_party_id_fkey"
+            columns: ["third_party_id"]
+            isOneToOne: false
+            referencedRelation: "third_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_validated_by_fkey"
+            columns: ["validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journal_entry_lines: {
+        Row: {
+          account_id: string
+          created_at: string | null
+          credit_amount: number | null
+          credit_amount_currency: number | null
+          debit_amount: number | null
+          debit_amount_currency: number | null
+          description: string | null
+          id: string
+          is_lettered: boolean | null
+          journal_entry_id: string
+          lettering_code: string | null
+          line_number: number
+          third_party_id: string | null
+          tracking_axis_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          account_id: string
+          created_at?: string | null
+          credit_amount?: number | null
+          credit_amount_currency?: number | null
+          debit_amount?: number | null
+          debit_amount_currency?: number | null
+          description?: string | null
+          id?: string
+          is_lettered?: boolean | null
+          journal_entry_id: string
+          lettering_code?: string | null
+          line_number: number
+          third_party_id?: string | null
+          tracking_axis_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          account_id?: string
+          created_at?: string | null
+          credit_amount?: number | null
+          credit_amount_currency?: number | null
+          debit_amount?: number | null
+          debit_amount_currency?: number | null
+          description?: string | null
+          id?: string
+          is_lettered?: boolean | null
+          journal_entry_id?: string
+          lettering_code?: string | null
+          line_number?: number
+          third_party_id?: string | null
+          tracking_axis_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "journal_entry_lines_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "plan_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entry_lines_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entry_lines_third_party_id_fkey"
+            columns: ["third_party_id"]
+            isOneToOne: false
+            referencedRelation: "third_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entry_lines_tracking_axis_id_fkey"
+            columns: ["tracking_axis_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_axes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      journals: {
+        Row: {
+          code: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          journal_type: Database["public"]["Enums"]["journal_type"]
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          journal_type: Database["public"]["Enums"]["journal_type"]
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          journal_type?: Database["public"]["Enums"]["journal_type"]
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       locations: {
         Row: {
           code: string
@@ -464,6 +680,51 @@ export type Database = {
           },
         ]
       }
+      third_parties: {
+        Row: {
+          account_code: string | null
+          address: string | null
+          code: string
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          tax_id: string | null
+          third_party_type: Database["public"]["Enums"]["third_party_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          account_code?: string | null
+          address?: string | null
+          code: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          tax_id?: string | null
+          third_party_type: Database["public"]["Enums"]["third_party_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          account_code?: string | null
+          address?: string | null
+          code?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          tax_id?: string | null
+          third_party_type?: Database["public"]["Enums"]["third_party_type"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       tracking_axes: {
         Row: {
           code: string
@@ -575,6 +836,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_entry_number: {
+        Args: { _fiscal_year_id: string; _journal_code: string }
+        Returns: string
+      }
       has_permission: {
         Args: {
           _module: Database["public"]["Enums"]["module_name"]
@@ -604,6 +869,20 @@ export type Database = {
       reset_failed_login: { Args: { _user_id: string }; Returns: undefined }
     }
     Enums: {
+      entry_status: "brouillon" | "valide" | "cloture"
+      entry_type:
+        | "depense"
+        | "financement"
+        | "decaissement"
+        | "prise_en_charge"
+        | "autre"
+      journal_type:
+        | "achats"
+        | "ventes"
+        | "banque"
+        | "caisse"
+        | "operations_diverses"
+        | "a_nouveaux"
       module_name:
         | "dashboard"
         | "projets"
@@ -624,6 +903,12 @@ export type Database = {
         | "analytique"
         | "financier"
         | "geographique"
+      third_party_type:
+        | "fournisseur"
+        | "client"
+        | "employe"
+        | "bailleur"
+        | "autre"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -751,6 +1036,22 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      entry_status: ["brouillon", "valide", "cloture"],
+      entry_type: [
+        "depense",
+        "financement",
+        "decaissement",
+        "prise_en_charge",
+        "autre",
+      ],
+      journal_type: [
+        "achats",
+        "ventes",
+        "banque",
+        "caisse",
+        "operations_diverses",
+        "a_nouveaux",
+      ],
       module_name: [
         "dashboard",
         "projets",
@@ -772,6 +1073,13 @@ export const Constants = {
         "analytique",
         "financier",
         "geographique",
+      ],
+      third_party_type: [
+        "fournisseur",
+        "client",
+        "employe",
+        "bailleur",
+        "autre",
       ],
     },
   },
