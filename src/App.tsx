@@ -18,6 +18,7 @@ import Rapports from "./pages/Rapports";
 import Utilisateurs from "./pages/Utilisateurs";
 import Securite from "./pages/Securite";
 import Parametres from "./pages/Parametres";
+import Parametrage from "./pages/Parametrage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -43,6 +44,7 @@ const App = () => (
             <Route path="/utilisateurs" element={<ProtectedRoute requiredRole="admin"><Utilisateurs /></ProtectedRoute>} />
             <Route path="/securite" element={<ProtectedRoute requiredRole="admin"><Securite /></ProtectedRoute>} />
             <Route path="/parametres" element={<ProtectedRoute><Parametres /></ProtectedRoute>} />
+            <Route path="/parametrage" element={<ProtectedRoute requiredRole="admin"><Parametrage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
