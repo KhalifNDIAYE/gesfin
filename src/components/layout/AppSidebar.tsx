@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   FolderKanban,
@@ -15,11 +15,14 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
-  Bell,
+  User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { toast } from "sonner";
 
 interface NavItem {
   title: string;
@@ -49,6 +52,27 @@ const adminNavItems: NavItem[] = [
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { profile, roles, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Déconnexion réussie");
+      navigate("/auth");
+    } catch (error) {
+      toast.error("Erreur lors de la déconnexion");
+    }
+  };
+
+  const getInitials = (name: string | null, email: string) => {
+    if (name) {
+      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    }
+    return email.slice(0, 2).toUpperCase();
+  };
+
+  const primaryRole = roles.length > 0 ? roles[0].name : 'Utilisateur';
 
   const NavItemComponent = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.href;
@@ -140,17 +164,33 @@ export function AppSidebar() {
             "flex items-center gap-3 rounded-lg bg-sidebar-accent p-3",
             collapsed && "justify-center"
           )}>
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-sidebar-primary/20">
-              <span className="text-sm font-semibold text-sidebar-primary">AD</span>
-            </div>
+            <Avatar className="h-9 w-9 shrink-0">
+              <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'User'} />
+              <AvatarFallback className="bg-sidebar-primary/20 text-sm font-semibold text-sidebar-primary">
+                {profile ? getInitials(profile.full_name, profile.email) : <User className="h-4 w-4" />}
+              </AvatarFallback>
+            </Avatar>
             {!collapsed && (
               <div className="flex-1 overflow-hidden">
-                <p className="truncate text-sm font-medium text-sidebar-foreground">Admin User</p>
-                <p className="truncate text-xs text-sidebar-foreground/60">admin@org.com</p>
+                <p className="truncate text-sm font-medium text-sidebar-foreground">
+                  {profile?.full_name || 'Utilisateur'}
+                </p>
+                <p className="truncate text-xs text-sidebar-foreground/60">
+                  {profile?.email || ''}
+                </p>
+                <p className="truncate text-xs text-sidebar-primary/80 capitalize">
+                  {primaryRole}
+                </p>
               </div>
             )}
             {!collapsed && (
-              <Button variant="ghost" size="icon" className="h-8 w-8 text-sidebar-foreground/60 hover:text-sidebar-foreground">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-sidebar-foreground/60 hover:text-sidebar-foreground hover:bg-destructive/10"
+                onClick={handleSignOut}
+                title="Déconnexion"
+              >
                 <LogOut className="h-4 w-4" />
               </Button>
             )}
