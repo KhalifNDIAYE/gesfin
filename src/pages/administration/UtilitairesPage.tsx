@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -106,12 +107,7 @@ export default function UtilitairesPage() {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold">Utilitaires & Sauvegarde</h1>
-        <p className="text-muted-foreground">Gestion des sauvegardes, imports/exports et interfaces</p>
-      </div>
-
+    <AppLayout title="Utilitaires & Sauvegarde" subtitle="Gestion des sauvegardes, imports/exports et interfaces">
       <Tabs defaultValue="backup" className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="backup" className="flex items-center gap-2">
@@ -760,6 +756,6 @@ export default function UtilitairesPage() {
           </div>
         </TabsContent>
       </Tabs>
-    </div>
+    </AppLayout>
   );
 }
