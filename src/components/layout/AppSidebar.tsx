@@ -142,7 +142,7 @@ const adminNavItems: NavItem[] = [
 
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
-  const [comptaOpen, setComptaOpen] = useState(true);
+  const [comptaOpen, setComptaOpen] = useState(false);
   const [analytiqueOpen, setAnalytiqueOpen] = useState(false);
   const [budgetOpen, setBudgetOpen] = useState(false);
   const location = useLocation();
