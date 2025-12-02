@@ -32,6 +32,12 @@ import {
   RefreshCw,
   Lock,
   Printer,
+  PieChart,
+  Activity,
+  Layers,
+  MapPin,
+  SplitSquareHorizontal,
+  Building,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -93,6 +99,21 @@ const comptabiliteGroup: NavGroup = {
   ],
 };
 
+const analytiqueGroup: NavGroup = {
+  title: "Comptabilité Analytique",
+  icon: PieChart,
+  items: [
+    { title: "Par Activité", href: "/comptabilite/analytique/activite", icon: Activity },
+    { title: "Par Composante", href: "/comptabilite/analytique/composante", icon: Layers },
+    { title: "Par Zone Géo.", href: "/comptabilite/analytique/geographique", icon: MapPin },
+    { title: "Répartition", href: "/comptabilite/analytique/repartition", icon: SplitSquareHorizontal },
+    { title: "Réimputation", href: "/comptabilite/analytique/reimputation", icon: ArrowDownUp },
+    { title: "Centres de Coûts", href: "/comptabilite/analytique/centres-couts", icon: Building },
+    { title: "Analyse Projet", href: "/comptabilite/analytique/analyse-projet", icon: FolderKanban },
+    { title: "Synthèse", href: "/comptabilite/analytique/synthese", icon: PieChart },
+  ],
+};
+
 const otherNavItems: NavItem[] = [
   { title: "Bailleurs", href: "/bailleurs", icon: Building2, badge: 5 },
   { title: "Conventions", href: "/conventions", icon: FileText },
@@ -111,6 +132,7 @@ const adminNavItems: NavItem[] = [
 export function AppSidebar() {
   const [collapsed, setCollapsed] = useState(false);
   const [comptaOpen, setComptaOpen] = useState(true);
+  const [analytiqueOpen, setAnalytiqueOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const { profile, roles, signOut } = useAuth();
@@ -139,7 +161,8 @@ export function AppSidebar() {
 
   const primaryRole = roles.length > 0 ? roles[0].name : "Utilisateur";
   
-  const isComptaActive = location.pathname.startsWith("/comptabilite");
+  const isComptaActive = location.pathname.startsWith("/comptabilite") && !location.pathname.includes("/analytique");
+  const isAnalytiqueActive = location.pathname.includes("/comptabilite/analytique");
 
   const NavItemComponent = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.href;
@@ -256,6 +279,43 @@ export function AppSidebar() {
               </CollapsibleTrigger>
               <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
                 {comptabiliteGroup.items.map((item) => (
+                  <SubNavItem key={item.href} item={item} />
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
+          {/* Comptabilité Analytique Group */}
+          {collapsed ? (
+            <Link
+              to="/comptabilite/analytique/synthese"
+              className={cn("sidebar-nav-item group", isAnalytiqueActive && "active")}
+            >
+              <PieChart className="h-5 w-5 shrink-0" />
+            </Link>
+          ) : (
+            <Collapsible open={analytiqueOpen} onOpenChange={setAnalytiqueOpen}>
+              <CollapsibleTrigger asChild>
+                <button
+                  className={cn(
+                    "sidebar-nav-item group w-full justify-between",
+                    isAnalytiqueActive && "active"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <PieChart className="h-5 w-5 shrink-0" />
+                    <span className="flex-1 text-left">Analytique</span>
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform duration-200",
+                      analytiqueOpen && "rotate-180"
+                    )}
+                  />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
+                {analytiqueGroup.items.map((item) => (
                   <SubNavItem key={item.href} item={item} />
                 ))}
               </CollapsibleContent>

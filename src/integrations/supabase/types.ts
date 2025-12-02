@@ -14,6 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytical_allocations: {
+        Row: {
+          activity_id: string | null
+          allocation_method: string
+          allocation_type: string
+          amount: number
+          component_id: string | null
+          cost_center_id: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          fiscal_year_id: string | null
+          geographic_zone_id: string | null
+          id: string
+          journal_entry_line_id: string | null
+          percentage: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          activity_id?: string | null
+          allocation_method: string
+          allocation_type: string
+          amount?: number
+          component_id?: string | null
+          cost_center_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          fiscal_year_id?: string | null
+          geographic_zone_id?: string | null
+          id?: string
+          journal_entry_line_id?: string | null
+          percentage?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          activity_id?: string | null
+          allocation_method?: string
+          allocation_type?: string
+          amount?: number
+          component_id?: string | null
+          cost_center_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          fiscal_year_id?: string | null
+          geographic_zone_id?: string | null
+          id?: string
+          journal_entry_line_id?: string | null
+          percentage?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytical_allocations_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_axes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytical_allocations_component_id_fkey"
+            columns: ["component_id"]
+            isOneToOne: false
+            referencedRelation: "plan_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytical_allocations_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytical_allocations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytical_allocations_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytical_allocations_geographic_zone_id_fkey"
+            columns: ["geographic_zone_id"]
+            isOneToOne: false
+            referencedRelation: "plan_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "analytical_allocations_journal_entry_line_id_fkey"
+            columns: ["journal_entry_line_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entry_lines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -63,6 +167,47 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cost_centers: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          parent_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          parent_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          parent_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cost_centers_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "cost_centers"
             referencedColumns: ["id"]
           },
         ]
@@ -123,6 +268,76 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      distribution_rule_lines: {
+        Row: {
+          created_at: string | null
+          distribution_rule_id: string
+          id: string
+          percentage: number
+          target_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          distribution_rule_id: string
+          id?: string
+          percentage: number
+          target_id: string
+        }
+        Update: {
+          created_at?: string | null
+          distribution_rule_id?: string
+          id?: string
+          percentage?: number
+          target_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distribution_rule_lines_distribution_rule_id_fkey"
+            columns: ["distribution_rule_id"]
+            isOneToOne: false
+            referencedRelation: "distribution_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      distribution_rules: {
+        Row: {
+          allocation_type: string
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          source_account_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          allocation_type: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          source_account_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          allocation_type?: string
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          source_account_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "distribution_rules_source_account_id_fkey"
+            columns: ["source_account_id"]
+            isOneToOne: false
+            referencedRelation: "plan_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       fiscal_years: {
         Row: {

@@ -37,6 +37,16 @@ import ANouveauxPage from "./pages/comptabilite/ANouveauxPage";
 import CloturesPage from "./pages/comptabilite/CloturesPage";
 import EditionsPage from "./pages/comptabilite/EditionsPage";
 
+// Comptabilité Analytique sub-pages
+import AffectationActivitePage from "./pages/comptabilite/analytique/AffectationActivitePage";
+import AffectationComposantePage from "./pages/comptabilite/analytique/AffectationComposantePage";
+import AffectationGeographiquePage from "./pages/comptabilite/analytique/AffectationGeographiquePage";
+import RepartitionPage from "./pages/comptabilite/analytique/RepartitionPage";
+import ReimputationPage from "./pages/comptabilite/analytique/ReimputationPage";
+import CentresCoutsPage from "./pages/comptabilite/analytique/CentresCoutsPage";
+import AnalyseProjetPage from "./pages/comptabilite/analytique/AnalyseProjetPage";
+import SyntheseAnalytiquePage from "./pages/comptabilite/analytique/SyntheseAnalytiquePage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -65,6 +75,15 @@ const App = () => (
             <Route path="/comptabilite/a-nouveaux" element={<ProtectedRoute><ANouveauxPage /></ProtectedRoute>} />
             <Route path="/comptabilite/clotures" element={<ProtectedRoute><CloturesPage /></ProtectedRoute>} />
             <Route path="/comptabilite/editions" element={<ProtectedRoute><EditionsPage /></ProtectedRoute>} />
+            {/* Comptabilité Analytique routes */}
+            <Route path="/comptabilite/analytique/activite" element={<ProtectedRoute><AffectationActivitePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/composante" element={<ProtectedRoute><AffectationComposantePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/geographique" element={<ProtectedRoute><AffectationGeographiquePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/repartition" element={<ProtectedRoute><RepartitionPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/reimputation" element={<ProtectedRoute><ReimputationPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/centres-couts" element={<ProtectedRoute><CentresCoutsPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/analyse-projet" element={<ProtectedRoute><AnalyseProjetPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/synthese" element={<ProtectedRoute><SyntheseAnalytiquePage /></ProtectedRoute>} />
             <Route path="/bailleurs" element={<ProtectedRoute><Bailleurs /></ProtectedRoute>} />
             <Route path="/conventions" element={<ProtectedRoute><Conventions /></ProtectedRoute>} />
             <Route path="/immobilisations" element={<ProtectedRoute><Immobilisations /></ProtectedRoute>} />
