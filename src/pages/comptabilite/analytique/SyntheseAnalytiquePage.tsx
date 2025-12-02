@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { PieChart as PieChartIcon, Download, RefreshCw, Activity, Layers, MapPin, Building } from "lucide-react";
+import { PieChart as PieChartIcon, Download, RefreshCw, Activity, Layers, MapPin, Building, FileSpreadsheet, FileText } from "lucide-react";
 import { useFiscalYears } from "@/hooks/useParametrage";
 import { useAnalyticalSummary, useAnalyticalAllocations } from "@/hooks/useComptabiliteAnalytique";
 import {
@@ -23,6 +23,12 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   PieChart,
   Pie,
   Cell,
@@ -34,18 +40,23 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  AreaChart,
-  Area,
 } from "recharts";
+import { toast } from "sonner";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+import * as XLSX from "xlsx";
 
 const COLORS = ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#ef4444', '#06b6d4', '#eab308', '#ec4899'];
 
 export default function SyntheseAnalytiquePage() {
   const [selectedFiscalYear, setSelectedFiscalYear] = useState<string>("");
+  const [isExporting, setIsExporting] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   const { data: fiscalYears } = useFiscalYears();
   const currentFiscalYear = fiscalYears?.find(fy => fy.is_current);
   const fiscalYearId = selectedFiscalYear || currentFiscalYear?.id;
+  const selectedFiscalYearName = fiscalYears?.find(fy => fy.id === fiscalYearId)?.name || "Exercice";
   
   const { data: summary, isLoading: summaryLoading, refetch } = useAnalyticalSummary(fiscalYearId);
   const { data: allAllocations } = useAnalyticalAllocations({ fiscal_year_id: fiscalYearId });
@@ -135,6 +146,210 @@ export default function SyntheseAnalytiquePage() {
     return null;
   };
 
+  // Export to PDF
+  const exportToPDF = async () => {
+    if (!contentRef.current) return;
+    
+    setIsExporting(true);
+    toast.info("Génération du PDF en cours...");
+    
+    try {
+      const canvas = await html2canvas(contentRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4',
+      });
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+      const imgX = (pdfWidth - imgWidth * ratio) / 2;
+      const imgY = 10;
+      
+      // Add title
+      pdf.setFontSize(16);
+      pdf.text(`Synthèse Analytique - ${selectedFiscalYearName}`, pdfWidth / 2, 15, { align: 'center' });
+      pdf.setFontSize(10);
+      pdf.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pdfWidth / 2, 22, { align: 'center' });
+      
+      // Calculate if we need multiple pages
+      const scaledImgHeight = imgHeight * ratio;
+      const maxHeight = pdfHeight - 30;
+      
+      if (scaledImgHeight <= maxHeight) {
+        pdf.addImage(imgData, 'PNG', imgX, 25, imgWidth * ratio, scaledImgHeight);
+      } else {
+        // Split into multiple pages
+        let remainingHeight = imgHeight;
+        let sourceY = 0;
+        let page = 0;
+        
+        while (remainingHeight > 0) {
+          const sliceHeight = Math.min(remainingHeight, (maxHeight / ratio));
+          
+          if (page > 0) {
+            pdf.addPage();
+          }
+          
+          const tempCanvas = document.createElement('canvas');
+          tempCanvas.width = imgWidth;
+          tempCanvas.height = sliceHeight;
+          const tempCtx = tempCanvas.getContext('2d');
+          
+          if (tempCtx) {
+            tempCtx.drawImage(canvas, 0, sourceY, imgWidth, sliceHeight, 0, 0, imgWidth, sliceHeight);
+            const sliceData = tempCanvas.toDataURL('image/png');
+            pdf.addImage(sliceData, 'PNG', imgX, page === 0 ? 25 : 10, imgWidth * ratio, sliceHeight * ratio);
+          }
+          
+          sourceY += sliceHeight;
+          remainingHeight -= sliceHeight;
+          page++;
+        }
+      }
+      
+      pdf.save(`synthese-analytique-${selectedFiscalYearName}.pdf`);
+      toast.success("PDF exporté avec succès");
+    } catch (error) {
+      console.error('Error exporting PDF:', error);
+      toast.error("Erreur lors de l'export PDF");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Export to Excel
+  const exportToExcel = () => {
+    setIsExporting(true);
+    toast.info("Génération du fichier Excel en cours...");
+    
+    try {
+      const workbook = XLSX.utils.book_new();
+      
+      // Summary sheet
+      const summaryData = [
+        ['Synthèse Analytique', selectedFiscalYearName],
+        ['Généré le', new Date().toLocaleDateString('fr-FR')],
+        [],
+        ['Type', 'Montant (FCFA)', 'Pourcentage'],
+        ['Total', summary?.total || 0, '100%'],
+        ['Par Activité', summary?.by_activity || 0, summary?.total ? `${((summary.by_activity / summary.total) * 100).toFixed(1)}%` : '0%'],
+        ['Par Composante', summary?.by_component || 0, summary?.total ? `${((summary.by_component / summary.total) * 100).toFixed(1)}%` : '0%'],
+        ['Par Zone Géographique', summary?.by_geographic || 0, summary?.total ? `${((summary.by_geographic / summary.total) * 100).toFixed(1)}%` : '0%'],
+        ['Par Centre de Coûts', summary?.by_cost_center || 0, summary?.total ? `${((summary.by_cost_center / summary.total) * 100).toFixed(1)}%` : '0%'],
+      ];
+      const summarySheet = XLSX.utils.aoa_to_sheet(summaryData);
+      XLSX.utils.book_append_sheet(workbook, summarySheet, 'Synthèse');
+      
+      // Method distribution sheet
+      const methodSheetData = [
+        ['Répartition par Méthode d\'Affectation'],
+        [],
+        ['Méthode', 'Activités', 'Composantes', 'Zones Géo.', 'Centres Coûts', 'Total'],
+        ...methodData.map(row => [
+          row.name,
+          row.activity,
+          row.component,
+          row.geographic,
+          row.cost_center,
+          row.activity + row.component + row.geographic + row.cost_center
+        ])
+      ];
+      const methodSheet = XLSX.utils.aoa_to_sheet(methodSheetData);
+      XLSX.utils.book_append_sheet(workbook, methodSheet, 'Par Méthode');
+      
+      // Activities sheet
+      if (byActivity.length > 0) {
+        const activityData = [
+          ['Affectations par Activité'],
+          [],
+          ['Code', 'Activité', 'Méthode', 'Montant (FCFA)', 'Pourcentage'],
+          ...byActivity.map(alloc => [
+            alloc.activity?.code || '',
+            alloc.activity?.name || '',
+            alloc.allocation_method,
+            Number(alloc.amount),
+            alloc.percentage ? `${alloc.percentage}%` : '-'
+          ])
+        ];
+        const activitySheet = XLSX.utils.aoa_to_sheet(activityData);
+        XLSX.utils.book_append_sheet(workbook, activitySheet, 'Activités');
+      }
+      
+      // Components sheet
+      if (byComponent.length > 0) {
+        const componentData = [
+          ['Affectations par Composante'],
+          [],
+          ['Code', 'Composante', 'Méthode', 'Montant (FCFA)', 'Pourcentage'],
+          ...byComponent.map(alloc => [
+            alloc.component?.code || '',
+            alloc.component?.name || '',
+            alloc.allocation_method,
+            Number(alloc.amount),
+            alloc.percentage ? `${alloc.percentage}%` : '-'
+          ])
+        ];
+        const componentSheet = XLSX.utils.aoa_to_sheet(componentData);
+        XLSX.utils.book_append_sheet(workbook, componentSheet, 'Composantes');
+      }
+      
+      // Geographic zones sheet
+      if (byGeographic.length > 0) {
+        const geoData = [
+          ['Affectations par Zone Géographique'],
+          [],
+          ['Code', 'Zone', 'Méthode', 'Montant (FCFA)', 'Pourcentage'],
+          ...byGeographic.map(alloc => [
+            alloc.geographic_zone?.code || '',
+            alloc.geographic_zone?.name || '',
+            alloc.allocation_method,
+            Number(alloc.amount),
+            alloc.percentage ? `${alloc.percentage}%` : '-'
+          ])
+        ];
+        const geoSheet = XLSX.utils.aoa_to_sheet(geoData);
+        XLSX.utils.book_append_sheet(workbook, geoSheet, 'Zones Géographiques');
+      }
+      
+      // Cost centers sheet
+      if (byCostCenter.length > 0) {
+        const costCenterData = [
+          ['Affectations par Centre de Coûts'],
+          [],
+          ['Code', 'Centre de Coûts', 'Méthode', 'Montant (FCFA)', 'Pourcentage'],
+          ...byCostCenter.map(alloc => [
+            alloc.cost_center?.code || '',
+            alloc.cost_center?.name || '',
+            alloc.allocation_method,
+            Number(alloc.amount),
+            alloc.percentage ? `${alloc.percentage}%` : '-'
+          ])
+        ];
+        const costCenterSheet = XLSX.utils.aoa_to_sheet(costCenterData);
+        XLSX.utils.book_append_sheet(workbook, costCenterSheet, 'Centres de Coûts');
+      }
+      
+      XLSX.writeFile(workbook, `synthese-analytique-${selectedFiscalYearName}.xlsx`);
+      toast.success("Excel exporté avec succès");
+    } catch (error) {
+      console.error('Error exporting Excel:', error);
+      toast.error("Erreur lors de l'export Excel");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
   const StatCard = ({ icon: Icon, title, value, color }: { icon: any, title: string, value: number, color: string }) => (
     <Card>
       <CardHeader className="pb-2">
@@ -183,10 +398,24 @@ export default function SyntheseAnalytiquePage() {
               <RefreshCw className="h-4 w-4 mr-2" />
               Actualiser
             </Button>
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Exporter
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" disabled={isExporting}>
+                  <Download className="h-4 w-4 mr-2" />
+                  {isExporting ? "Export..." : "Exporter"}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={exportToPDF}>
+                  <FileText className="h-4 w-4 mr-2" />
+                  Exporter en PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportToExcel}>
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
+                  Exporter en Excel
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -195,7 +424,7 @@ export default function SyntheseAnalytiquePage() {
             <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
           </div>
         ) : (
-          <>
+          <div ref={contentRef} className="space-y-6 bg-background">
             {/* Stats Cards */}
             <div className="grid gap-4 md:grid-cols-5">
               <Card className="md:col-span-1">
@@ -580,7 +809,7 @@ export default function SyntheseAnalytiquePage() {
                 </Tabs>
               </CardContent>
             </Card>
-          </>
+          </div>
         )}
       </div>
     </AppLayout>
