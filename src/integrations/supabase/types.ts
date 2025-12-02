@@ -171,6 +171,74 @@ export type Database = {
           },
         ]
       }
+      bailleurs: {
+        Row: {
+          address: string | null
+          bailleur_type: string
+          code: string
+          contact_email: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          country_id: string | null
+          created_at: string | null
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          notes: string | null
+          phone: string | null
+          short_name: string | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          address?: string | null
+          bailleur_type?: string
+          code: string
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          country_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          short_name?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          address?: string | null
+          bailleur_type?: string
+          code?: string
+          contact_email?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          country_id?: string | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          short_name?: string | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bailleurs_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budget_alerts: {
         Row: {
           alert_type: string
@@ -486,6 +554,157 @@ export type Database = {
           },
         ]
       }
+      convention_categories: {
+        Row: {
+          budget_amount: number | null
+          budget_amount_local: number | null
+          committed_amount: number | null
+          convention_id: string
+          created_at: string | null
+          disbursed_amount: number | null
+          expense_category_id: string
+          id: string
+          updated_at: string | null
+        }
+        Insert: {
+          budget_amount?: number | null
+          budget_amount_local?: number | null
+          committed_amount?: number | null
+          convention_id: string
+          created_at?: string | null
+          disbursed_amount?: number | null
+          expense_category_id: string
+          id?: string
+          updated_at?: string | null
+        }
+        Update: {
+          budget_amount?: number | null
+          budget_amount_local?: number | null
+          committed_amount?: number | null
+          convention_id?: string
+          created_at?: string | null
+          disbursed_amount?: number | null
+          expense_category_id?: string
+          id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convention_categories_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "conventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "convention_categories_expense_category_id_fkey"
+            columns: ["expense_category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conventions: {
+        Row: {
+          bailleur_id: string
+          closing_date: string | null
+          code: string
+          convention_type: string | null
+          created_at: string | null
+          created_by: string | null
+          currency_id: string
+          description: string | null
+          disbursed_amount: number | null
+          disbursed_amount_local: number | null
+          effective_date: string | null
+          exchange_rate: number | null
+          id: string
+          name: string
+          objectives: string | null
+          remaining_amount: number | null
+          remaining_amount_local: number | null
+          signing_date: string | null
+          special_conditions: string | null
+          status: string
+          total_amount: number
+          total_amount_local: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          bailleur_id: string
+          closing_date?: string | null
+          code: string
+          convention_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_id: string
+          description?: string | null
+          disbursed_amount?: number | null
+          disbursed_amount_local?: number | null
+          effective_date?: string | null
+          exchange_rate?: number | null
+          id?: string
+          name: string
+          objectives?: string | null
+          remaining_amount?: number | null
+          remaining_amount_local?: number | null
+          signing_date?: string | null
+          special_conditions?: string | null
+          status?: string
+          total_amount?: number
+          total_amount_local?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          bailleur_id?: string
+          closing_date?: string | null
+          code?: string
+          convention_type?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_id?: string
+          description?: string | null
+          disbursed_amount?: number | null
+          disbursed_amount_local?: number | null
+          effective_date?: string | null
+          exchange_rate?: number | null
+          id?: string
+          name?: string
+          objectives?: string | null
+          remaining_amount?: number | null
+          remaining_amount_local?: number | null
+          signing_date?: string | null
+          special_conditions?: string | null
+          status?: string
+          total_amount?: number
+          total_amount_local?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conventions_bailleur_id_fkey"
+            columns: ["bailleur_id"]
+            isOneToOne: false
+            referencedRelation: "bailleurs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conventions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conventions_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       cost_centers: {
         Row: {
           code: string
@@ -584,6 +803,107 @@ export type Database = {
         }
         Relationships: []
       }
+      direct_payments: {
+        Row: {
+          amount: number
+          amount_local: number | null
+          approved_by: string | null
+          bank_reference: string | null
+          beneficiary_account: string | null
+          beneficiary_name: string
+          code: string
+          contract_reference: string | null
+          convention_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          exchange_rate: number | null
+          expense_category_id: string | null
+          id: string
+          invoice_reference: string | null
+          notes: string | null
+          payment_date: string | null
+          request_date: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          amount_local?: number | null
+          approved_by?: string | null
+          bank_reference?: string | null
+          beneficiary_account?: string | null
+          beneficiary_name: string
+          code: string
+          contract_reference?: string | null
+          convention_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          exchange_rate?: number | null
+          expense_category_id?: string | null
+          id?: string
+          invoice_reference?: string | null
+          notes?: string | null
+          payment_date?: string | null
+          request_date: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_local?: number | null
+          approved_by?: string | null
+          bank_reference?: string | null
+          beneficiary_account?: string | null
+          beneficiary_name?: string
+          code?: string
+          contract_reference?: string | null
+          convention_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          exchange_rate?: number | null
+          expense_category_id?: string | null
+          id?: string
+          invoice_reference?: string | null
+          notes?: string | null
+          payment_date?: string | null
+          request_date?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "direct_payments_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_payments_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "conventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_payments_expense_category_id_fkey"
+            columns: ["expense_category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       distribution_rule_lines: {
         Row: {
           created_at: string | null
@@ -650,6 +970,195 @@ export type Database = {
             columns: ["source_account_id"]
             isOneToOne: false
             referencedRelation: "plan_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      expense_categories: {
+        Row: {
+          code: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          parent_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          parent_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          parent_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_categories_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_report_lines: {
+        Row: {
+          amount: number | null
+          amount_local: number | null
+          budget_amount: number | null
+          created_at: string | null
+          cumulative_amount: number | null
+          description: string | null
+          expense_category_id: string | null
+          financial_report_id: string
+          id: string
+          line_number: number | null
+          variance_amount: number | null
+        }
+        Insert: {
+          amount?: number | null
+          amount_local?: number | null
+          budget_amount?: number | null
+          created_at?: string | null
+          cumulative_amount?: number | null
+          description?: string | null
+          expense_category_id?: string | null
+          financial_report_id: string
+          id?: string
+          line_number?: number | null
+          variance_amount?: number | null
+        }
+        Update: {
+          amount?: number | null
+          amount_local?: number | null
+          budget_amount?: number | null
+          created_at?: string | null
+          cumulative_amount?: number | null
+          description?: string | null
+          expense_category_id?: string | null
+          financial_report_id?: string
+          id?: string
+          line_number?: number | null
+          variance_amount?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_report_lines_expense_category_id_fkey"
+            columns: ["expense_category_id"]
+            isOneToOne: false
+            referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_report_lines_financial_report_id_fkey"
+            columns: ["financial_report_id"]
+            isOneToOne: false
+            referencedRelation: "financial_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      financial_reports: {
+        Row: {
+          approval_date: string | null
+          approved_by: string | null
+          closing_balance: number | null
+          code: string
+          convention_id: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          notes: string | null
+          opening_balance: number | null
+          period_end: string
+          period_start: string
+          replenishment_requested: number | null
+          report_data: Json | null
+          report_type: string
+          status: string
+          submission_date: string | null
+          total_expenses: number | null
+          total_expenses_local: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          approval_date?: string | null
+          approved_by?: string | null
+          closing_balance?: number | null
+          code: string
+          convention_id: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          opening_balance?: number | null
+          period_end: string
+          period_start: string
+          replenishment_requested?: number | null
+          report_data?: Json | null
+          report_type: string
+          status?: string
+          submission_date?: string | null
+          total_expenses?: number | null
+          total_expenses_local?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          approval_date?: string | null
+          approved_by?: string | null
+          closing_balance?: number | null
+          code?: string
+          convention_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          opening_balance?: number | null
+          period_end?: string
+          period_start?: string
+          replenishment_requested?: number | null
+          report_data?: Json | null
+          report_type?: string
+          status?: string
+          submission_date?: string | null
+          total_expenses?: number | null
+          total_expenses_local?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "financial_reports_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_reports_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "conventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_reports_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1095,6 +1604,88 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      replenishments: {
+        Row: {
+          amount: number
+          amount_local: number | null
+          approved_by: string | null
+          approved_date: string | null
+          bank_reference: string | null
+          code: string
+          convention_id: string
+          created_at: string | null
+          created_by: string | null
+          exchange_rate: number | null
+          id: string
+          notes: string | null
+          received_date: string | null
+          request_date: string
+          status: string
+          submitted_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount: number
+          amount_local?: number | null
+          approved_by?: string | null
+          approved_date?: string | null
+          bank_reference?: string | null
+          code: string
+          convention_id: string
+          created_at?: string | null
+          created_by?: string | null
+          exchange_rate?: number | null
+          id?: string
+          notes?: string | null
+          received_date?: string | null
+          request_date: string
+          status?: string
+          submitted_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_local?: number | null
+          approved_by?: string | null
+          approved_date?: string | null
+          bank_reference?: string | null
+          code?: string
+          convention_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          exchange_rate?: number | null
+          id?: string
+          notes?: string | null
+          received_date?: string | null
+          request_date?: string
+          status?: string
+          submitted_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "replenishments_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "replenishments_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "conventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "replenishments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {

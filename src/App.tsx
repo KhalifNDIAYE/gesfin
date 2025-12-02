@@ -54,6 +54,10 @@ import BudgetDashboardPage from "./pages/budget/BudgetDashboardPage";
 import BudgetComparisonPage from "./pages/budget/BudgetComparisonPage";
 import BudgetAlertsPage from "./pages/budget/BudgetAlertsPage";
 
+// Bailleurs & Conventions pages
+import BailleursPage from "./pages/bailleurs/BailleursPage";
+import ConventionsPage from "./pages/conventions/ConventionsPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -97,8 +101,9 @@ const App = () => (
             <Route path="/budget/dashboard" element={<ProtectedRoute><BudgetDashboardPage /></ProtectedRoute>} />
             <Route path="/budget/comparaison" element={<ProtectedRoute><BudgetComparisonPage /></ProtectedRoute>} />
             <Route path="/budget/alertes" element={<ProtectedRoute><BudgetAlertsPage /></ProtectedRoute>} />
-            <Route path="/bailleurs" element={<ProtectedRoute><Bailleurs /></ProtectedRoute>} />
-            <Route path="/conventions" element={<ProtectedRoute><Conventions /></ProtectedRoute>} />
+            {/* Bailleurs & Conventions routes */}
+            <Route path="/bailleurs" element={<ProtectedRoute><BailleursPage /></ProtectedRoute>} />
+            <Route path="/conventions" element={<ProtectedRoute><ConventionsPage /></ProtectedRoute>} />
             <Route path="/immobilisations" element={<ProtectedRoute><Immobilisations /></ProtectedRoute>} />
             <Route path="/marches" element={<ProtectedRoute><Marches /></ProtectedRoute>} />
             <Route path="/decaissements" element={<ProtectedRoute><Decaissements /></ProtectedRoute>} />
