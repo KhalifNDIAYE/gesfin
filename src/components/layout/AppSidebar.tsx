@@ -137,12 +137,26 @@ const immobilisationsGroup: NavGroup = {
   ],
 };
 
+const rapportsGroup: NavGroup = {
+  title: "Rapports",
+  icon: BarChart3,
+  items: [
+    { title: "Vue d'ensemble", href: "/rapports", icon: FileText },
+    { title: "Bilan", href: "/rapports/bilan", icon: FileText },
+    { title: "Compte de Résultat", href: "/rapports/resultat", icon: TrendingUp },
+    { title: "Financement", href: "/rapports/financement", icon: Wallet },
+    { title: "Ratios", href: "/rapports/ratios", icon: Calculator },
+    { title: "Dashboard", href: "/rapports/dashboard", icon: BarChart3 },
+    { title: "SYSCOHADA", href: "/rapports/syscohada", icon: BookOpen },
+    { title: "IFR / RSF", href: "/rapports/ifr", icon: FileCheck },
+  ],
+};
+
 const otherNavItems: NavItem[] = [
   { title: "Bailleurs", href: "/bailleurs", icon: Building2, badge: 5 },
   { title: "Conventions", href: "/conventions", icon: FileText },
   { title: "Marchés", href: "/marches", icon: ArrowDownUp },
   { title: "Décaissements", href: "/decaissements", icon: ArrowDownUp },
-  { title: "Rapports", href: "/rapports", icon: BarChart3 },
 ];
 
 const adminNavItems: NavItem[] = [
@@ -163,6 +177,7 @@ export function AppSidebar() {
   const [analytiqueOpen, setAnalytiqueOpen] = useState(() => getStoredState('analytiqueOpen', false));
   const [budgetOpen, setBudgetOpen] = useState(() => getStoredState('budgetOpen', false));
   const [immoOpen, setImmoOpen] = useState(() => getStoredState('immoOpen', false));
+  const [rapportsOpen, setRapportsOpen] = useState(() => getStoredState('rapportsOpen', false));
   const location = useLocation();
 
   // Persist menu states to localStorage
@@ -185,6 +200,10 @@ export function AppSidebar() {
   useEffect(() => {
     localStorage.setItem('sidebar_immoOpen', JSON.stringify(immoOpen));
   }, [immoOpen]);
+
+  useEffect(() => {
+    localStorage.setItem('sidebar_rapportsOpen', JSON.stringify(rapportsOpen));
+  }, [rapportsOpen]);
   const navigate = useNavigate();
   const { profile, roles, signOut } = useAuth();
 
@@ -216,6 +235,7 @@ export function AppSidebar() {
   const isAnalytiqueActive = location.pathname.includes("/comptabilite/analytique");
   const isBudgetActive = location.pathname.startsWith("/budget");
   const isImmoActive = location.pathname.startsWith("/immobilisations");
+  const isRapportsActive = location.pathname.startsWith("/rapports");
 
   const NavItemComponent = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.href;
@@ -452,6 +472,43 @@ export function AppSidebar() {
           {otherNavItems.map((item) => (
             <NavItemComponent key={item.href} item={item} />
           ))}
+
+          {/* Rapports Group */}
+          {collapsed ? (
+            <Link
+              to="/rapports"
+              className={cn("sidebar-nav-item group", isRapportsActive && "active")}
+            >
+              <BarChart3 className="h-5 w-5 shrink-0" />
+            </Link>
+          ) : (
+            <Collapsible open={rapportsOpen} onOpenChange={setRapportsOpen}>
+              <CollapsibleTrigger asChild>
+                <button
+                  className={cn(
+                    "sidebar-nav-item group w-full justify-between",
+                    isRapportsActive && "active"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <BarChart3 className="h-5 w-5 shrink-0" />
+                    <span className="flex-1 text-left">Rapports</span>
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform duration-200",
+                      rapportsOpen && "rotate-180"
+                    )}
+                  />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
+                {rapportsGroup.items.map((item) => (
+                  <SubNavItem key={item.href} item={item} />
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
 
           <div className="mb-2 mt-6">
             {!collapsed && (
