@@ -11,7 +11,8 @@ import {
   GitBranch,
   Bell,
   Palette,
-  Database
+  Database,
+  Tags
 } from "lucide-react";
 import { FiscalYearsTab } from "@/components/parametrage/FiscalYearsTab";
 import { CurrenciesTab } from "@/components/parametrage/CurrenciesTab";
@@ -26,6 +27,7 @@ import { ComptabiliteTab } from "@/components/parametrage/ComptabiliteTab";
 import { NotificationsTab } from "@/components/parametrage/NotificationsTab";
 import { InterfaceTab } from "@/components/parametrage/InterfaceTab";
 import { SystemeTab } from "@/components/parametrage/SystemeTab";
+import { ExpenseCategoriesTab } from "@/components/parametrage/ExpenseCategoriesTab";
 
 const tabs = [
   { value: "organisation", label: "Organisation", icon: Building2 },
@@ -37,6 +39,7 @@ const tabs = [
   { value: "unites-oeuvre", label: "Unités d'œuvre", icon: Ruler },
   { value: "plans", label: "Plans", icon: FileText },
   { value: "axes-suivi", label: "Axes de suivi", icon: GitBranch },
+  { value: "categories-depenses", label: "Catégories dépenses", icon: Tags },
   { value: "comptabilite", label: "Comptabilité", icon: FileText },
   { value: "notifications", label: "Notifications", icon: Bell },
   { value: "interface", label: "Interface", icon: Palette },
@@ -101,6 +104,10 @@ const Parametrage = () => {
 
           <TabsContent value="axes-suivi">
             <TrackingAxesTab />
+          </TabsContent>
+
+          <TabsContent value="categories-depenses">
+            <ExpenseCategoriesTab />
           </TabsContent>
 
           <TabsContent value="comptabilite">
