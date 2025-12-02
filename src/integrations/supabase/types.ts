@@ -118,6 +118,546 @@ export type Database = {
           },
         ]
       }
+      asset_categories: {
+        Row: {
+          account_id: string | null
+          code: string
+          created_at: string | null
+          depreciation_account_id: string | null
+          depreciation_method: string | null
+          depreciation_rate: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+          useful_life_years: number | null
+        }
+        Insert: {
+          account_id?: string | null
+          code: string
+          created_at?: string | null
+          depreciation_account_id?: string | null
+          depreciation_method?: string | null
+          depreciation_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+          useful_life_years?: number | null
+        }
+        Update: {
+          account_id?: string | null
+          code?: string
+          created_at?: string | null
+          depreciation_account_id?: string | null
+          depreciation_method?: string | null
+          depreciation_rate?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+          useful_life_years?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_categories_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "plan_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_categories_depreciation_account_id_fkey"
+            columns: ["depreciation_account_id"]
+            isOneToOne: false
+            referencedRelation: "plan_accounts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_depreciations: {
+        Row: {
+          accumulated_amount: number
+          asset_id: string
+          created_at: string | null
+          created_by: string | null
+          depreciation_amount: number
+          fiscal_year_id: string | null
+          id: string
+          journal_entry_id: string | null
+          net_book_value: number
+          period_end: string
+          period_start: string
+          status: string | null
+        }
+        Insert: {
+          accumulated_amount?: number
+          asset_id: string
+          created_at?: string | null
+          created_by?: string | null
+          depreciation_amount?: number
+          fiscal_year_id?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          net_book_value?: number
+          period_end: string
+          period_start: string
+          status?: string | null
+        }
+        Update: {
+          accumulated_amount?: number
+          asset_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          depreciation_amount?: number
+          fiscal_year_id?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          net_book_value?: number
+          period_end?: string
+          period_start?: string
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_depreciations_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_depreciations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_depreciations_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_depreciations_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_disposals: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          asset_id: string
+          buyer_name: string | null
+          created_at: string | null
+          created_by: string | null
+          disposal_date: string
+          disposal_type: string
+          disposal_value: number | null
+          document_reference: string | null
+          gain_loss: number | null
+          id: string
+          journal_entry_id: string | null
+          net_book_value_at_disposal: number | null
+          notes: string | null
+          reason: string | null
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          asset_id: string
+          buyer_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          disposal_date: string
+          disposal_type: string
+          disposal_value?: number | null
+          document_reference?: string | null
+          gain_loss?: number | null
+          id?: string
+          journal_entry_id?: string | null
+          net_book_value_at_disposal?: number | null
+          notes?: string | null
+          reason?: string | null
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          asset_id?: string
+          buyer_name?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          disposal_date?: string
+          disposal_type?: string
+          disposal_value?: number | null
+          document_reference?: string | null
+          gain_loss?: number | null
+          id?: string
+          journal_entry_id?: string | null
+          net_book_value_at_disposal?: number | null
+          notes?: string | null
+          reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_disposals_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_disposals_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_disposals_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_disposals_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_movements: {
+        Row: {
+          asset_id: string
+          created_at: string | null
+          created_by: string | null
+          document_reference: string | null
+          from_assigned_to: string | null
+          from_location_id: string | null
+          id: string
+          movement_date: string
+          movement_type: string
+          notes: string | null
+          reason: string | null
+          to_assigned_to: string | null
+          to_location_id: string | null
+        }
+        Insert: {
+          asset_id: string
+          created_at?: string | null
+          created_by?: string | null
+          document_reference?: string | null
+          from_assigned_to?: string | null
+          from_location_id?: string | null
+          id?: string
+          movement_date: string
+          movement_type: string
+          notes?: string | null
+          reason?: string | null
+          to_assigned_to?: string | null
+          to_location_id?: string | null
+        }
+        Update: {
+          asset_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          document_reference?: string | null
+          from_assigned_to?: string | null
+          from_location_id?: string | null
+          id?: string
+          movement_date?: string
+          movement_type?: string
+          notes?: string | null
+          reason?: string | null
+          to_assigned_to?: string | null
+          to_location_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_movements_asset_id_fkey"
+            columns: ["asset_id"]
+            isOneToOne: false
+            referencedRelation: "assets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_movements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_movements_from_assigned_to_fkey"
+            columns: ["from_assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_movements_from_location_id_fkey"
+            columns: ["from_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_movements_to_assigned_to_fkey"
+            columns: ["to_assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_movements_to_location_id_fkey"
+            columns: ["to_location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      asset_reconciliations: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          fiscal_year_id: string | null
+          id: string
+          notes: string | null
+          reconciled_at: string | null
+          reconciled_by: string | null
+          reconciliation_date: string
+          status: string | null
+          total_assets_count: number | null
+          total_book_value: number | null
+          total_physical_count: number | null
+          variance_count: number | null
+          variance_value: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          fiscal_year_id?: string | null
+          id?: string
+          notes?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          reconciliation_date: string
+          status?: string | null
+          total_assets_count?: number | null
+          total_book_value?: number | null
+          total_physical_count?: number | null
+          variance_count?: number | null
+          variance_value?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          fiscal_year_id?: string | null
+          id?: string
+          notes?: string | null
+          reconciled_at?: string | null
+          reconciled_by?: string | null
+          reconciliation_date?: string
+          status?: string | null
+          total_assets_count?: number | null
+          total_book_value?: number | null
+          total_physical_count?: number | null
+          variance_count?: number | null
+          variance_value?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "asset_reconciliations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_reconciliations_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "asset_reconciliations_reconciled_by_fkey"
+            columns: ["reconciled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assets: {
+        Row: {
+          accumulated_depreciation: number | null
+          acquisition_date: string
+          acquisition_value: number
+          assigned_to: string | null
+          brand: string | null
+          category_id: string | null
+          code: string
+          convention_id: string | null
+          created_at: string | null
+          created_by: string | null
+          current_value: number | null
+          depreciation_method: string | null
+          depreciation_rate: number | null
+          depreciation_start_date: string | null
+          description: string | null
+          designation: string
+          id: string
+          invoice_reference: string | null
+          journal_entry_id: string | null
+          location_id: string | null
+          model: string | null
+          net_book_value: number | null
+          notes: string | null
+          project_id: string | null
+          residual_value: number | null
+          serial_number: string | null
+          site_id: string | null
+          status: string
+          supplier_id: string | null
+          updated_at: string | null
+          useful_life_years: number | null
+        }
+        Insert: {
+          accumulated_depreciation?: number | null
+          acquisition_date: string
+          acquisition_value?: number
+          assigned_to?: string | null
+          brand?: string | null
+          category_id?: string | null
+          code: string
+          convention_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_value?: number | null
+          depreciation_method?: string | null
+          depreciation_rate?: number | null
+          depreciation_start_date?: string | null
+          description?: string | null
+          designation: string
+          id?: string
+          invoice_reference?: string | null
+          journal_entry_id?: string | null
+          location_id?: string | null
+          model?: string | null
+          net_book_value?: number | null
+          notes?: string | null
+          project_id?: string | null
+          residual_value?: number | null
+          serial_number?: string | null
+          site_id?: string | null
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string | null
+          useful_life_years?: number | null
+        }
+        Update: {
+          accumulated_depreciation?: number | null
+          acquisition_date?: string
+          acquisition_value?: number
+          assigned_to?: string | null
+          brand?: string | null
+          category_id?: string | null
+          code?: string
+          convention_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          current_value?: number | null
+          depreciation_method?: string | null
+          depreciation_rate?: number | null
+          depreciation_start_date?: string | null
+          description?: string | null
+          designation?: string
+          id?: string
+          invoice_reference?: string | null
+          journal_entry_id?: string | null
+          location_id?: string | null
+          model?: string | null
+          net_book_value?: number | null
+          notes?: string | null
+          project_id?: string | null
+          residual_value?: number | null
+          serial_number?: string | null
+          site_id?: string | null
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string | null
+          useful_life_years?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "asset_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "conventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assets_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "third_parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_logs: {
         Row: {
           action: string
@@ -1957,6 +2497,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_asset_depreciation: {
+        Args: { _asset_id: string; _period_end: string }
+        Returns: number
+      }
       generate_entry_number: {
         Args: { _fiscal_year_id: string; _journal_code: string }
         Returns: string
