@@ -9,8 +9,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Projets from "./pages/Projets";
 import Comptabilite from "./pages/Comptabilite";
-import Bailleurs from "./pages/Bailleurs";
-import Conventions from "./pages/Conventions";
+// Old static pages removed - using dynamic pages from bailleurs/ and conventions/ folders
 import Immobilisations from "./pages/Immobilisations";
 import Marches from "./pages/Marches";
 import Decaissements from "./pages/Decaissements";
