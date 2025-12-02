@@ -47,6 +47,13 @@ import CentresCoutsPage from "./pages/comptabilite/analytique/CentresCoutsPage";
 import AnalyseProjetPage from "./pages/comptabilite/analytique/AnalyseProjetPage";
 import SyntheseAnalytiquePage from "./pages/comptabilite/analytique/SyntheseAnalytiquePage";
 
+// Budget pages
+import BudgetsPage from "./pages/budget/BudgetsPage";
+import BudgetDetailPage from "./pages/budget/BudgetDetailPage";
+import BudgetDashboardPage from "./pages/budget/BudgetDashboardPage";
+import BudgetComparisonPage from "./pages/budget/BudgetComparisonPage";
+import BudgetAlertsPage from "./pages/budget/BudgetAlertsPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -84,6 +91,12 @@ const App = () => (
             <Route path="/comptabilite/analytique/centres-couts" element={<ProtectedRoute><CentresCoutsPage /></ProtectedRoute>} />
             <Route path="/comptabilite/analytique/analyse-projet" element={<ProtectedRoute><AnalyseProjetPage /></ProtectedRoute>} />
             <Route path="/comptabilite/analytique/synthese" element={<ProtectedRoute><SyntheseAnalytiquePage /></ProtectedRoute>} />
+            {/* Budget routes */}
+            <Route path="/budget" element={<ProtectedRoute><BudgetsPage /></ProtectedRoute>} />
+            <Route path="/budget/:id" element={<ProtectedRoute><BudgetDetailPage /></ProtectedRoute>} />
+            <Route path="/budget/dashboard" element={<ProtectedRoute><BudgetDashboardPage /></ProtectedRoute>} />
+            <Route path="/budget/comparaison" element={<ProtectedRoute><BudgetComparisonPage /></ProtectedRoute>} />
+            <Route path="/budget/alertes" element={<ProtectedRoute><BudgetAlertsPage /></ProtectedRoute>} />
             <Route path="/bailleurs" element={<ProtectedRoute><Bailleurs /></ProtectedRoute>} />
             <Route path="/conventions" element={<ProtectedRoute><Conventions /></ProtectedRoute>} />
             <Route path="/immobilisations" element={<ProtectedRoute><Immobilisations /></ProtectedRoute>} />
