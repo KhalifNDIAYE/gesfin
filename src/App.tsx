@@ -15,7 +15,8 @@ import MouvementsPage from "./pages/immobilisations/MouvementsPage";
 import AmortissementsPage from "./pages/immobilisations/AmortissementsPage";
 import SortiesPage from "./pages/immobilisations/SortiesPage";
 import RapprochementImmoPage from "./pages/immobilisations/RapprochementPage";
-import Marches from "./pages/Marches";
+import MarchesPage from "./pages/marches/MarchesPage";
+import ContractDetailPage from "./pages/marches/ContractDetailPage";
 import Decaissements from "./pages/Decaissements";
 import Rapports from "./pages/Rapports";
 import Utilisateurs from "./pages/Utilisateurs";
@@ -116,7 +117,8 @@ const App = () => (
             <Route path="/immobilisations/amortissements" element={<ProtectedRoute><AmortissementsPage /></ProtectedRoute>} />
             <Route path="/immobilisations/sorties" element={<ProtectedRoute><SortiesPage /></ProtectedRoute>} />
             <Route path="/immobilisations/rapprochement" element={<ProtectedRoute><RapprochementImmoPage /></ProtectedRoute>} />
-            <Route path="/marches" element={<ProtectedRoute><Marches /></ProtectedRoute>} />
+            <Route path="/marches" element={<ProtectedRoute><MarchesPage /></ProtectedRoute>} />
+            <Route path="/marches/:id" element={<ProtectedRoute><ContractDetailPage /></ProtectedRoute>} />
             <Route path="/decaissements" element={<ProtectedRoute><Decaissements /></ProtectedRoute>} />
             <Route path="/rapports" element={<ProtectedRoute><Rapports /></ProtectedRoute>} />
             <Route path="/utilisateurs" element={<ProtectedRoute requiredRole="admin"><Utilisateurs /></ProtectedRoute>} />
