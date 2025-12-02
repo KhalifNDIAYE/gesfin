@@ -1094,6 +1094,501 @@ export type Database = {
           },
         ]
       }
+      contract_decomptes: {
+        Row: {
+          amount: number
+          amount_local: number | null
+          approval_date: string | null
+          approved_by: string | null
+          code: string
+          contract_id: string
+          created_at: string | null
+          created_by: string | null
+          cumulative_amount: number | null
+          decompte_number: number
+          decompte_type: string
+          deduction_amount: number | null
+          description: string | null
+          id: string
+          net_amount: number | null
+          notes: string | null
+          payment_date: string | null
+          previous_amount: number | null
+          progress_percentage: number | null
+          status: string
+          submission_date: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          amount_local?: number | null
+          approval_date?: string | null
+          approved_by?: string | null
+          code: string
+          contract_id: string
+          created_at?: string | null
+          created_by?: string | null
+          cumulative_amount?: number | null
+          decompte_number: number
+          decompte_type?: string
+          deduction_amount?: number | null
+          description?: string | null
+          id?: string
+          net_amount?: number | null
+          notes?: string | null
+          payment_date?: string | null
+          previous_amount?: number | null
+          progress_percentage?: number | null
+          status?: string
+          submission_date: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_local?: number | null
+          approval_date?: string | null
+          approved_by?: string | null
+          code?: string
+          contract_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          cumulative_amount?: number | null
+          decompte_number?: number
+          decompte_type?: string
+          deduction_amount?: number | null
+          description?: string | null
+          id?: string
+          net_amount?: number | null
+          notes?: string | null
+          payment_date?: string | null
+          previous_amount?: number | null
+          progress_percentage?: number | null
+          status?: string
+          submission_date?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_decomptes_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_decomptes_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_decomptes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_engagements: {
+        Row: {
+          amount: number
+          amount_local: number | null
+          budget_line_id: string | null
+          code: string
+          consumed_amount: number | null
+          contract_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          engagement_date: string
+          engagement_type: string
+          fiscal_year_id: string | null
+          id: string
+          journal_entry_id: string | null
+          reference: string | null
+          remaining_amount: number | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          amount_local?: number | null
+          budget_line_id?: string | null
+          code: string
+          consumed_amount?: number | null
+          contract_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          engagement_date: string
+          engagement_type?: string
+          fiscal_year_id?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          reference?: string | null
+          remaining_amount?: number | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_local?: number | null
+          budget_line_id?: string | null
+          code?: string
+          consumed_amount?: number | null
+          contract_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          engagement_date?: string
+          engagement_type?: string
+          fiscal_year_id?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          reference?: string | null
+          remaining_amount?: number | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_engagements_budget_line_id_fkey"
+            columns: ["budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_engagements_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_engagements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_engagements_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_engagements_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_guarantees: {
+        Row: {
+          amount: number
+          amount_local: number | null
+          code: string
+          contract_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          expiry_date: string | null
+          guarantee_type: string
+          id: string
+          issue_date: string
+          issuer_name: string | null
+          notes: string | null
+          percentage: number | null
+          reference_number: string | null
+          release_date: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          amount_local?: number | null
+          code: string
+          contract_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          expiry_date?: string | null
+          guarantee_type?: string
+          id?: string
+          issue_date: string
+          issuer_name?: string | null
+          notes?: string | null
+          percentage?: number | null
+          reference_number?: string | null
+          release_date?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_local?: number | null
+          code?: string
+          contract_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          expiry_date?: string | null
+          guarantee_type?: string
+          id?: string
+          issue_date?: string
+          issuer_name?: string | null
+          notes?: string | null
+          percentage?: number | null
+          reference_number?: string | null
+          release_date?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_guarantees_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_guarantees_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_payments: {
+        Row: {
+          amount: number
+          amount_local: number | null
+          bank_reference: string | null
+          beneficiary_account: string | null
+          beneficiary_name: string | null
+          code: string
+          contract_id: string
+          created_at: string | null
+          created_by: string | null
+          decompte_id: string | null
+          description: string | null
+          id: string
+          journal_entry_id: string | null
+          notes: string | null
+          payment_date: string
+          payment_method: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          amount_local?: number | null
+          bank_reference?: string | null
+          beneficiary_account?: string | null
+          beneficiary_name?: string | null
+          code: string
+          contract_id: string
+          created_at?: string | null
+          created_by?: string | null
+          decompte_id?: string | null
+          description?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          notes?: string | null
+          payment_date: string
+          payment_method?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_local?: number | null
+          bank_reference?: string | null
+          beneficiary_account?: string | null
+          beneficiary_name?: string | null
+          code?: string
+          contract_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          decompte_id?: string | null
+          description?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_payments_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_payments_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_payments_decompte_id_fkey"
+            columns: ["decompte_id"]
+            isOneToOne: false
+            referencedRelation: "contract_decomptes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_payments_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contracts: {
+        Row: {
+          actual_end_date: string | null
+          budget_line_id: string | null
+          code: string
+          contract_type: string
+          convention_id: string | null
+          created_at: string | null
+          created_by: string | null
+          currency_id: string | null
+          description: string | null
+          end_date: string | null
+          engaged_amount: number | null
+          exchange_rate: number | null
+          id: string
+          notes: string | null
+          object: string
+          paid_amount: number | null
+          progress_percentage: number | null
+          project_id: string | null
+          remaining_amount: number | null
+          signing_date: string | null
+          start_date: string | null
+          status: string
+          supplier_id: string | null
+          supplier_name: string | null
+          total_amount: number
+          total_amount_local: number | null
+          updated_at: string | null
+          warranty_end_date: string | null
+        }
+        Insert: {
+          actual_end_date?: string | null
+          budget_line_id?: string | null
+          code: string
+          contract_type?: string
+          convention_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_id?: string | null
+          description?: string | null
+          end_date?: string | null
+          engaged_amount?: number | null
+          exchange_rate?: number | null
+          id?: string
+          notes?: string | null
+          object: string
+          paid_amount?: number | null
+          progress_percentage?: number | null
+          project_id?: string | null
+          remaining_amount?: number | null
+          signing_date?: string | null
+          start_date?: string | null
+          status?: string
+          supplier_id?: string | null
+          supplier_name?: string | null
+          total_amount?: number
+          total_amount_local?: number | null
+          updated_at?: string | null
+          warranty_end_date?: string | null
+        }
+        Update: {
+          actual_end_date?: string | null
+          budget_line_id?: string | null
+          code?: string
+          contract_type?: string
+          convention_id?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_id?: string | null
+          description?: string | null
+          end_date?: string | null
+          engaged_amount?: number | null
+          exchange_rate?: number | null
+          id?: string
+          notes?: string | null
+          object?: string
+          paid_amount?: number | null
+          progress_percentage?: number | null
+          project_id?: string | null
+          remaining_amount?: number | null
+          signing_date?: string | null
+          start_date?: string | null
+          status?: string
+          supplier_id?: string | null
+          supplier_name?: string | null
+          total_amount?: number
+          total_amount_local?: number | null
+          updated_at?: string | null
+          warranty_end_date?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_budget_line_id_fkey"
+            columns: ["budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "conventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "third_parties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       convention_categories: {
         Row: {
           budget_amount: number | null
