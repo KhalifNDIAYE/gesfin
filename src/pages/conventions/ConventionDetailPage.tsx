@@ -12,9 +12,13 @@ import { useConvention, useReplenishments, useDirectPayments, useFinancialReport
 import { ReplenishmentDialog } from "@/components/conventions/ReplenishmentDialog";
 import { DirectPaymentDialog } from "@/components/conventions/DirectPaymentDialog";
 import { FinancialReportDialog } from "@/components/conventions/FinancialReportDialog";
+import { useExpenseCategories } from "@/hooks/useExpenseCategories";
+import { useFinancialReportLines } from "@/hooks/useFinancialReportLines";
+import { generateDetailedReportPDF } from "@/utils/reportGenerator";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import jsPDF from "jspdf";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const statusLabels: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   draft: { label: "Brouillon", variant: "secondary" },
@@ -42,6 +46,8 @@ export default function ConventionDetailPage() {
   const { data: directPayments } = useDirectPayments(id);
   const { data: financialReports } = useFinancialReports(id);
   
+  const { data: expenseCategories = [] } = useExpenseCategories();
+  
   const deleteReplenishment = useDeleteReplenishment();
   const deleteDirectPayment = useDeleteDirectPayment();
   const deleteFinancialReport = useDeleteFinancialReport();
@@ -56,35 +62,31 @@ export default function ConventionDetailPage() {
 
   const formatAmount = (amount: number, symbol?: string) => new Intl.NumberFormat("fr-FR").format(amount) + (symbol ? ` ${symbol}` : "");
 
-  const generateReportPDF = (report: FinancialReport) => {
-    const doc = new jsPDF();
-    const conv = convention;
-    
-    doc.setFontSize(18);
-    doc.text(`Rapport ${reportTypeLabels[report.report_type]} - ${report.code}`, 20, 20);
-    
-    doc.setFontSize(12);
-    doc.text(`Convention: ${conv?.code} - ${conv?.name}`, 20, 35);
-    doc.text(`Bailleur: ${conv?.bailleur?.name}`, 20, 45);
-    doc.text(`Période: ${format(new Date(report.period_start), "dd/MM/yyyy")} - ${format(new Date(report.period_end), "dd/MM/yyyy")}`, 20, 55);
-    doc.text(`Statut: ${statusLabels[report.status]?.label || report.status}`, 20, 65);
-    
-    doc.setFontSize(14);
-    doc.text("Situation financière", 20, 85);
-    
-    doc.setFontSize(11);
-    const startY = 95;
-    doc.text(`Solde d'ouverture: ${formatAmount(report.opening_balance, conv?.currency?.symbol)}`, 25, startY);
-    doc.text(`Dépenses période: ${formatAmount(report.total_expenses, conv?.currency?.symbol)}`, 25, startY + 10);
-    doc.text(`Solde de clôture: ${formatAmount(report.closing_balance, conv?.currency?.symbol)}`, 25, startY + 20);
-    doc.text(`Réapprovisionnement demandé: ${formatAmount(report.replenishment_requested, conv?.currency?.symbol)}`, 25, startY + 30);
-    
-    if (report.notes) {
-      doc.text("Notes:", 20, startY + 50);
-      doc.text(report.notes, 25, startY + 60);
+  const generateReportPDF = async (report: FinancialReport) => {
+    try {
+      // Fetch report lines for detailed breakdown
+      const { data: reportLines, error } = await supabase
+        .from('financial_report_lines')
+        .select('*')
+        .eq('financial_report_id', report.id)
+        .order('line_number');
+      
+      if (error) {
+        console.error('Error fetching report lines:', error);
+      }
+
+      generateDetailedReportPDF(
+        report,
+        convention!,
+        reportLines || [],
+        expenseCategories
+      );
+      
+      toast.success('Rapport PDF généré avec succès');
+    } catch (err) {
+      console.error('Error generating PDF:', err);
+      toast.error('Erreur lors de la génération du PDF');
     }
-    
-    doc.save(`${report.report_type.toUpperCase()}_${report.code}.pdf`);
   };
 
   const handleDelete = async () => {
