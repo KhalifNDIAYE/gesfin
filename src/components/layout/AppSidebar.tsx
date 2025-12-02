@@ -78,25 +78,24 @@ export function AppSidebar() {
 
   const getInitials = (name: string | null, email: string) => {
     if (name) {
-      return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+      return name
+        .split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
     }
     return email.slice(0, 2).toUpperCase();
   };
 
-  const primaryRole = roles.length > 0 ? roles[0].name : 'Utilisateur';
+  const primaryRole = roles.length > 0 ? roles[0].name : "Utilisateur";
 
   const NavItemComponent = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.href;
     const Icon = item.icon;
 
     return (
-      <Link
-        to={item.href}
-        className={cn(
-          "sidebar-nav-item group",
-          isActive && "active"
-        )}
-      >
+      <Link to={item.href} className={cn("sidebar-nav-item group", isActive && "active")}>
         <Icon className="h-5 w-5 shrink-0" />
         {!collapsed && (
           <>
@@ -116,7 +115,7 @@ export function AppSidebar() {
     <aside
       className={cn(
         "fixed left-0 top-0 z-40 h-screen bg-sidebar transition-all duration-300",
-        collapsed ? "w-[72px]" : "w-64"
+        collapsed ? "w-[72px]" : "w-64",
       )}
     >
       <div className="flex h-full flex-col">
@@ -173,12 +172,14 @@ export function AppSidebar() {
         <div className="p-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className={cn(
-                "flex w-full items-center gap-3 rounded-lg bg-sidebar-accent p-3 transition-colors hover:bg-sidebar-accent/80 focus:outline-none",
-                collapsed && "justify-center"
-              )}>
+              <button
+                className={cn(
+                  "flex w-full items-center gap-3 rounded-lg bg-sidebar-accent p-3 transition-colors hover:bg-sidebar-accent/80 focus:outline-none",
+                  collapsed && "justify-center",
+                )}
+              >
                 <Avatar className="h-9 w-9 shrink-0">
-                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || 'User'} />
+                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "User"} />
                   <AvatarFallback className="bg-sidebar-primary/20 text-sm font-semibold text-sidebar-primary">
                     {profile ? getInitials(profile.full_name, profile.email) : <User className="h-4 w-4" />}
                   </AvatarFallback>
@@ -187,56 +188,42 @@ export function AppSidebar() {
                   <>
                     <div className="flex-1 overflow-hidden text-left">
                       <p className="truncate text-sm font-medium text-sidebar-foreground">
-                        {profile?.full_name || 'Utilisateur'}
+                        {profile?.full_name || "Utilisateur"}
                       </p>
-                      <p className="truncate text-xs text-sidebar-foreground/60">
-                        {profile?.email || ''}
-                      </p>
-                      <p className="truncate text-xs text-sidebar-primary/80 capitalize">
-                        {primaryRole}
-                      </p>
+                      <p className="truncate text-xs text-sidebar-foreground/60">{profile?.email || ""}</p>
+                      <p className="truncate text-xs text-sidebar-primary/80 capitalize">{primaryRole}</p>
                     </div>
                     <ChevronUp className="h-4 w-4 text-sidebar-foreground/60" />
                   </>
                 )}
               </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent 
-              side="top" 
-              align="start" 
+            <DropdownMenuContent
+              side="top"
+              align="start"
               className="w-56 bg-popover border border-border shadow-lg z-50"
               sideOffset={8}
             >
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">{profile?.full_name || 'Utilisateur'}</p>
+                  <p className="text-sm font-medium">{profile?.full_name || "Utilisateur"}</p>
                   <p className="text-xs text-muted-foreground">{profile?.email}</p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => navigate('/profil')}
-                className="cursor-pointer"
-              >
+              <DropdownMenuItem onClick={() => navigate("/profil")} className="cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
                 Mon profil
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => navigate('/parametres')}
-                className="cursor-pointer"
-              >
-                <UserCog className="mr-2 h-4 w-4" />
-                Paramètres du compte
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={() => window.open('https://docs.lovable.dev/', '_blank')}
+              <DropdownMenuItem
+                onClick={() => window.open("https://docs.lovable.dev/", "_blank")}
                 className="cursor-pointer"
               >
                 <HelpCircle className="mr-2 h-4 w-4" />
                 Aide
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={handleSignOut}
                 className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
               >
