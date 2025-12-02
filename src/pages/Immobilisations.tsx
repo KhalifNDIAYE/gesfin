@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,49 +14,109 @@ import {
   Monitor,
   Wrench,
   Download,
-  QrCode
+  QrCode,
+  Edit,
+  Trash2,
+  Eye,
+  ArrowRightLeft,
+  Calculator,
+  FileX,
+  ClipboardCheck,
+  Filter
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
+import { useAssets, useAssetStats, useAssetCategories, useAssetMutations } from "@/hooks/useAssets";
+import { AssetDialog } from "@/components/immobilisations/AssetDialog";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Asset } from "@/hooks/useAssets";
 
-interface Asset {
-  id: string;
-  code: string;
-  designation: string;
-  categorie: "vehicule" | "mobilier" | "informatique" | "batiment" | "equipement";
-  dateAcquisition: string;
-  valeurAcquisition: number;
-  valeurNette: number;
-  localisation: string;
-  projet: string;
-  status: "en_service" | "en_panne" | "reforme";
-}
-
-const assets: Asset[] = [
-  { id: "1", code: "VEH-001", designation: "Toyota Land Cruiser 4x4", categorie: "vehicule", dateAcquisition: "2022-03-15", valeurAcquisition: 45000000, valeurNette: 36000000, localisation: "Garage Central", projet: "PRJ-001", status: "en_service" },
-  { id: "2", code: "INF-001", designation: "Serveur Dell PowerEdge R740", categorie: "informatique", dateAcquisition: "2023-01-10", valeurAcquisition: 8500000, valeurNette: 7650000, localisation: "Salle Serveur", projet: "Administration", status: "en_service" },
-  { id: "3", code: "MOB-001", designation: "Bureau direction complet", categorie: "mobilier", dateAcquisition: "2021-06-01", valeurAcquisition: 2500000, valeurNette: 1875000, localisation: "Bureau DG", projet: "Administration", status: "en_service" },
-  { id: "4", code: "EQP-001", designation: "Groupe électrogène 100KVA", categorie: "equipement", dateAcquisition: "2022-09-20", valeurAcquisition: 25000000, valeurNette: 20000000, localisation: "Annexe technique", projet: "PRJ-002", status: "en_service" },
-  { id: "5", code: "VEH-002", designation: "Mitsubishi L200", categorie: "vehicule", dateAcquisition: "2020-01-05", valeurAcquisition: 32000000, valeurNette: 16000000, localisation: "Garage Central", projet: "PRJ-003", status: "en_panne" },
-  { id: "6", code: "INF-002", designation: "Ordinateurs portables (lot de 10)", categorie: "informatique", dateAcquisition: "2023-06-15", valeurAcquisition: 15000000, valeurNette: 13500000, localisation: "Pool informatique", projet: "PRJ-004", status: "en_service" },
-];
-
-const categorieConfig = {
-  vehicule: { label: "Véhicule", icon: Car, color: "text-info" },
-  mobilier: { label: "Mobilier", icon: Package, color: "text-warning" },
-  informatique: { label: "Informatique", icon: Monitor, color: "text-primary" },
-  batiment: { label: "Bâtiment", icon: Building, color: "text-success" },
-  equipement: { label: "Équipement", icon: Wrench, color: "text-accent" },
+const categoryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  'VEH': Car,
+  'MOB': Package,
+  'INF': Monitor,
+  'BAT': Building,
+  'EQP': Wrench,
 };
 
-const statusConfig = {
-  en_service: { label: "En service", className: "bg-success/10 text-success" },
-  en_panne: { label: "En panne", className: "bg-warning/10 text-warning" },
-  reforme: { label: "Réformé", className: "bg-destructive/10 text-destructive" },
+const statusConfig: Record<string, { label: string; className: string }> = {
+  active: { label: "En service", className: "bg-success/10 text-success border-success/20" },
+  maintenance: { label: "En maintenance", className: "bg-warning/10 text-warning border-warning/20" },
+  disposed: { label: "Sorti", className: "bg-destructive/10 text-destructive border-destructive/20" },
+  inactive: { label: "Inactif", className: "bg-muted text-muted-foreground" },
 };
 
 const Immobilisations = () => {
-  const totalValeur = assets.reduce((sum, a) => sum + a.valeurAcquisition, 0);
-  const totalVNC = assets.reduce((sum, a) => sum + a.valeurNette, 0);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
+
+  const { data: assets, isLoading } = useAssets();
+  const { data: stats } = useAssetStats();
+  const { data: categories } = useAssetCategories();
+  const { deleteMutation } = useAssetMutations();
+
+  const filteredAssets = assets?.filter((asset) => {
+    const matchesSearch = 
+      asset.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      asset.designation.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (asset.brand?.toLowerCase().includes(searchQuery.toLowerCase())) ||
+      (asset.serial_number?.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    const matchesStatus = statusFilter === "all" || asset.status === statusFilter;
+    const matchesCategory = categoryFilter === "all" || asset.category_id === categoryFilter;
+    
+    return matchesSearch && matchesStatus && matchesCategory;
+  }) || [];
+
+  const handleEdit = (asset: Asset) => {
+    setSelectedAsset(asset);
+    setDialogOpen(true);
+  };
+
+  const handleDelete = (asset: Asset) => {
+    setAssetToDelete(asset);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (assetToDelete) {
+      deleteMutation.mutate(assetToDelete.id);
+      setDeleteDialogOpen(false);
+      setAssetToDelete(null);
+    }
+  };
+
+  const handleAdd = () => {
+    setSelectedAsset(null);
+    setDialogOpen(true);
+  };
+
+  const getCategoryIcon = (categoryCode?: string) => {
+    if (!categoryCode) return Package;
+    const prefix = categoryCode.substring(0, 3).toUpperCase();
+    return categoryIcons[prefix] || Package;
+  };
 
   return (
     <AppLayout 
@@ -72,7 +133,11 @@ const Immobilisations = () => {
                   <Package className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{assets.length}</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <p className="text-2xl font-bold">{stats?.totalCount || 0}</p>
+                  )}
                   <p className="text-sm text-muted-foreground">Total actifs</p>
                 </div>
               </div>
@@ -85,7 +150,11 @@ const Immobilisations = () => {
                   <Building className="h-5 w-5 text-success" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{(totalValeur / 1000000).toFixed(0)} M</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-24" />
+                  ) : (
+                    <p className="text-2xl font-bold">{formatCurrency(stats?.totalGrossValue || 0)}</p>
+                  )}
                   <p className="text-sm text-muted-foreground">Valeur brute</p>
                 </div>
               </div>
@@ -98,7 +167,11 @@ const Immobilisations = () => {
                   <Monitor className="h-5 w-5 text-info" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{(totalVNC / 1000000).toFixed(0)} M</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-24" />
+                  ) : (
+                    <p className="text-2xl font-bold">{formatCurrency(stats?.totalNetBookValue || 0)}</p>
+                  )}
                   <p className="text-sm text-muted-foreground">Valeur nette comptable</p>
                 </div>
               </div>
@@ -111,7 +184,11 @@ const Immobilisations = () => {
                   <Wrench className="h-5 w-5 text-warning" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">{assets.filter(a => a.status === 'en_panne').length}</p>
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <p className="text-2xl font-bold">{stats?.maintenanceCount || 0}</p>
+                  )}
                   <p className="text-sm text-muted-foreground">En maintenance</p>
                 </div>
               </div>
@@ -124,8 +201,35 @@ const Immobilisations = () => {
           <div className="flex flex-1 items-center gap-2">
             <div className="relative max-w-md flex-1">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Rechercher une immobilisation..." className="pl-9" />
+              <Input 
+                placeholder="Rechercher (code, désignation, marque, N° série)..." 
+                className="pl-9" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Statut" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tous les statuts</SelectItem>
+                <SelectItem value="active">En service</SelectItem>
+                <SelectItem value="maintenance">En maintenance</SelectItem>
+                <SelectItem value="disposed">Sorti</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Catégorie" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Toutes catégories</SelectItem>
+                {categories?.map((cat) => (
+                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
           <div className="flex gap-2">
             <Button variant="outline">
@@ -136,7 +240,7 @@ const Immobilisations = () => {
               <Download className="h-4 w-4" />
               Exporter
             </Button>
-            <Button variant="gradient">
+            <Button variant="gradient" onClick={handleAdd}>
               <Plus className="h-4 w-4" />
               Ajouter un actif
             </Button>
@@ -147,57 +251,140 @@ const Immobilisations = () => {
         <Card>
           <CardHeader>
             <CardTitle>Registre des Immobilisations</CardTitle>
-            <CardDescription>Liste complète des actifs du patrimoine</CardDescription>
+            <CardDescription>
+              {filteredAssets.length} actif(s) trouvé(s)
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Désignation</th>
-                    <th>Catégorie</th>
-                    <th>Acquisition</th>
-                    <th className="text-right">Valeur brute</th>
-                    <th className="text-right">VNC</th>
-                    <th>Localisation</th>
-                    <th>Statut</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {assets.map((asset) => {
-                    const cat = categorieConfig[asset.categorie];
-                    const CatIcon = cat.icon;
-                    const status = statusConfig[asset.status];
-                    
-                    return (
-                      <tr key={asset.id}>
-                        <td className="font-mono text-sm">{asset.code}</td>
-                        <td className="font-medium">{asset.designation}</td>
-                        <td>
-                          <div className="flex items-center gap-2">
-                            <CatIcon className={cn("h-4 w-4", cat.color)} />
-                            <span className="text-sm">{cat.label}</span>
-                          </div>
-                        </td>
-                        <td className="text-sm text-muted-foreground">{asset.dateAcquisition}</td>
-                        <td className="text-right font-mono">{(asset.valeurAcquisition / 1000000).toFixed(1)} M</td>
-                        <td className="text-right font-mono">{(asset.valeurNette / 1000000).toFixed(1)} M</td>
-                        <td className="text-sm">{asset.localisation}</td>
-                        <td>
-                          <Badge variant="secondary" className={status.className}>
-                            {status.label}
-                          </Badge>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            {isLoading ? (
+              <div className="space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-12 w-full" />
+                ))}
+              </div>
+            ) : filteredAssets.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <Package className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <h3 className="text-lg font-semibold">Aucun actif trouvé</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {searchQuery || statusFilter !== "all" || categoryFilter !== "all"
+                    ? "Modifiez vos filtres ou ajoutez un nouvel actif"
+                    : "Commencez par ajouter votre premier actif"}
+                </p>
+                <Button onClick={handleAdd}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter un actif
+                </Button>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Désignation</th>
+                      <th>Catégorie</th>
+                      <th>Acquisition</th>
+                      <th className="text-right">Valeur brute</th>
+                      <th className="text-right">VNC</th>
+                      <th>Localisation</th>
+                      <th>Statut</th>
+                      <th className="text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredAssets.map((asset) => {
+                      const CategoryIcon = getCategoryIcon(asset.category?.code);
+                      const status = statusConfig[asset.status] || statusConfig.inactive;
+                      
+                      return (
+                        <tr key={asset.id}>
+                          <td className="font-mono text-sm font-medium">{asset.code}</td>
+                          <td>
+                            <div>
+                              <p className="font-medium">{asset.designation}</p>
+                              {asset.brand && (
+                                <p className="text-xs text-muted-foreground">
+                                  {asset.brand} {asset.model}
+                                </p>
+                              )}
+                            </div>
+                          </td>
+                          <td>
+                            <div className="flex items-center gap-2">
+                              <CategoryIcon className="h-4 w-4 text-primary" />
+                              <span className="text-sm">{asset.category?.name || '-'}</span>
+                            </div>
+                          </td>
+                          <td className="text-sm text-muted-foreground">
+                            {new Date(asset.acquisition_date).toLocaleDateString('fr-FR')}
+                          </td>
+                          <td className="text-right font-mono">
+                            {formatCurrency(asset.acquisition_value)}
+                          </td>
+                          <td className="text-right font-mono">
+                            {formatCurrency(asset.net_book_value || 0)}
+                          </td>
+                          <td className="text-sm">
+                            {asset.location?.name || asset.site?.name || '-'}
+                          </td>
+                          <td>
+                            <Badge variant="outline" className={status.className}>
+                              {status.label}
+                            </Badge>
+                          </td>
+                          <td>
+                            <div className="flex items-center justify-end gap-1">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleEdit(asset)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                onClick={() => handleDelete(asset)}
+                              >
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
+
+      <AssetDialog 
+        open={dialogOpen} 
+        onOpenChange={setDialogOpen}
+        asset={selectedAsset}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Supprimer l'actif</AlertDialogTitle>
+            <AlertDialogDescription>
+              Êtes-vous sûr de vouloir supprimer l'actif "{assetToDelete?.designation}" ? 
+              Cette action est irréversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuler</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Supprimer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 };
