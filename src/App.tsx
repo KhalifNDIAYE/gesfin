@@ -21,6 +21,22 @@ import Parametres from "./pages/Parametrage";
 import Profil from "./pages/Profil";
 import NotFound from "./pages/NotFound";
 
+// Comptabilité sub-pages
+import DepensesPage from "./pages/comptabilite/DepensesPage";
+import FinancementsPage from "./pages/comptabilite/FinancementsPage";
+import DecaissementsComptaPage from "./pages/comptabilite/DecaissementsComptaPage";
+import PrisesEnChargePage from "./pages/comptabilite/PrisesEnChargePage";
+import TiersPage from "./pages/comptabilite/TiersPage";
+import GrandLivrePage from "./pages/comptabilite/GrandLivrePage";
+import BalancesPage from "./pages/comptabilite/BalancesPage";
+import LettragePage from "./pages/comptabilite/LettragePage";
+import RapprochementPage from "./pages/comptabilite/RapprochementPage";
+import CaissePage from "./pages/comptabilite/CaissePage";
+import EcheancesPage from "./pages/comptabilite/EcheancesPage";
+import ANouveauxPage from "./pages/comptabilite/ANouveauxPage";
+import CloturesPage from "./pages/comptabilite/CloturesPage";
+import EditionsPage from "./pages/comptabilite/EditionsPage";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -35,6 +51,20 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="/projets" element={<ProtectedRoute><Projets /></ProtectedRoute>} />
             <Route path="/comptabilite" element={<ProtectedRoute><Comptabilite /></ProtectedRoute>} />
+            <Route path="/comptabilite/depenses" element={<ProtectedRoute><DepensesPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/financements" element={<ProtectedRoute><FinancementsPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/decaissements" element={<ProtectedRoute><DecaissementsComptaPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/prises-en-charge" element={<ProtectedRoute><PrisesEnChargePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/tiers" element={<ProtectedRoute><TiersPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/grand-livre" element={<ProtectedRoute><GrandLivrePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/balances" element={<ProtectedRoute><BalancesPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/lettrage" element={<ProtectedRoute><LettragePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/rapprochement" element={<ProtectedRoute><RapprochementPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/caisse" element={<ProtectedRoute><CaissePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/echeances" element={<ProtectedRoute><EcheancesPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/a-nouveaux" element={<ProtectedRoute><ANouveauxPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/clotures" element={<ProtectedRoute><CloturesPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/editions" element={<ProtectedRoute><EditionsPage /></ProtectedRoute>} />
             <Route path="/bailleurs" element={<ProtectedRoute><Bailleurs /></ProtectedRoute>} />
             <Route path="/conventions" element={<ProtectedRoute><Conventions /></ProtectedRoute>} />
             <Route path="/immobilisations" element={<ProtectedRoute><Immobilisations /></ProtectedRoute>} />
