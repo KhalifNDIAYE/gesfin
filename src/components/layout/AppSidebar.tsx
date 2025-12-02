@@ -125,10 +125,21 @@ const budgetGroup: NavGroup = {
   ],
 };
 
+const immobilisationsGroup: NavGroup = {
+  title: "Immobilisations",
+  icon: Package,
+  items: [
+    { title: "Registre", href: "/immobilisations", icon: Package },
+    { title: "Mouvements", href: "/immobilisations/mouvements", icon: ArrowDownUp },
+    { title: "Amortissements", href: "/immobilisations/amortissements", icon: Calculator },
+    { title: "Sorties", href: "/immobilisations/sorties", icon: FileText },
+    { title: "Rapprochement", href: "/immobilisations/rapprochement", icon: Scale },
+  ],
+};
+
 const otherNavItems: NavItem[] = [
   { title: "Bailleurs", href: "/bailleurs", icon: Building2, badge: 5 },
   { title: "Conventions", href: "/conventions", icon: FileText },
-  { title: "Immobilisations", href: "/immobilisations", icon: Package },
   { title: "Marchés", href: "/marches", icon: ArrowDownUp },
   { title: "Décaissements", href: "/decaissements", icon: ArrowDownUp },
   { title: "Rapports", href: "/rapports", icon: BarChart3 },
@@ -151,6 +162,7 @@ export function AppSidebar() {
   const [comptaOpen, setComptaOpen] = useState(() => getStoredState('comptaOpen', false));
   const [analytiqueOpen, setAnalytiqueOpen] = useState(() => getStoredState('analytiqueOpen', false));
   const [budgetOpen, setBudgetOpen] = useState(() => getStoredState('budgetOpen', false));
+  const [immoOpen, setImmoOpen] = useState(() => getStoredState('immoOpen', false));
   const location = useLocation();
 
   // Persist menu states to localStorage
@@ -169,6 +181,10 @@ export function AppSidebar() {
   useEffect(() => {
     localStorage.setItem('sidebar_budgetOpen', JSON.stringify(budgetOpen));
   }, [budgetOpen]);
+
+  useEffect(() => {
+    localStorage.setItem('sidebar_immoOpen', JSON.stringify(immoOpen));
+  }, [immoOpen]);
   const navigate = useNavigate();
   const { profile, roles, signOut } = useAuth();
 
@@ -199,6 +215,7 @@ export function AppSidebar() {
   const isComptaActive = location.pathname.startsWith("/comptabilite") && !location.pathname.includes("/analytique");
   const isAnalytiqueActive = location.pathname.includes("/comptabilite/analytique");
   const isBudgetActive = location.pathname.startsWith("/budget");
+  const isImmoActive = location.pathname.startsWith("/immobilisations");
 
   const NavItemComponent = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.href;
@@ -389,6 +406,43 @@ export function AppSidebar() {
               </CollapsibleTrigger>
               <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
                 {budgetGroup.items.map((item) => (
+                  <SubNavItem key={item.href} item={item} />
+                ))}
+              </CollapsibleContent>
+            </Collapsible>
+          )}
+
+          {/* Immobilisations Group */}
+          {collapsed ? (
+            <Link
+              to="/immobilisations"
+              className={cn("sidebar-nav-item group", isImmoActive && "active")}
+            >
+              <Package className="h-5 w-5 shrink-0" />
+            </Link>
+          ) : (
+            <Collapsible open={immoOpen} onOpenChange={setImmoOpen}>
+              <CollapsibleTrigger asChild>
+                <button
+                  className={cn(
+                    "sidebar-nav-item group w-full justify-between",
+                    isImmoActive && "active"
+                  )}
+                >
+                  <div className="flex items-center gap-3">
+                    <Package className="h-5 w-5 shrink-0" />
+                    <span className="flex-1 text-left">Immobilisations</span>
+                  </div>
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 transition-transform duration-200",
+                      immoOpen && "rotate-180"
+                    )}
+                  />
+                </button>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
+                {immobilisationsGroup.items.map((item) => (
                   <SubNavItem key={item.href} item={item} />
                 ))}
               </CollapsibleContent>

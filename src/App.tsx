@@ -11,6 +11,10 @@ import Projets from "./pages/Projets";
 import Comptabilite from "./pages/Comptabilite";
 // Old static pages removed - using dynamic pages from bailleurs/ and conventions/ folders
 import Immobilisations from "./pages/Immobilisations";
+import MouvementsPage from "./pages/immobilisations/MouvementsPage";
+import AmortissementsPage from "./pages/immobilisations/AmortissementsPage";
+import SortiesPage from "./pages/immobilisations/SortiesPage";
+import RapprochementImmoPage from "./pages/immobilisations/RapprochementPage";
 import Marches from "./pages/Marches";
 import Decaissements from "./pages/Decaissements";
 import Rapports from "./pages/Rapports";
@@ -108,6 +112,10 @@ const App = () => (
             <Route path="/conventions" element={<ProtectedRoute><ConventionsPage /></ProtectedRoute>} />
             <Route path="/conventions/:id" element={<ProtectedRoute><ConventionDetailPage /></ProtectedRoute>} />
             <Route path="/immobilisations" element={<ProtectedRoute><Immobilisations /></ProtectedRoute>} />
+            <Route path="/immobilisations/mouvements" element={<ProtectedRoute><MouvementsPage /></ProtectedRoute>} />
+            <Route path="/immobilisations/amortissements" element={<ProtectedRoute><AmortissementsPage /></ProtectedRoute>} />
+            <Route path="/immobilisations/sorties" element={<ProtectedRoute><SortiesPage /></ProtectedRoute>} />
+            <Route path="/immobilisations/rapprochement" element={<ProtectedRoute><RapprochementImmoPage /></ProtectedRoute>} />
             <Route path="/marches" element={<ProtectedRoute><Marches /></ProtectedRoute>} />
             <Route path="/decaissements" element={<ProtectedRoute><Decaissements /></ProtectedRoute>} />
             <Route path="/rapports" element={<ProtectedRoute><Rapports /></ProtectedRoute>} />
