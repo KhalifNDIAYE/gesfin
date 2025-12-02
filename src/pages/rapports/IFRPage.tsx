@@ -13,7 +13,7 @@ import { toast } from "sonner";
 
 const IFRPage = () => {
   const [selectedYear, setSelectedYear] = useState<string>("");
-  const [selectedBailleur, setSelectedBailleur] = useState<string>("");
+  const [selectedBailleur, setSelectedBailleur] = useState<string>("all");
   const { data: fiscalYears } = useFiscalYears();
   const { data: conventions } = useConventions();
   const { data: bailleurs } = useBailleurs();
@@ -25,7 +25,7 @@ const IFRPage = () => {
   };
 
   // Filter conventions by bailleur if selected
-  const filteredConventions = selectedBailleur 
+  const filteredConventions = selectedBailleur && selectedBailleur !== "all"
     ? conventions?.filter(c => c.bailleur_id === selectedBailleur)
     : conventions;
 
@@ -61,7 +61,7 @@ const IFRPage = () => {
                 <SelectValue placeholder="Tous les bailleurs" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Tous les bailleurs</SelectItem>
+                <SelectItem value="all">Tous les bailleurs</SelectItem>
                 {bailleurs?.map((bailleur) => (
                   <SelectItem key={bailleur.id} value={bailleur.id}>
                     {bailleur.short_name || bailleur.name}
