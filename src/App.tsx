@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { SessionTimeoutProvider } from "@/components/auth/SessionTimeoutProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Projets from "./pages/Projets";
@@ -91,6 +92,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <SessionTimeoutProvider timeoutMinutes={30}>
           <Routes>
             <Route path="/auth" element={<Auth />} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
@@ -159,6 +161,7 @@ const App = () => (
             <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </SessionTimeoutProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
