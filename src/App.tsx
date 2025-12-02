@@ -18,7 +18,6 @@ import RapprochementImmoPage from "./pages/immobilisations/RapprochementPage";
 import MarchesPage from "./pages/marches/MarchesPage";
 import ContractDetailPage from "./pages/marches/ContractDetailPage";
 import Decaissements from "./pages/Decaissements";
-import Rapports from "./pages/Rapports";
 import Utilisateurs from "./pages/Utilisateurs";
 import Securite from "./pages/Securite";
 import Parametres from "./pages/Parametrage";
@@ -63,6 +62,16 @@ import BailleursPage from "./pages/bailleurs/BailleursPage";
 import BailleurDetailPage from "./pages/bailleurs/BailleurDetailPage";
 import ConventionsPage from "./pages/conventions/ConventionsPage";
 import ConventionDetailPage from "./pages/conventions/ConventionDetailPage";
+
+// Rapports pages
+import RapportsPage from "./pages/rapports/RapportsPage";
+import BilanPage from "./pages/rapports/BilanPage";
+import ResultatPage from "./pages/rapports/ResultatPage";
+import FinancementPage from "./pages/rapports/FinancementPage";
+import RatiosPage from "./pages/rapports/RatiosPage";
+import DashboardReportingPage from "./pages/rapports/DashboardReportingPage";
+import SYSCOHADAPage from "./pages/rapports/SYSCOHADAPage";
+import IFRPage from "./pages/rapports/IFRPage";
 
 const queryClient = new QueryClient();
 
@@ -120,7 +129,15 @@ const App = () => (
             <Route path="/marches" element={<ProtectedRoute><MarchesPage /></ProtectedRoute>} />
             <Route path="/marches/:id" element={<ProtectedRoute><ContractDetailPage /></ProtectedRoute>} />
             <Route path="/decaissements" element={<ProtectedRoute><Decaissements /></ProtectedRoute>} />
-            <Route path="/rapports" element={<ProtectedRoute><Rapports /></ProtectedRoute>} />
+            {/* Rapports routes */}
+            <Route path="/rapports" element={<ProtectedRoute><RapportsPage /></ProtectedRoute>} />
+            <Route path="/rapports/bilan" element={<ProtectedRoute><BilanPage /></ProtectedRoute>} />
+            <Route path="/rapports/resultat" element={<ProtectedRoute><ResultatPage /></ProtectedRoute>} />
+            <Route path="/rapports/financement" element={<ProtectedRoute><FinancementPage /></ProtectedRoute>} />
+            <Route path="/rapports/ratios" element={<ProtectedRoute><RatiosPage /></ProtectedRoute>} />
+            <Route path="/rapports/dashboard" element={<ProtectedRoute><DashboardReportingPage /></ProtectedRoute>} />
+            <Route path="/rapports/syscohada" element={<ProtectedRoute><SYSCOHADAPage /></ProtectedRoute>} />
+            <Route path="/rapports/ifr" element={<ProtectedRoute><IFRPage /></ProtectedRoute>} />
             <Route path="/utilisateurs" element={<ProtectedRoute requiredRole="admin"><Utilisateurs /></ProtectedRoute>} />
             <Route path="/securite" element={<ProtectedRoute requiredRole="admin"><Securite /></ProtectedRoute>} />
             <Route path="/parametres" element={<ProtectedRoute requiredRole="admin"><Parametres /></ProtectedRoute>} />
