@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PermissionButton } from "@/components/auth/PermissionButton";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -119,10 +120,10 @@ const Projets = () => {
               <Filter className="h-4 w-4" />
             </Button>
           </div>
-          <Button variant="gradient">
+          <PermissionButton variant="gradient" module="projets" permission="create">
             <Plus className="h-4 w-4" />
             Nouveau projet
-          </Button>
+          </PermissionButton>
         </div>
 
         {/* Projects Grid */}
