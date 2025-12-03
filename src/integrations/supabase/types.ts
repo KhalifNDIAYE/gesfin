@@ -2640,6 +2640,278 @@ export type Database = {
         }
         Relationships: []
       }
+      project_bailleurs: {
+        Row: {
+          bailleur_id: string
+          committed_amount: number | null
+          convention_id: string | null
+          created_at: string | null
+          disbursed_amount: number | null
+          execution_rate: number | null
+          id: string
+          notes: string | null
+          project_id: string
+          remaining_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          bailleur_id: string
+          committed_amount?: number | null
+          convention_id?: string | null
+          created_at?: string | null
+          disbursed_amount?: number | null
+          execution_rate?: number | null
+          id?: string
+          notes?: string | null
+          project_id: string
+          remaining_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          bailleur_id?: string
+          committed_amount?: number | null
+          convention_id?: string | null
+          created_at?: string | null
+          disbursed_amount?: number | null
+          execution_rate?: number | null
+          id?: string
+          notes?: string | null
+          project_id?: string
+          remaining_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_bailleurs_bailleur_id_fkey"
+            columns: ["bailleur_id"]
+            isOneToOne: false
+            referencedRelation: "bailleurs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_bailleurs_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "conventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_bailleurs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_budgets: {
+        Row: {
+          budget_id: string | null
+          committed_amount: number | null
+          consumed_amount: number | null
+          created_at: string | null
+          fiscal_year_id: string | null
+          forecast_amount: number | null
+          id: string
+          project_id: string
+          remaining_amount: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          budget_id?: string | null
+          committed_amount?: number | null
+          consumed_amount?: number | null
+          created_at?: string | null
+          fiscal_year_id?: string | null
+          forecast_amount?: number | null
+          id?: string
+          project_id: string
+          remaining_amount?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          budget_id?: string | null
+          committed_amount?: number | null
+          consumed_amount?: number | null
+          created_at?: string | null
+          fiscal_year_id?: string | null
+          forecast_amount?: number | null
+          id?: string
+          project_id?: string
+          remaining_amount?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_budgets_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_budgets_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_budgets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_documents: {
+        Row: {
+          created_at: string | null
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          name: string
+          project_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          name: string
+          project_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          name?: string
+          project_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_documents_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          code: string
+          consumed_budget: number | null
+          created_at: string | null
+          created_by: string | null
+          currency_id: string | null
+          description: string | null
+          end_date: string | null
+          exchange_rate: number | null
+          id: string
+          name: string
+          notes: string | null
+          responsible_id: string | null
+          site_id: string | null
+          start_date: string | null
+          status: string
+          total_budget: number | null
+          tracking_axis_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          consumed_budget?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_id?: string | null
+          description?: string | null
+          end_date?: string | null
+          exchange_rate?: number | null
+          id?: string
+          name: string
+          notes?: string | null
+          responsible_id?: string | null
+          site_id?: string | null
+          start_date?: string | null
+          status?: string
+          total_budget?: number | null
+          tracking_axis_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          consumed_budget?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          currency_id?: string | null
+          description?: string | null
+          end_date?: string | null
+          exchange_rate?: number | null
+          id?: string
+          name?: string
+          notes?: string | null
+          responsible_id?: string | null
+          site_id?: string | null
+          start_date?: string | null
+          status?: string
+          total_budget?: number | null
+          tracking_axis_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_tracking_axis_id_fkey"
+            columns: ["tracking_axis_id"]
+            isOneToOne: false
+            referencedRelation: "tracking_axes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       replenishments: {
         Row: {
           amount: number
