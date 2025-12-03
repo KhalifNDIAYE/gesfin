@@ -46,6 +46,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
+import { useSidebarCounts } from "@/hooks/useSidebarCounts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import {
@@ -67,7 +68,7 @@ interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  badge?: number;
+  badgeKey?: keyof ReturnType<typeof useSidebarCounts>['data'];
   module?: ModuleName;
 }
 
@@ -80,7 +81,7 @@ interface NavGroup {
 
 const mainNavItems: NavItem[] = [
   { title: "Tableau de bord", href: "/", icon: LayoutDashboard, module: "dashboard" },
-  { title: "Projets", href: "/projets", icon: FolderKanban, badge: 12, module: "projets" },
+  { title: "Projets", href: "/projets", icon: FolderKanban, badgeKey: "projets", module: "projets" },
 ];
 
 const comptabiliteGroup: NavGroup = {
@@ -177,9 +178,9 @@ const decaissementsGroup: NavGroup = {
 };
 
 const otherNavItems: NavItem[] = [
-  { title: "Bailleurs", href: "/bailleurs", icon: Building2, badge: 5, module: "bailleurs" },
-  { title: "Conventions", href: "/conventions", icon: FileText, module: "conventions" },
-  { title: "Marchés", href: "/marches", icon: ArrowDownUp, module: "marches" },
+  { title: "Bailleurs", href: "/bailleurs", icon: Building2, badgeKey: "bailleurs", module: "bailleurs" },
+  { title: "Conventions", href: "/conventions", icon: FileText, badgeKey: "conventions", module: "conventions" },
+  { title: "Marchés", href: "/marches", icon: ArrowDownUp, badgeKey: "marches", module: "marches" },
 ];
 
 const adminNavItems: NavItem[] = [
@@ -235,6 +236,7 @@ export function AppSidebar() {
   const navigate = useNavigate();
   const { profile, roles, signOut } = useAuth();
   const { canAccess, isAdmin } = usePermissions();
+  const { data: sidebarCounts } = useSidebarCounts();
 
   const handleSignOut = async () => {
     try {
@@ -284,6 +286,7 @@ export function AppSidebar() {
   const NavItemComponent = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.href;
     const Icon = item.icon;
+    const badgeValue = item.badgeKey && sidebarCounts ? sidebarCounts[item.badgeKey] : undefined;
 
     return (
       <Link to={item.href} className={cn("sidebar-nav-item group", isActive && "active")}>
@@ -291,9 +294,9 @@ export function AppSidebar() {
         {!collapsed && (
           <>
             <span className="flex-1">{item.title}</span>
-            {item.badge && (
+            {badgeValue !== undefined && badgeValue > 0 && (
               <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-sidebar-primary/20 px-1.5 text-xs font-semibold text-sidebar-primary">
-                {item.badge}
+                {badgeValue}
               </span>
             )}
           </>
