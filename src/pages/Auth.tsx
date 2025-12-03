@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
-import { Shield, Mail, Lock, User, ArrowLeft, Loader2 } from 'lucide-react';
+import { Shield, Mail, Lock, ArrowLeft, Loader2 } from 'lucide-react';
 import { z } from 'zod';
 
 const loginSchema = z.object({
@@ -14,37 +14,24 @@ const loginSchema = z.object({
   password: z.string().min(6, 'Le mot de passe doit contenir au moins 6 caractères'),
 });
 
-const signupSchema = z.object({
-  fullName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
-  email: z.string().email('Email invalide'),
-  password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: 'Les mots de passe ne correspondent pas',
-  path: ['confirmPassword'],
-});
-
-type AuthMode = 'login' | 'signup' | 'reset';
+type AuthMode = 'login' | 'reset';
 
 const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { signIn, signUp, resetPassword, user, isLoading: authLoading } = useAuth();
+  const { signIn, resetPassword, user, isLoading: authLoading } = useAuth();
   
   const [mode, setMode] = useState<AuthMode>('login');
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    fullName: '',
     email: '',
     password: '',
-    confirmPassword: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const modeParam = searchParams.get('mode');
-    if (modeParam === 'signup') setMode('signup');
-    else if (modeParam === 'reset') setMode('reset');
+    if (modeParam === 'reset') setMode('reset');
   }, [searchParams]);
 
   useEffect(() => {
@@ -59,8 +46,6 @@ const Auth = () => {
     try {
       if (mode === 'login') {
         loginSchema.parse({ email: formData.email, password: formData.password });
-      } else if (mode === 'signup') {
-        signupSchema.parse(formData);
       } else {
         z.string().email('Email invalide').parse(formData.email);
       }
@@ -101,18 +86,6 @@ const Auth = () => {
           toast.success('Connexion réussie');
           navigate('/');
         }
-      } else if (mode === 'signup') {
-        const { error } = await signUp(formData.email, formData.password, formData.fullName);
-        if (error) {
-          if (error.message.includes('already registered')) {
-            toast.error('Cet email est déjà utilisé');
-          } else {
-            toast.error('Erreur lors de l\'inscription');
-          }
-        } else {
-          toast.success('Compte créé avec succès');
-          navigate('/');
-        }
       } else if (mode === 'reset') {
         const { error } = await resetPassword(formData.email);
         if (error) {
@@ -149,35 +122,16 @@ const Auth = () => {
           </div>
           <CardTitle className="text-2xl font-bold">
             {mode === 'login' && 'Connexion'}
-            {mode === 'signup' && 'Créer un compte'}
             {mode === 'reset' && 'Réinitialiser le mot de passe'}
           </CardTitle>
           <CardDescription>
             {mode === 'login' && 'Accédez à votre espace de gestion financière'}
-            {mode === 'signup' && 'Rejoignez la plateforme FinanceFlow'}
             {mode === 'reset' && 'Entrez votre email pour recevoir un lien de réinitialisation'}
           </CardDescription>
         </CardHeader>
         
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'signup' && (
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Nom complet</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="fullName"
-                    type="text"
-                    placeholder="Jean Dupont"
-                    className="pl-10"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                  />
-                </div>
-                {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
-              </div>
-            )}
             
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
@@ -213,23 +167,6 @@ const Auth = () => {
               </div>
             )}
             
-            {mode === 'signup' && (
-              <div className="space-y-2">
-                <Label htmlFor="confirmPassword">Confirmer le mot de passe</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="confirmPassword"
-                    type="password"
-                    placeholder="••••••••"
-                    className="pl-10"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  />
-                </div>
-                {errors.confirmPassword && <p className="text-sm text-destructive">{errors.confirmPassword}</p>}
-              </div>
-            )}
             
             <Button type="submit" variant="gradient" className="w-full" disabled={isLoading}>
               {isLoading ? (
@@ -237,7 +174,6 @@ const Auth = () => {
               ) : (
                 <>
                   {mode === 'login' && 'Se connecter'}
-                  {mode === 'signup' && 'Créer mon compte'}
                   {mode === 'reset' && 'Envoyer le lien'}
                 </>
               )}
@@ -254,31 +190,9 @@ const Auth = () => {
                 >
                   Mot de passe oublié ?
                 </button>
-                <p className="text-muted-foreground">
-                  Pas encore de compte ?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setMode('signup')}
-                    className="font-medium text-primary hover:underline"
-                  >
-                    S'inscrire
-                  </button>
-                </p>
               </>
             )}
             
-            {mode === 'signup' && (
-              <p className="text-muted-foreground">
-                Déjà un compte ?{' '}
-                <button
-                  type="button"
-                  onClick={() => setMode('login')}
-                  className="font-medium text-primary hover:underline"
-                >
-                  Se connecter
-                </button>
-              </p>
-            )}
             
             {mode === 'reset' && (
               <button
