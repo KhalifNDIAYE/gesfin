@@ -45,6 +45,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import {
@@ -60,127 +61,135 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import type { ModuleName } from "@/types/database";
 
 interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   badge?: number;
+  module?: ModuleName;
 }
 
 interface NavGroup {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   items: NavItem[];
+  module?: ModuleName;
 }
 
 const mainNavItems: NavItem[] = [
-  { title: "Tableau de bord", href: "/", icon: LayoutDashboard },
-  { title: "Projets", href: "/projets", icon: FolderKanban, badge: 12 },
+  { title: "Tableau de bord", href: "/", icon: LayoutDashboard, module: "dashboard" },
+  { title: "Projets", href: "/projets", icon: FolderKanban, badge: 12, module: "projets" },
 ];
 
 const comptabiliteGroup: NavGroup = {
   title: "Comptabilité Générale",
   icon: Calculator,
+  module: "comptabilite",
   items: [
-    { title: "Journal", href: "/comptabilite", icon: BookOpen },
-    { title: "Dépenses", href: "/comptabilite/depenses", icon: Wallet },
-    { title: "Financements", href: "/comptabilite/financements", icon: CreditCard },
-    { title: "Décaissements", href: "/comptabilite/decaissements", icon: Receipt },
-    { title: "Prises en charge", href: "/comptabilite/prises-en-charge", icon: FileCheck },
-    { title: "Tiers", href: "/comptabilite/tiers", icon: Users },
-    { title: "Grand Livre", href: "/comptabilite/grand-livre", icon: FileText },
-    { title: "Balances", href: "/comptabilite/balances", icon: Scale },
-    { title: "Lettrage", href: "/comptabilite/lettrage", icon: Link2 },
-    { title: "Rapprochement", href: "/comptabilite/rapprochement", icon: Landmark },
-    { title: "Caisse", href: "/comptabilite/caisse", icon: Coins },
-    { title: "Échéances", href: "/comptabilite/echeances", icon: Clock },
-    { title: "À-nouveaux", href: "/comptabilite/a-nouveaux", icon: RefreshCw },
-    { title: "Clôtures", href: "/comptabilite/clotures", icon: Lock },
-    { title: "Éditions", href: "/comptabilite/editions", icon: Printer },
+    { title: "Journal", href: "/comptabilite", icon: BookOpen, module: "comptabilite" },
+    { title: "Dépenses", href: "/comptabilite/depenses", icon: Wallet, module: "comptabilite" },
+    { title: "Financements", href: "/comptabilite/financements", icon: CreditCard, module: "comptabilite" },
+    { title: "Décaissements", href: "/comptabilite/decaissements", icon: Receipt, module: "comptabilite" },
+    { title: "Prises en charge", href: "/comptabilite/prises-en-charge", icon: FileCheck, module: "comptabilite" },
+    { title: "Tiers", href: "/comptabilite/tiers", icon: Users, module: "comptabilite" },
+    { title: "Grand Livre", href: "/comptabilite/grand-livre", icon: FileText, module: "comptabilite" },
+    { title: "Balances", href: "/comptabilite/balances", icon: Scale, module: "comptabilite" },
+    { title: "Lettrage", href: "/comptabilite/lettrage", icon: Link2, module: "comptabilite" },
+    { title: "Rapprochement", href: "/comptabilite/rapprochement", icon: Landmark, module: "comptabilite" },
+    { title: "Caisse", href: "/comptabilite/caisse", icon: Coins, module: "comptabilite" },
+    { title: "Échéances", href: "/comptabilite/echeances", icon: Clock, module: "comptabilite" },
+    { title: "À-nouveaux", href: "/comptabilite/a-nouveaux", icon: RefreshCw, module: "comptabilite" },
+    { title: "Clôtures", href: "/comptabilite/clotures", icon: Lock, module: "comptabilite" },
+    { title: "Éditions", href: "/comptabilite/editions", icon: Printer, module: "comptabilite" },
   ],
 };
 
 const analytiqueGroup: NavGroup = {
   title: "Comptabilité Analytique",
   icon: PieChart,
+  module: "comptabilite",
   items: [
-    { title: "Par Activité", href: "/comptabilite/analytique/activite", icon: Activity },
-    { title: "Par Composante", href: "/comptabilite/analytique/composante", icon: Layers },
-    { title: "Par Zone Géo.", href: "/comptabilite/analytique/geographique", icon: MapPin },
-    { title: "Répartition", href: "/comptabilite/analytique/repartition", icon: SplitSquareHorizontal },
-    { title: "Réimputation", href: "/comptabilite/analytique/reimputation", icon: ArrowDownUp },
-    { title: "Centres de Coûts", href: "/comptabilite/analytique/centres-couts", icon: Building },
-    { title: "Analyse Projet", href: "/comptabilite/analytique/analyse-projet", icon: FolderKanban },
-    { title: "Synthèse", href: "/comptabilite/analytique/synthese", icon: PieChart },
+    { title: "Par Activité", href: "/comptabilite/analytique/activite", icon: Activity, module: "comptabilite" },
+    { title: "Par Composante", href: "/comptabilite/analytique/composante", icon: Layers, module: "comptabilite" },
+    { title: "Par Zone Géo.", href: "/comptabilite/analytique/geographique", icon: MapPin, module: "comptabilite" },
+    { title: "Répartition", href: "/comptabilite/analytique/repartition", icon: SplitSquareHorizontal, module: "comptabilite" },
+    { title: "Réimputation", href: "/comptabilite/analytique/reimputation", icon: ArrowDownUp, module: "comptabilite" },
+    { title: "Centres de Coûts", href: "/comptabilite/analytique/centres-couts", icon: Building, module: "comptabilite" },
+    { title: "Analyse Projet", href: "/comptabilite/analytique/analyse-projet", icon: FolderKanban, module: "comptabilite" },
+    { title: "Synthèse", href: "/comptabilite/analytique/synthese", icon: PieChart, module: "comptabilite" },
   ],
 };
 
 const budgetGroup: NavGroup = {
   title: "Suivi Budgétaire",
   icon: Wallet,
+  module: "comptabilite",
   items: [
-    { title: "Budgets", href: "/budget", icon: FileText },
-    { title: "Tableau de Bord", href: "/budget/dashboard", icon: BarChart3 },
-    { title: "Comparaison", href: "/budget/comparaison", icon: Scale },
-    { title: "Alertes", href: "/budget/alertes", icon: Activity },
+    { title: "Budgets", href: "/budget", icon: FileText, module: "comptabilite" },
+    { title: "Tableau de Bord", href: "/budget/dashboard", icon: BarChart3, module: "comptabilite" },
+    { title: "Comparaison", href: "/budget/comparaison", icon: Scale, module: "comptabilite" },
+    { title: "Alertes", href: "/budget/alertes", icon: Activity, module: "comptabilite" },
   ],
 };
 
 const immobilisationsGroup: NavGroup = {
   title: "Immobilisations",
   icon: Package,
+  module: "immobilisations",
   items: [
-    { title: "Registre", href: "/immobilisations", icon: Package },
-    { title: "Mouvements", href: "/immobilisations/mouvements", icon: ArrowDownUp },
-    { title: "Amortissements", href: "/immobilisations/amortissements", icon: Calculator },
-    { title: "Sorties", href: "/immobilisations/sorties", icon: FileText },
-    { title: "Rapprochement", href: "/immobilisations/rapprochement", icon: Scale },
+    { title: "Registre", href: "/immobilisations", icon: Package, module: "immobilisations" },
+    { title: "Mouvements", href: "/immobilisations/mouvements", icon: ArrowDownUp, module: "immobilisations" },
+    { title: "Amortissements", href: "/immobilisations/amortissements", icon: Calculator, module: "immobilisations" },
+    { title: "Sorties", href: "/immobilisations/sorties", icon: FileText, module: "immobilisations" },
+    { title: "Rapprochement", href: "/immobilisations/rapprochement", icon: Scale, module: "immobilisations" },
   ],
 };
 
 const rapportsGroup: NavGroup = {
   title: "Rapports",
   icon: BarChart3,
+  module: "rapports",
   items: [
-    { title: "Vue d'ensemble", href: "/rapports", icon: FileText },
-    { title: "Bilan", href: "/rapports/bilan", icon: FileText },
-    { title: "Compte de Résultat", href: "/rapports/resultat", icon: TrendingUp },
-    { title: "Financement", href: "/rapports/financement", icon: Wallet },
-    { title: "Ratios", href: "/rapports/ratios", icon: Calculator },
-    { title: "Dashboard", href: "/rapports/dashboard", icon: BarChart3 },
-    { title: "SYSCOHADA", href: "/rapports/syscohada", icon: BookOpen },
-    { title: "IFR / RSF", href: "/rapports/ifr", icon: FileCheck },
+    { title: "Vue d'ensemble", href: "/rapports", icon: FileText, module: "rapports" },
+    { title: "Bilan", href: "/rapports/bilan", icon: FileText, module: "rapports" },
+    { title: "Compte de Résultat", href: "/rapports/resultat", icon: TrendingUp, module: "rapports" },
+    { title: "Financement", href: "/rapports/financement", icon: Wallet, module: "rapports" },
+    { title: "Ratios", href: "/rapports/ratios", icon: Calculator, module: "rapports" },
+    { title: "Dashboard", href: "/rapports/dashboard", icon: BarChart3, module: "rapports" },
+    { title: "SYSCOHADA", href: "/rapports/syscohada", icon: BookOpen, module: "rapports" },
+    { title: "IFR / RSF", href: "/rapports/ifr", icon: FileCheck, module: "rapports" },
   ],
 };
 
 const decaissementsGroup: NavGroup = {
   title: "Décaissements",
   icon: ArrowDownUp,
+  module: "decaissements",
   items: [
-    { title: "Vue d'ensemble", href: "/decaissements", icon: ArrowDownUp },
-    { title: "Par Projet", href: "/decaissements/projet", icon: FolderKanban },
-    { title: "Par Bailleur", href: "/decaissements/bailleur", icon: Building2 },
-    { title: "Par Budget", href: "/decaissements/budget", icon: Wallet },
-    { title: "Monitoring", href: "/decaissements/monitoring", icon: Activity },
+    { title: "Vue d'ensemble", href: "/decaissements", icon: ArrowDownUp, module: "decaissements" },
+    { title: "Par Projet", href: "/decaissements/projet", icon: FolderKanban, module: "decaissements" },
+    { title: "Par Bailleur", href: "/decaissements/bailleur", icon: Building2, module: "decaissements" },
+    { title: "Par Budget", href: "/decaissements/budget", icon: Wallet, module: "decaissements" },
+    { title: "Monitoring", href: "/decaissements/monitoring", icon: Activity, module: "decaissements" },
   ],
 };
 
 const otherNavItems: NavItem[] = [
-  { title: "Bailleurs", href: "/bailleurs", icon: Building2, badge: 5 },
-  { title: "Conventions", href: "/conventions", icon: FileText },
-  { title: "Marchés", href: "/marches", icon: ArrowDownUp },
+  { title: "Bailleurs", href: "/bailleurs", icon: Building2, badge: 5, module: "bailleurs" },
+  { title: "Conventions", href: "/conventions", icon: FileText, module: "conventions" },
+  { title: "Marchés", href: "/marches", icon: ArrowDownUp, module: "marches" },
 ];
 
 const adminNavItems: NavItem[] = [
-  { title: "Utilisateurs", href: "/utilisateurs", icon: Users },
-  { title: "Sécurité", href: "/securite", icon: Shield },
-  { title: "Utilitaires", href: "/utilitaires", icon: Database },
-  { title: "Paramètres", href: "/parametres", icon: Settings },
+  { title: "Utilisateurs", href: "/utilisateurs", icon: Users, module: "utilisateurs" },
+  { title: "Sécurité", href: "/securite", icon: Shield, module: "securite" },
+  { title: "Utilitaires", href: "/utilitaires", icon: Database, module: "parametres" },
+  { title: "Paramètres", href: "/parametres", icon: Settings, module: "parametres" },
 ];
 
 export function AppSidebar() {
-  // Load menu states from localStorage
   const getStoredState = (key: string, defaultValue: boolean) => {
     const stored = localStorage.getItem(`sidebar_${key}`);
     return stored !== null ? JSON.parse(stored) : defaultValue;
@@ -195,7 +204,6 @@ export function AppSidebar() {
   const [decaissementsOpen, setDecaissementsOpen] = useState(() => getStoredState('decaissementsOpen', false));
   const location = useLocation();
 
-  // Persist menu states to localStorage
   useEffect(() => {
     localStorage.setItem('sidebar_collapsed', JSON.stringify(collapsed));
   }, [collapsed]);
@@ -223,8 +231,10 @@ export function AppSidebar() {
   useEffect(() => {
     localStorage.setItem('sidebar_decaissementsOpen', JSON.stringify(decaissementsOpen));
   }, [decaissementsOpen]);
+
   const navigate = useNavigate();
   const { profile, roles, signOut } = useAuth();
+  const { canAccess, isAdmin } = usePermissions();
 
   const handleSignOut = async () => {
     try {
@@ -256,6 +266,20 @@ export function AppSidebar() {
   const isImmoActive = location.pathname.startsWith("/immobilisations");
   const isRapportsActive = location.pathname.startsWith("/rapports");
   const isDecaissementsActive = location.pathname.startsWith("/decaissements");
+
+  // Filter navigation items based on permissions
+  const filterNavItems = (items: NavItem[]) => {
+    return items.filter(item => !item.module || canAccess(item.module, 'read'));
+  };
+
+  const canShowGroup = (group: NavGroup) => {
+    if (!group.module) return true;
+    return canAccess(group.module, 'read');
+  };
+
+  const filteredMainNavItems = filterNavItems(mainNavItems);
+  const filteredOtherNavItems = filterNavItems(otherNavItems);
+  const filteredAdminNavItems = isAdmin ? adminNavItems : [];
 
   const NavItemComponent = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.href;
@@ -337,246 +361,263 @@ export function AppSidebar() {
             )}
           </div>
           
-          {mainNavItems.map((item) => (
+          {filteredMainNavItems.map((item) => (
             <NavItemComponent key={item.href} item={item} />
           ))}
 
           {/* Comptabilité Générale Group */}
-          {collapsed ? (
-            <Link
-              to="/comptabilite"
-              className={cn("sidebar-nav-item group", isComptaActive && "active")}
-            >
-              <Calculator className="h-5 w-5 shrink-0" />
-            </Link>
-          ) : (
-            <Collapsible open={comptaOpen} onOpenChange={setComptaOpen}>
-              <CollapsibleTrigger asChild>
-                <button
-                  className={cn(
-                    "sidebar-nav-item group w-full justify-between",
-                    isComptaActive && "active"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <Calculator className="h-5 w-5 shrink-0" />
-                    <span className="flex-1 text-left">Comptabilité</span>
-                  </div>
-                  <ChevronDown
+          {canShowGroup(comptabiliteGroup) && (
+            collapsed ? (
+              <Link
+                to="/comptabilite"
+                className={cn("sidebar-nav-item group", isComptaActive && "active")}
+              >
+                <Calculator className="h-5 w-5 shrink-0" />
+              </Link>
+            ) : (
+              <Collapsible open={comptaOpen} onOpenChange={setComptaOpen}>
+                <CollapsibleTrigger asChild>
+                  <button
                     className={cn(
-                      "h-4 w-4 transition-transform duration-200",
-                      comptaOpen && "rotate-180"
+                      "sidebar-nav-item group w-full justify-between",
+                      isComptaActive && "active"
                     )}
-                  />
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
-                {comptabiliteGroup.items.map((item) => (
-                  <SubNavItem key={item.href} item={item} />
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
+                  >
+                    <div className="flex items-center gap-3">
+                      <Calculator className="h-5 w-5 shrink-0" />
+                      <span className="flex-1 text-left">Comptabilité</span>
+                    </div>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        comptaOpen && "rotate-180"
+                      )}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
+                  {comptabiliteGroup.items.map((item) => (
+                    <SubNavItem key={item.href} item={item} />
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )
           )}
 
           {/* Comptabilité Analytique Group */}
-          {collapsed ? (
-            <Link
-              to="/comptabilite/analytique/synthese"
-              className={cn("sidebar-nav-item group", isAnalytiqueActive && "active")}
-            >
-              <PieChart className="h-5 w-5 shrink-0" />
-            </Link>
-          ) : (
-            <Collapsible open={analytiqueOpen} onOpenChange={setAnalytiqueOpen}>
-              <CollapsibleTrigger asChild>
-                <button
-                  className={cn(
-                    "sidebar-nav-item group w-full justify-between",
-                    isAnalytiqueActive && "active"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <PieChart className="h-5 w-5 shrink-0" />
-                    <span className="flex-1 text-left">Analytique</span>
-                  </div>
-                  <ChevronDown
+          {canShowGroup(analytiqueGroup) && (
+            collapsed ? (
+              <Link
+                to="/comptabilite/analytique/synthese"
+                className={cn("sidebar-nav-item group", isAnalytiqueActive && "active")}
+              >
+                <PieChart className="h-5 w-5 shrink-0" />
+              </Link>
+            ) : (
+              <Collapsible open={analytiqueOpen} onOpenChange={setAnalytiqueOpen}>
+                <CollapsibleTrigger asChild>
+                  <button
                     className={cn(
-                      "h-4 w-4 transition-transform duration-200",
-                      analytiqueOpen && "rotate-180"
+                      "sidebar-nav-item group w-full justify-between",
+                      isAnalytiqueActive && "active"
                     )}
-                  />
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
-                {analytiqueGroup.items.map((item) => (
-                  <SubNavItem key={item.href} item={item} />
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
+                  >
+                    <div className="flex items-center gap-3">
+                      <PieChart className="h-5 w-5 shrink-0" />
+                      <span className="flex-1 text-left">Analytique</span>
+                    </div>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        analytiqueOpen && "rotate-180"
+                      )}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
+                  {analytiqueGroup.items.map((item) => (
+                    <SubNavItem key={item.href} item={item} />
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )
           )}
 
           {/* Suivi Budgétaire Group */}
-          {collapsed ? (
-            <Link
-              to="/budget"
-              className={cn("sidebar-nav-item group", isBudgetActive && "active")}
-            >
-              <Wallet className="h-5 w-5 shrink-0" />
-            </Link>
-          ) : (
-            <Collapsible open={budgetOpen} onOpenChange={setBudgetOpen}>
-              <CollapsibleTrigger asChild>
-                <button
-                  className={cn(
-                    "sidebar-nav-item group w-full justify-between",
-                    isBudgetActive && "active"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <Wallet className="h-5 w-5 shrink-0" />
-                    <span className="flex-1 text-left">Budgétaire</span>
-                  </div>
-                  <ChevronDown
+          {canShowGroup(budgetGroup) && (
+            collapsed ? (
+              <Link
+                to="/budget"
+                className={cn("sidebar-nav-item group", isBudgetActive && "active")}
+              >
+                <Wallet className="h-5 w-5 shrink-0" />
+              </Link>
+            ) : (
+              <Collapsible open={budgetOpen} onOpenChange={setBudgetOpen}>
+                <CollapsibleTrigger asChild>
+                  <button
                     className={cn(
-                      "h-4 w-4 transition-transform duration-200",
-                      budgetOpen && "rotate-180"
+                      "sidebar-nav-item group w-full justify-between",
+                      isBudgetActive && "active"
                     )}
-                  />
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
-                {budgetGroup.items.map((item) => (
-                  <SubNavItem key={item.href} item={item} />
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
+                  >
+                    <div className="flex items-center gap-3">
+                      <Wallet className="h-5 w-5 shrink-0" />
+                      <span className="flex-1 text-left">Budgétaire</span>
+                    </div>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        budgetOpen && "rotate-180"
+                      )}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
+                  {budgetGroup.items.map((item) => (
+                    <SubNavItem key={item.href} item={item} />
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )
           )}
 
           {/* Immobilisations Group */}
-          {collapsed ? (
-            <Link
-              to="/immobilisations"
-              className={cn("sidebar-nav-item group", isImmoActive && "active")}
-            >
-              <Package className="h-5 w-5 shrink-0" />
-            </Link>
-          ) : (
-            <Collapsible open={immoOpen} onOpenChange={setImmoOpen}>
-              <CollapsibleTrigger asChild>
-                <button
-                  className={cn(
-                    "sidebar-nav-item group w-full justify-between",
-                    isImmoActive && "active"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <Package className="h-5 w-5 shrink-0" />
-                    <span className="flex-1 text-left">Immobilisations</span>
-                  </div>
-                  <ChevronDown
+          {canShowGroup(immobilisationsGroup) && (
+            collapsed ? (
+              <Link
+                to="/immobilisations"
+                className={cn("sidebar-nav-item group", isImmoActive && "active")}
+              >
+                <Package className="h-5 w-5 shrink-0" />
+              </Link>
+            ) : (
+              <Collapsible open={immoOpen} onOpenChange={setImmoOpen}>
+                <CollapsibleTrigger asChild>
+                  <button
                     className={cn(
-                      "h-4 w-4 transition-transform duration-200",
-                      immoOpen && "rotate-180"
+                      "sidebar-nav-item group w-full justify-between",
+                      isImmoActive && "active"
                     )}
-                  />
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
-                {immobilisationsGroup.items.map((item) => (
-                  <SubNavItem key={item.href} item={item} />
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
+                  >
+                    <div className="flex items-center gap-3">
+                      <Package className="h-5 w-5 shrink-0" />
+                      <span className="flex-1 text-left">Immobilisations</span>
+                    </div>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        immoOpen && "rotate-180"
+                      )}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
+                  {immobilisationsGroup.items.map((item) => (
+                    <SubNavItem key={item.href} item={item} />
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )
           )}
 
-          {otherNavItems.map((item) => (
+          {filteredOtherNavItems.map((item) => (
             <NavItemComponent key={item.href} item={item} />
           ))}
 
           {/* Décaissements Group */}
-          {collapsed ? (
-            <Link
-              to="/decaissements"
-              className={cn("sidebar-nav-item group", isDecaissementsActive && "active")}
-            >
-              <ArrowDownUp className="h-5 w-5 shrink-0" />
-            </Link>
-          ) : (
-            <Collapsible open={decaissementsOpen} onOpenChange={setDecaissementsOpen}>
-              <CollapsibleTrigger asChild>
-                <button
-                  className={cn(
-                    "sidebar-nav-item group w-full justify-between",
-                    isDecaissementsActive && "active"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <ArrowDownUp className="h-5 w-5 shrink-0" />
-                    <span className="flex-1 text-left">Décaissements</span>
-                  </div>
-                  <ChevronDown
+          {canShowGroup(decaissementsGroup) && (
+            collapsed ? (
+              <Link
+                to="/decaissements"
+                className={cn("sidebar-nav-item group", isDecaissementsActive && "active")}
+              >
+                <ArrowDownUp className="h-5 w-5 shrink-0" />
+              </Link>
+            ) : (
+              <Collapsible open={decaissementsOpen} onOpenChange={setDecaissementsOpen}>
+                <CollapsibleTrigger asChild>
+                  <button
                     className={cn(
-                      "h-4 w-4 transition-transform duration-200",
-                      decaissementsOpen && "rotate-180"
+                      "sidebar-nav-item group w-full justify-between",
+                      isDecaissementsActive && "active"
                     )}
-                  />
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
-                {decaissementsGroup.items.map((item) => (
-                  <SubNavItem key={item.href} item={item} />
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
+                  >
+                    <div className="flex items-center gap-3">
+                      <ArrowDownUp className="h-5 w-5 shrink-0" />
+                      <span className="flex-1 text-left">Décaissements</span>
+                    </div>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        decaissementsOpen && "rotate-180"
+                      )}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
+                  {decaissementsGroup.items.map((item) => (
+                    <SubNavItem key={item.href} item={item} />
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )
           )}
 
           {/* Rapports Group */}
-          {collapsed ? (
-            <Link
-              to="/rapports"
-              className={cn("sidebar-nav-item group", isRapportsActive && "active")}
-            >
-              <BarChart3 className="h-5 w-5 shrink-0" />
-            </Link>
-          ) : (
-            <Collapsible open={rapportsOpen} onOpenChange={setRapportsOpen}>
-              <CollapsibleTrigger asChild>
-                <button
-                  className={cn(
-                    "sidebar-nav-item group w-full justify-between",
-                    isRapportsActive && "active"
-                  )}
-                >
-                  <div className="flex items-center gap-3">
-                    <BarChart3 className="h-5 w-5 shrink-0" />
-                    <span className="flex-1 text-left">Rapports</span>
-                  </div>
-                  <ChevronDown
+          {canShowGroup(rapportsGroup) && (
+            collapsed ? (
+              <Link
+                to="/rapports"
+                className={cn("sidebar-nav-item group", isRapportsActive && "active")}
+              >
+                <BarChart3 className="h-5 w-5 shrink-0" />
+              </Link>
+            ) : (
+              <Collapsible open={rapportsOpen} onOpenChange={setRapportsOpen}>
+                <CollapsibleTrigger asChild>
+                  <button
                     className={cn(
-                      "h-4 w-4 transition-transform duration-200",
-                      rapportsOpen && "rotate-180"
+                      "sidebar-nav-item group w-full justify-between",
+                      isRapportsActive && "active"
                     )}
-                  />
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
-                {rapportsGroup.items.map((item) => (
-                  <SubNavItem key={item.href} item={item} />
-                ))}
-              </CollapsibleContent>
-            </Collapsible>
+                  >
+                    <div className="flex items-center gap-3">
+                      <BarChart3 className="h-5 w-5 shrink-0" />
+                      <span className="flex-1 text-left">Rapports</span>
+                    </div>
+                    <ChevronDown
+                      className={cn(
+                        "h-4 w-4 transition-transform duration-200",
+                        rapportsOpen && "rotate-180"
+                      )}
+                    />
+                  </button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
+                  {rapportsGroup.items.map((item) => (
+                    <SubNavItem key={item.href} item={item} />
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            )
           )}
 
-          <div className="mb-2 mt-6">
-            {!collapsed && (
-              <span className="px-3 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/40">
-                Administration
-              </span>
-            )}
-          </div>
-          {adminNavItems.map((item) => (
-            <NavItemComponent key={item.href} item={item} />
-          ))}
+          {/* Administration Section - ONLY FOR ADMINS */}
+          {isAdmin && filteredAdminNavItems.length > 0 && (
+            <>
+              <div className="mb-2 mt-6">
+                {!collapsed && (
+                  <span className="px-3 text-xs font-semibold uppercase tracking-wider text-sidebar-foreground/40">
+                    Administration
+                  </span>
+                )}
+              </div>
+              {filteredAdminNavItems.map((item) => (
+                <NavItemComponent key={item.href} item={item} />
+              ))}
+            </>
+          )}
         </nav>
 
         <Separator className="bg-sidebar-border" />
