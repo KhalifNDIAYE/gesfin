@@ -93,7 +93,6 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ open, onOpen
       });
 
       if (response.error) {
-        console.error('Function error:', response.error);
         toast.error(response.error.message || 'Erreur lors de la création');
         return;
       }
@@ -107,8 +106,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ open, onOpen
       queryClient.invalidateQueries({ queryKey: ['users'] });
       resetForm();
       onOpenChange(false);
-    } catch (error) {
-      console.error('Error creating user:', error);
+    } catch {
       toast.error('Erreur lors de la création de l\'utilisateur');
     } finally {
       setIsLoading(false);
