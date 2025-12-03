@@ -10,7 +10,7 @@ export interface Budget {
   fiscal_year_id: string;
   currency_id: string;
   exchange_rate: number;
-  status: 'draft' | 'approved' | 'closed';
+  status: 'draft' | 'soumis' | 'valide' | 'rejete' | 'clos';
   total_amount: number;
   total_amount_local: number;
   start_date?: string;
@@ -18,6 +18,15 @@ export interface Budget {
   created_by?: string;
   approved_by?: string;
   approved_at?: string;
+  submitted_by?: string;
+  submitted_at?: string;
+  validated_by?: string;
+  validated_at?: string;
+  rejected_by?: string;
+  rejected_at?: string;
+  rejection_reason?: string;
+  closed_by?: string;
+  closed_at?: string;
   created_at?: string;
   updated_at?: string;
   fiscal_year?: { id: string; name: string };
