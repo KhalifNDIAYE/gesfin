@@ -2379,10 +2379,6 @@ export type Database = {
           id: string
           is_enabled: boolean | null
           organization_logo_url: string | null
-          smtp_host: string | null
-          smtp_password: string | null
-          smtp_port: number | null
-          smtp_username: string | null
           updated_at: string | null
         }
         Insert: {
@@ -2392,10 +2388,6 @@ export type Database = {
           id?: string
           is_enabled?: boolean | null
           organization_logo_url?: string | null
-          smtp_host?: string | null
-          smtp_password?: string | null
-          smtp_port?: number | null
-          smtp_username?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -2405,10 +2397,6 @@ export type Database = {
           id?: string
           is_enabled?: boolean | null
           organization_logo_url?: string | null
-          smtp_host?: string | null
-          smtp_password?: string | null
-          smtp_port?: number | null
-          smtp_username?: string | null
           updated_at?: string | null
         }
         Relationships: []
