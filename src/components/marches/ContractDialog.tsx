@@ -9,9 +9,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useContractMutations, Contract } from '@/hooks/useContracts';
 import { useEffect } from 'react';
+import { Lock } from 'lucide-react';
 
 const contractSchema = z.object({
-  code: z.string().min(1, 'Le code est requis'),
+  code: z.string().optional(),
   object: z.string().min(1, "L'objet est requis"),
   contract_type: z.string().min(1, 'Le type est requis'),
   status: z.string().min(1, 'Le statut est requis'),
@@ -106,10 +107,11 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
 
   const onSubmit = async (values: ContractFormValues) => {
     try {
+      const { code, ...restValues } = values;
       if (contract) {
-        await updateContract.mutateAsync({ id: contract.id, ...values });
+        await updateContract.mutateAsync({ id: contract.id, code: contract.code, ...restValues });
       } else {
-        await createContract.mutateAsync(values);
+        await createContract.mutateAsync(restValues as any);
       }
       onOpenChange(false);
     } catch (error) {
@@ -126,19 +128,35 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="MC-2024-001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {contract ? (
+                <FormField
+                  control={form.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        Code <Lock className="h-3 w-3 text-muted-foreground" />
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} disabled className="bg-muted" />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground">Code généré automatiquement</p>
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <div className="space-y-2">
+                  <FormLabel className="flex items-center gap-2">
+                    Code <Lock className="h-3 w-3 text-muted-foreground" />
+                  </FormLabel>
+                  <Input 
+                    value="Généré automatiquement" 
+                    disabled 
+                    className="bg-muted text-muted-foreground italic"
+                  />
+                  <p className="text-xs text-muted-foreground">Format: MCH-AAAA-XXX</p>
+                </div>
+              )}
               <FormField
                 control={form.control}
                 name="contract_type"

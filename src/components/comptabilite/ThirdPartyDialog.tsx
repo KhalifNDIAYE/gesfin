@@ -29,9 +29,10 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { ThirdParty, ThirdPartyType, useThirdPartyMutations } from "@/hooks/useComptabilite";
+import { Lock } from "lucide-react";
 
 const formSchema = z.object({
-  code: z.string().min(1, "Code requis").max(20),
+  code: z.string().optional(),
   name: z.string().min(1, "Nom requis").max(200),
   third_party_type: z.enum(['fournisseur', 'client', 'employe', 'bailleur', 'autre']),
   account_code: z.string().optional(),
@@ -105,22 +106,22 @@ export function ThirdPartyDialog({ open, onOpenChange, thirdParty }: ThirdPartyD
   }, [thirdParty, form]);
 
   const onSubmit = async (data: FormData) => {
+    const { code, ...restData } = data;
     const payload = {
-      code: data.code,
-      name: data.name,
-      third_party_type: data.third_party_type,
-      is_active: data.is_active,
-      account_code: data.account_code || null,
-      email: data.email || null,
-      phone: data.phone || null,
-      address: data.address || null,
-      tax_id: data.tax_id || null,
+      name: restData.name,
+      third_party_type: restData.third_party_type,
+      is_active: restData.is_active,
+      account_code: restData.account_code || null,
+      email: restData.email || null,
+      phone: restData.phone || null,
+      address: restData.address || null,
+      tax_id: restData.tax_id || null,
     };
 
     if (thirdParty) {
-      await updateMutation.mutateAsync({ id: thirdParty.id, ...payload });
+      await updateMutation.mutateAsync({ id: thirdParty.id, code: thirdParty.code, ...payload });
     } else {
-      await createMutation.mutateAsync(payload);
+      await createMutation.mutateAsync(payload as any);
     }
     onOpenChange(false);
   };
@@ -142,19 +143,35 @@ export function ThirdPartyDialog({ open, onOpenChange, thirdParty }: ThirdPartyD
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="FRN001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {thirdParty ? (
+                <FormField
+                  control={form.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        Code <Lock className="h-3 w-3 text-muted-foreground" />
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} disabled className="bg-muted" />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground">Code généré automatiquement</p>
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <div className="space-y-2">
+                  <FormLabel className="flex items-center gap-2">
+                    Code <Lock className="h-3 w-3 text-muted-foreground" />
+                  </FormLabel>
+                  <Input 
+                    value="Généré automatiquement" 
+                    disabled 
+                    className="bg-muted text-muted-foreground italic"
+                  />
+                  <p className="text-xs text-muted-foreground">Format: TIER-AAAA-XXX</p>
+                </div>
+              )}
 
               <FormField
                 control={form.control}

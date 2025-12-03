@@ -29,9 +29,10 @@ import {
 } from "@/components/ui/select";
 import { Budget, useCreateBudget, useUpdateBudget } from "@/hooks/useBudget";
 import { useFiscalYears, useCurrencies } from "@/hooks/useParametrage";
+import { Lock } from "lucide-react";
 
 const formSchema = z.object({
-  code: z.string().min(1, "Le code est requis"),
+  code: z.string().optional(),
   name: z.string().min(1, "Le nom est requis"),
   description: z.string().optional(),
   fiscal_year_id: z.string().min(1, "L'exercice est requis"),
@@ -98,10 +99,11 @@ export function BudgetDialog({ open, onOpenChange, budget, fiscalYearId }: Budge
 
   const onSubmit = async (data: FormData) => {
     try {
+      const { code, ...restData } = data;
       if (budget) {
-        await updateMutation.mutateAsync({ id: budget.id, ...data });
+        await updateMutation.mutateAsync({ id: budget.id, code: budget.code, ...restData });
       } else {
-        await createMutation.mutateAsync(data as any);
+        await createMutation.mutateAsync(restData as any);
       }
       onOpenChange(false);
     } catch (error) {
@@ -121,26 +123,42 @@ export function BudgetDialog({ open, onOpenChange, budget, fiscalYearId }: Budge
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Code</FormLabel>
-                  <FormControl>
-                    <Input placeholder="BUD-001" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {budget ? (
+              <FormField
+                control={form.control}
+                name="code"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="flex items-center gap-2">
+                      Code <Lock className="h-3 w-3 text-muted-foreground" />
+                    </FormLabel>
+                    <FormControl>
+                      <Input {...field} disabled className="bg-muted" />
+                    </FormControl>
+                    <p className="text-xs text-muted-foreground">Code généré automatiquement</p>
+                  </FormItem>
+                )}
+              />
+            ) : (
+              <div className="space-y-2">
+                <FormLabel className="flex items-center gap-2">
+                  Code <Lock className="h-3 w-3 text-muted-foreground" />
+                </FormLabel>
+                <Input 
+                  value="Généré automatiquement" 
+                  disabled 
+                  className="bg-muted text-muted-foreground italic"
+                />
+                <p className="text-xs text-muted-foreground">Format: BUD-AAAA-XXX</p>
+              </div>
+            )}
 
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Nom</FormLabel>
+                  <FormLabel>Nom *</FormLabel>
                   <FormControl>
                     <Input placeholder="Budget annuel 2024" {...field} />
                   </FormControl>
@@ -169,7 +187,7 @@ export function BudgetDialog({ open, onOpenChange, budget, fiscalYearId }: Budge
                 name="fiscal_year_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Exercice</FormLabel>
+                    <FormLabel>Exercice *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
@@ -194,7 +212,7 @@ export function BudgetDialog({ open, onOpenChange, budget, fiscalYearId }: Budge
                 name="currency_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Devise</FormLabel>
+                    <FormLabel>Devise *</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>

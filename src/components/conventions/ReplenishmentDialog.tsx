@@ -27,9 +27,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateReplenishment, useUpdateReplenishment, Replenishment, useConventions } from "@/hooks/useConventionsBailleurs";
+import { Lock } from "lucide-react";
 
 const formSchema = z.object({
-  code: z.string().min(1, "Code requis"),
+  code: z.string().optional(),
   convention_id: z.string().min(1, "Convention requise"),
   request_date: z.string().min(1, "Date requise"),
   amount: z.number().min(0, "Montant invalide"),
@@ -97,7 +98,7 @@ export function ReplenishmentDialog({ open, onOpenChange, replenishment, convent
       });
     } else {
       form.reset({
-        code: `REA-${Date.now().toString().slice(-6)}`,
+        code: "",
         convention_id: conventionId || "",
         request_date: new Date().toISOString().split("T")[0],
         amount: 0,
@@ -113,19 +114,20 @@ export function ReplenishmentDialog({ open, onOpenChange, replenishment, convent
   }, [replenishment, conventionId, form]);
 
   const onSubmit = async (values: FormValues) => {
-    const amountLocal = values.amount * values.exchange_rate;
+    const { code, ...restValues } = values;
+    const amountLocal = restValues.amount * restValues.exchange_rate;
     const data = {
-      ...values,
+      ...restValues,
       amount_local: amountLocal,
-      submitted_date: values.submitted_date || null,
-      approved_date: values.approved_date || null,
-      received_date: values.received_date || null,
+      submitted_date: restValues.submitted_date || null,
+      approved_date: restValues.approved_date || null,
+      received_date: restValues.received_date || null,
     };
 
     if (replenishment) {
-      await updateReplenishment.mutateAsync({ id: replenishment.id, ...data });
+      await updateReplenishment.mutateAsync({ id: replenishment.id, code: replenishment.code, ...data });
     } else {
-      await createReplenishment.mutateAsync(data);
+      await createReplenishment.mutateAsync(data as any);
     }
     onOpenChange(false);
   };
@@ -141,19 +143,35 @@ export function ReplenishmentDialog({ open, onOpenChange, replenishment, convent
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code *</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {replenishment ? (
+                <FormField
+                  control={form.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        Code <Lock className="h-3 w-3 text-muted-foreground" />
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} disabled className="bg-muted" />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground">Code généré automatiquement</p>
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <div className="space-y-2">
+                  <FormLabel className="flex items-center gap-2">
+                    Code <Lock className="h-3 w-3 text-muted-foreground" />
+                  </FormLabel>
+                  <Input 
+                    value="Généré automatiquement" 
+                    disabled 
+                    className="bg-muted text-muted-foreground italic"
+                  />
+                  <p className="text-xs text-muted-foreground">Format: FIN-AAAA-XXX</p>
+                </div>
+              )}
               <FormField
                 control={form.control}
                 name="status"
