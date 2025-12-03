@@ -9,7 +9,8 @@ import { SessionTimeoutProvider } from "@/components/auth/SessionTimeoutProvider
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AccessDenied from "./pages/AccessDenied";
-import Projets from "./pages/Projets";
+import ProjetsPage from "./pages/projets/ProjetsPage";
+import ProjetDetailPage from "./pages/projets/ProjetDetailPage";
 import Comptabilite from "./pages/Comptabilite";
 // Old static pages removed - using dynamic pages from bailleurs/ and conventions/ folders
 import Immobilisations from "./pages/Immobilisations";
@@ -103,7 +104,8 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute requiredModule="dashboard"><Index /></ProtectedRoute>} />
             
             {/* Projets */}
-            <Route path="/projets" element={<ProtectedRoute requiredModule="projets"><Projets /></ProtectedRoute>} />
+            <Route path="/projets" element={<ProtectedRoute requiredModule="projets"><ProjetsPage /></ProtectedRoute>} />
+            <Route path="/projets/:id" element={<ProtectedRoute requiredModule="projets"><ProjetDetailPage /></ProtectedRoute>} />
             
             {/* Comptabilité Générale */}
             <Route path="/comptabilite" element={<ProtectedRoute requiredModule="comptabilite"><Comptabilite /></ProtectedRoute>} />
