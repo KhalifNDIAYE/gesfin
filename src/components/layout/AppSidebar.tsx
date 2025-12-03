@@ -46,7 +46,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
-import { useSidebarCounts } from "@/hooks/useSidebarCounts";
+import { useSidebarCounts, useSidebarAlerts } from "@/hooks/useSidebarCounts";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { toast } from "sonner";
 import {
@@ -64,11 +64,14 @@ import {
 } from "@/components/ui/collapsible";
 import type { ModuleName } from "@/types/database";
 
+type AlertKey = 'projetsEnRetard' | 'projetsBudgetDepasse' | 'conventionsExpirees' | 'budgetsEnDepassement';
+
 interface NavItem {
   title: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
   badgeKey?: keyof ReturnType<typeof useSidebarCounts>['data'];
+  alertKeys?: { key: AlertKey; href: string; label: string }[];
   module?: ModuleName;
 }
 
@@ -77,11 +80,23 @@ interface NavGroup {
   icon: React.ComponentType<{ className?: string }>;
   items: NavItem[];
   module?: ModuleName;
+  alertKey?: AlertKey;
+  alertHref?: string;
 }
 
 const mainNavItems: NavItem[] = [
   { title: "Tableau de bord", href: "/", icon: LayoutDashboard, module: "dashboard" },
-  { title: "Projets", href: "/projets", icon: FolderKanban, badgeKey: "projets", module: "projets" },
+  { 
+    title: "Projets", 
+    href: "/projets", 
+    icon: FolderKanban, 
+    badgeKey: "projets", 
+    alertKeys: [
+      { key: "projetsEnRetard", href: "/projets?filter=retard", label: "projet(s) en retard" },
+      { key: "projetsBudgetDepasse", href: "/projets?filter=depassement", label: "dépassement(s) budget" },
+    ],
+    module: "projets" 
+  },
 ];
 
 const comptabiliteGroup: NavGroup = {
@@ -127,6 +142,8 @@ const budgetGroup: NavGroup = {
   title: "Suivi Budgétaire",
   icon: Wallet,
   module: "comptabilite",
+  alertKey: "budgetsEnDepassement",
+  alertHref: "/budget/alertes",
   items: [
     { title: "Budgets", href: "/budget", icon: FileText, module: "comptabilite" },
     { title: "Tableau de Bord", href: "/budget/dashboard", icon: BarChart3, module: "comptabilite" },
@@ -179,7 +196,16 @@ const decaissementsGroup: NavGroup = {
 
 const otherNavItems: NavItem[] = [
   { title: "Bailleurs", href: "/bailleurs", icon: Building2, badgeKey: "bailleurs", module: "bailleurs" },
-  { title: "Conventions", href: "/conventions", icon: FileText, badgeKey: "conventions", module: "conventions" },
+  { 
+    title: "Conventions", 
+    href: "/conventions", 
+    icon: FileText, 
+    badgeKey: "conventions", 
+    alertKeys: [
+      { key: "conventionsExpirees", href: "/conventions?filter=expired", label: "convention(s) expirée(s)" },
+    ],
+    module: "conventions" 
+  },
   { title: "Marchés", href: "/marches", icon: ArrowDownUp, badgeKey: "marches", module: "marches" },
 ];
 
@@ -237,6 +263,7 @@ export function AppSidebar() {
   const { profile, roles, signOut } = useAuth();
   const { canAccess, isAdmin } = usePermissions();
   const { data: sidebarCounts } = useSidebarCounts();
+  const { data: sidebarAlerts } = useSidebarAlerts();
 
   const handleSignOut = async () => {
     try {
@@ -287,19 +314,51 @@ export function AppSidebar() {
     const isActive = location.pathname === item.href;
     const Icon = item.icon;
     const badgeValue = item.badgeKey && sidebarCounts ? sidebarCounts[item.badgeKey] : undefined;
+    
+    // Calculate total alerts from alertKeys array
+    const alertsData = item.alertKeys?.map(alertConfig => ({
+      ...alertConfig,
+      value: sidebarAlerts ? sidebarAlerts[alertConfig.key] : 0,
+    })).filter(a => a.value > 0) || [];
+    
+    const totalAlerts = alertsData.reduce((sum, a) => sum + a.value, 0);
+
+    const handleAlertClick = (e: React.MouseEvent, href: string) => {
+      e.preventDefault();
+      e.stopPropagation();
+      navigate(href);
+    };
 
     return (
-      <Link to={item.href} className={cn("sidebar-nav-item group", isActive && "active")}>
+      <Link to={item.href} className={cn("sidebar-nav-item group relative", isActive && "active")}>
         <Icon className="h-5 w-5 shrink-0" />
         {!collapsed && (
           <>
             <span className="flex-1">{item.title}</span>
-            {badgeValue !== undefined && badgeValue > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-sidebar-primary/20 px-1.5 text-xs font-semibold text-sidebar-primary">
-                {badgeValue}
-              </span>
-            )}
+            <div className="flex items-center gap-1">
+              {/* Alert badges - prioritaires, rouges */}
+              {alertsData.map((alert, index) => (
+                <button
+                  key={index}
+                  onClick={(e) => handleAlertClick(e, alert.href)}
+                  className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-semibold text-destructive-foreground hover:bg-destructive/80 transition-colors"
+                  title={`${alert.value} ${alert.label}`}
+                >
+                  {alert.value}
+                </button>
+              ))}
+              {/* Count badge - normal, bleu */}
+              {badgeValue !== undefined && badgeValue > 0 && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-sidebar-primary/20 px-1.5 text-xs font-semibold text-sidebar-primary">
+                  {badgeValue}
+                </span>
+              )}
+            </div>
           </>
+        )}
+        {/* Collapsed state - show alert indicator as dot */}
+        {collapsed && totalAlerts > 0 && (
+          <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-destructive" />
         )}
       </Link>
     );
@@ -451,9 +510,12 @@ export function AppSidebar() {
             collapsed ? (
               <Link
                 to="/budget"
-                className={cn("sidebar-nav-item group", isBudgetActive && "active")}
+                className={cn("sidebar-nav-item group relative", isBudgetActive && "active")}
               >
                 <Wallet className="h-5 w-5 shrink-0" />
+                {sidebarAlerts?.budgetsEnDepassement !== undefined && sidebarAlerts.budgetsEnDepassement > 0 && (
+                  <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-destructive" />
+                )}
               </Link>
             ) : (
               <Collapsible open={budgetOpen} onOpenChange={setBudgetOpen}>
@@ -468,12 +530,27 @@ export function AppSidebar() {
                       <Wallet className="h-5 w-5 shrink-0" />
                       <span className="flex-1 text-left">Budgétaire</span>
                     </div>
-                    <ChevronDown
-                      className={cn(
-                        "h-4 w-4 transition-transform duration-200",
-                        budgetOpen && "rotate-180"
+                    <div className="flex items-center gap-1">
+                      {sidebarAlerts?.budgetsEnDepassement !== undefined && sidebarAlerts.budgetsEnDepassement > 0 && (
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            navigate('/budget/alertes');
+                          }}
+                          className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-semibold text-destructive-foreground hover:bg-destructive/80 transition-colors"
+                          title={`${sidebarAlerts.budgetsEnDepassement} dépassement(s) budgétaire(s)`}
+                        >
+                          {sidebarAlerts.budgetsEnDepassement}
+                        </button>
                       )}
-                    />
+                      <ChevronDown
+                        className={cn(
+                          "h-4 w-4 transition-transform duration-200",
+                          budgetOpen && "rotate-180"
+                        )}
+                      />
+                    </div>
                   </button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
