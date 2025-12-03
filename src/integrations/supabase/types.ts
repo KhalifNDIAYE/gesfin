@@ -4019,6 +4019,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      generate_entity_code: {
+        Args: { _code_column?: string; _prefix: string; _table_name: string }
+        Returns: string
+      }
       generate_entry_number: {
         Args: { _fiscal_year_id: string; _journal_code: string }
         Returns: string

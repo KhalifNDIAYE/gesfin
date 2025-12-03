@@ -29,9 +29,10 @@ import {
 import { useProjects, Project, ProjectFormData } from "@/hooks/useProjects";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Lock } from "lucide-react";
 
 const formSchema = z.object({
-  code: z.string().min(1, "Le code est requis"),
+  code: z.string().optional(),
   name: z.string().min(1, "Le nom est requis"),
   description: z.string().optional(),
   start_date: z.string().optional(),
@@ -136,24 +137,24 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
   }, [project, form]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    const formData: ProjectFormData = {
-      code: values.code,
-      name: values.name,
-      status: values.status,
-      description: values.description,
-      start_date: values.start_date,
-      end_date: values.end_date,
-      total_budget: values.total_budget,
-      notes: values.notes,
-      currency_id: values.currency_id || undefined,
-      responsible_id: values.responsible_id || undefined,
-      site_id: values.site_id || undefined,
+    const { code, ...restValues } = values;
+    const formData: Omit<ProjectFormData, 'code'> & { code?: string } = {
+      name: restValues.name,
+      status: restValues.status,
+      description: restValues.description,
+      start_date: restValues.start_date,
+      end_date: restValues.end_date,
+      total_budget: restValues.total_budget,
+      notes: restValues.notes,
+      currency_id: restValues.currency_id || undefined,
+      responsible_id: restValues.responsible_id || undefined,
+      site_id: restValues.site_id || undefined,
     };
 
     if (project) {
-      await updateProject.mutateAsync({ id: project.id, ...formData });
+      await updateProject.mutateAsync({ id: project.id, code: project.code, ...formData } as any);
     } else {
-      await createProject.mutateAsync(formData);
+      await createProject.mutateAsync(formData as any);
     }
     onOpenChange(false);
   };
@@ -170,19 +171,35 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="PRJ-001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {project ? (
+                <FormField
+                  control={form.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        Code <Lock className="h-3 w-3 text-muted-foreground" />
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} disabled className="bg-muted" />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground">Code généré automatiquement</p>
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <div className="space-y-2">
+                  <FormLabel className="flex items-center gap-2">
+                    Code <Lock className="h-3 w-3 text-muted-foreground" />
+                  </FormLabel>
+                  <Input 
+                    value="Généré automatiquement" 
+                    disabled 
+                    className="bg-muted text-muted-foreground italic"
+                  />
+                  <p className="text-xs text-muted-foreground">Format: PRJ-AAAA-XXX</p>
+                </div>
+              )}
 
               <FormField
                 control={form.control}

@@ -28,9 +28,10 @@ import {
 } from '@/components/ui/select';
 import { Asset, useAssetCategories, useAssetMutations } from '@/hooks/useAssets';
 import { useLocations, useSites } from '@/hooks/useParametrage';
+import { Lock } from 'lucide-react';
 
 const assetSchema = z.object({
-  code: z.string().min(1, 'Le code est requis'),
+  code: z.string().optional(),
   designation: z.string().min(1, 'La désignation est requise'),
   description: z.string().optional(),
   category_id: z.string().optional(),
@@ -127,17 +128,18 @@ export function AssetDialog({ open, onOpenChange, asset }: AssetDialogProps) {
   }, [asset, form]);
 
   const onSubmit = (values: AssetFormValues) => {
+    const { code, ...restValues } = values;
     const submitData = {
-      ...values,
-      category_id: values.category_id || null,
-      location_id: values.location_id || null,
-      site_id: values.site_id || null,
+      ...restValues,
+      category_id: restValues.category_id || null,
+      location_id: restValues.location_id || null,
+      site_id: restValues.site_id || null,
       status: 'active',
     };
 
     if (asset) {
       updateMutation.mutate(
-        { id: asset.id, ...submitData },
+        { id: asset.id, code: asset.code, ...submitData },
         { onSuccess: () => onOpenChange(false) }
       );
     } else {
@@ -161,19 +163,35 @@ export function AssetDialog({ open, onOpenChange, asset }: AssetDialogProps) {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="VEH-001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {asset ? (
+                <FormField
+                  control={form.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        Code <Lock className="h-3 w-3 text-muted-foreground" />
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} disabled className="bg-muted" />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground">Code généré automatiquement</p>
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <div className="space-y-2">
+                  <FormLabel className="flex items-center gap-2">
+                    Code <Lock className="h-3 w-3 text-muted-foreground" />
+                  </FormLabel>
+                  <Input 
+                    value="Généré automatiquement" 
+                    disabled 
+                    className="bg-muted text-muted-foreground italic"
+                  />
+                  <p className="text-xs text-muted-foreground">Format: IMM-AAAA-XXX</p>
+                </div>
+              )}
 
               <FormField
                 control={form.control}

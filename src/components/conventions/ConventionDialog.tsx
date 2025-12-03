@@ -28,9 +28,10 @@ import {
 } from "@/components/ui/select";
 import { useCreateConvention, useUpdateConvention, Convention, useBailleurs } from "@/hooks/useConventionsBailleurs";
 import { useCurrencies } from "@/hooks/useParametrage";
+import { Lock } from "lucide-react";
 
 const formSchema = z.object({
-  code: z.string().min(1, "Code requis"),
+  code: z.string().optional(),
   name: z.string().min(1, "Nom requis"),
   bailleur_id: z.string().min(1, "Bailleur requis"),
   currency_id: z.string().min(1, "Devise requise"),
@@ -132,19 +133,20 @@ export function ConventionDialog({ open, onOpenChange, convention }: ConventionD
   }, [convention, form]);
 
   const onSubmit = async (values: FormValues) => {
-    const totalAmountLocal = values.total_amount * values.exchange_rate;
+    const { code, ...restValues } = values;
+    const totalAmountLocal = restValues.total_amount * restValues.exchange_rate;
     const data = {
-      ...values,
+      ...restValues,
       total_amount_local: totalAmountLocal,
-      signing_date: values.signing_date || null,
-      effective_date: values.effective_date || null,
-      closing_date: values.closing_date || null,
+      signing_date: restValues.signing_date || null,
+      effective_date: restValues.effective_date || null,
+      closing_date: restValues.closing_date || null,
     };
 
     if (convention) {
-      await updateConvention.mutateAsync({ id: convention.id, ...data });
+      await updateConvention.mutateAsync({ id: convention.id, code: convention.code, ...data });
     } else {
-      await createConvention.mutateAsync(data);
+      await createConvention.mutateAsync(data as any);
     }
     onOpenChange(false);
   };
@@ -160,19 +162,35 @@ export function ConventionDialog({ open, onOpenChange, convention }: ConventionD
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code *</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="CONV-2024-001" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              {convention ? (
+                <FormField
+                  control={form.control}
+                  name="code"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="flex items-center gap-2">
+                        Code <Lock className="h-3 w-3 text-muted-foreground" />
+                      </FormLabel>
+                      <FormControl>
+                        <Input {...field} disabled className="bg-muted" />
+                      </FormControl>
+                      <p className="text-xs text-muted-foreground">Code généré automatiquement</p>
+                    </FormItem>
+                  )}
+                />
+              ) : (
+                <div className="space-y-2">
+                  <FormLabel className="flex items-center gap-2">
+                    Code <Lock className="h-3 w-3 text-muted-foreground" />
+                  </FormLabel>
+                  <Input 
+                    value="Généré automatiquement" 
+                    disabled 
+                    className="bg-muted text-muted-foreground italic"
+                  />
+                  <p className="text-xs text-muted-foreground">Format: CONV-AAAA-XXX</p>
+                </div>
+              )}
               <FormField
                 control={form.control}
                 name="bailleur_id"
