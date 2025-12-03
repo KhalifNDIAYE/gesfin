@@ -7,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, Plus, Edit, Trash2, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
 import { useBudget, useBudgetLines, useDeleteBudgetLine, BudgetLine } from "@/hooks/useBudget";
+import { BudgetWorkflowActions } from "@/components/budget/BudgetWorkflowActions";
+import { BudgetValidationHistory } from "@/components/budget/BudgetValidationHistory";
+import { useCanPerformBudgetAction, BudgetWorkflowStatus } from "@/hooks/useBudgetWorkflow";
 import {
   Table,
   TableBody,
@@ -37,6 +40,7 @@ export default function BudgetDetailPage() {
   const { data: budget, isLoading: budgetLoading } = useBudget(id);
   const { data: lines, isLoading: linesLoading } = useBudgetLines(id);
   const deleteMutation = useDeleteBudgetLine();
+  const permissions = useCanPerformBudgetAction(budget?.status as BudgetWorkflowStatus);
 
   const handleEdit = (line: BudgetLine) => {
     setEditingLine(line);
@@ -90,10 +94,18 @@ export default function BudgetDetailPage() {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour
           </Button>
-          <Button onClick={() => { setEditingLine(null); setDialogOpen(true); }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Ajouter une ligne
-          </Button>
+          <div className="flex items-center gap-4">
+            <BudgetWorkflowActions
+              budgetId={budget.id}
+              currentStatus={budget.status as BudgetWorkflowStatus}
+            />
+            {permissions.canEdit && (
+              <Button onClick={() => { setEditingLine(null); setDialogOpen(true); }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Ajouter une ligne
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -222,12 +234,16 @@ export default function BudgetDetailPage() {
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex justify-end gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => handleEdit(line)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button variant="ghost" size="icon" onClick={() => setDeleteId(line.id)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
+                              {permissions.canEdit && (
+                                <>
+                                  <Button variant="ghost" size="icon" onClick={() => handleEdit(line)}>
+                                    <Edit className="h-4 w-4" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" onClick={() => setDeleteId(line.id)}>
+                                    <Trash2 className="h-4 w-4 text-destructive" />
+                                  </Button>
+                                </>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
@@ -239,6 +255,9 @@ export default function BudgetDetailPage() {
             )}
           </CardContent>
         </Card>
+        
+        {/* Validation History */}
+        <BudgetValidationHistory budgetId={id!} />
       </div>
 
       <BudgetLineDialog

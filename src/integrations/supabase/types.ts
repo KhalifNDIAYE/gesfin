@@ -1005,10 +1005,60 @@ export type Database = {
           },
         ]
       }
+      budget_validation_history: {
+        Row: {
+          action: string
+          budget_id: string
+          comment: string | null
+          from_status: string
+          id: string
+          performed_at: string | null
+          performed_by: string | null
+          to_status: string
+        }
+        Insert: {
+          action: string
+          budget_id: string
+          comment?: string | null
+          from_status: string
+          id?: string
+          performed_at?: string | null
+          performed_by?: string | null
+          to_status: string
+        }
+        Update: {
+          action?: string
+          budget_id?: string
+          comment?: string | null
+          from_status?: string
+          id?: string
+          performed_at?: string | null
+          performed_by?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_validation_history_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_validation_history_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budgets: {
         Row: {
           approved_at: string | null
           approved_by: string | null
+          closed_at: string | null
+          closed_by: string | null
           code: string
           created_at: string | null
           created_by: string | null
@@ -1019,15 +1069,24 @@ export type Database = {
           fiscal_year_id: string
           id: string
           name: string
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
           start_date: string | null
           status: string
+          submitted_at: string | null
+          submitted_by: string | null
           total_amount: number | null
           total_amount_local: number | null
           updated_at: string | null
+          validated_at: string | null
+          validated_by: string | null
         }
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
           code: string
           created_at?: string | null
           created_by?: string | null
@@ -1038,15 +1097,24 @@ export type Database = {
           fiscal_year_id: string
           id?: string
           name: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           start_date?: string | null
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           total_amount?: number | null
           total_amount_local?: number | null
           updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
         }
         Update: {
           approved_at?: string | null
           approved_by?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
           code?: string
           created_at?: string | null
           created_by?: string | null
@@ -1057,16 +1125,30 @@ export type Database = {
           fiscal_year_id?: string
           id?: string
           name?: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
           start_date?: string | null
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           total_amount?: number | null
           total_amount_local?: number | null
           updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
         }
         Relationships: [
           {
             foreignKeyName: "budgets_approved_by_fkey"
             columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_closed_by_fkey"
+            columns: ["closed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
@@ -1090,6 +1172,27 @@ export type Database = {
             columns: ["fiscal_year_id"]
             isOneToOne: false
             referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budgets_validated_by_fkey"
+            columns: ["validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3786,6 +3889,10 @@ export type Database = {
         Args: { _role_name: string; _user_id: string }
         Returns: boolean
       }
+      has_validated_budget: {
+        Args: { _fiscal_year_id: string }
+        Returns: boolean
+      }
       increment_failed_login: { Args: { _email: string }; Returns: undefined }
       is_account_locked: { Args: { _email: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
@@ -3825,6 +3932,15 @@ export type Database = {
         Returns: string
       }
       reset_failed_login: { Args: { _user_id: string }; Returns: undefined }
+      validate_budget_transition: {
+        Args: {
+          _budget_id: string
+          _comment?: string
+          _new_status: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       validate_expense_transition: {
         Args: {
           _comment?: string

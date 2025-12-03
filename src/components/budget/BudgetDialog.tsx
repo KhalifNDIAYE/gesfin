@@ -37,7 +37,6 @@ const formSchema = z.object({
   fiscal_year_id: z.string().min(1, "L'exercice est requis"),
   currency_id: z.string().min(1, "La devise est requise"),
   exchange_rate: z.coerce.number().min(0, "Taux invalide").default(1),
-  status: z.enum(['draft', 'approved', 'closed']).default('draft'),
   start_date: z.string().optional(),
   end_date: z.string().optional(),
 });
@@ -66,7 +65,6 @@ export function BudgetDialog({ open, onOpenChange, budget, fiscalYearId }: Budge
       fiscal_year_id: fiscalYearId || "",
       currency_id: "",
       exchange_rate: 1,
-      status: "draft",
       start_date: "",
       end_date: "",
     },
@@ -81,7 +79,6 @@ export function BudgetDialog({ open, onOpenChange, budget, fiscalYearId }: Budge
         fiscal_year_id: budget.fiscal_year_id,
         currency_id: budget.currency_id,
         exchange_rate: budget.exchange_rate,
-        status: budget.status,
         start_date: budget.start_date || "",
         end_date: budget.end_date || "",
       });
@@ -93,7 +90,6 @@ export function BudgetDialog({ open, onOpenChange, budget, fiscalYearId }: Budge
         fiscal_year_id: fiscalYearId || "",
         currency_id: currencies?.find(c => c.is_default)?.id || "",
         exchange_rate: 1,
-        status: "draft",
         start_date: "",
         end_date: "",
       });
@@ -125,44 +121,19 @@ export function BudgetDialog({ open, onOpenChange, budget, fiscalYearId }: Budge
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code</FormLabel>
-                    <FormControl>
-                      <Input placeholder="BUD-001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Statut</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Statut" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="draft">Brouillon</SelectItem>
-                        <SelectItem value="approved">Approuvé</SelectItem>
-                        <SelectItem value="closed">Clôturé</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="code"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Code</FormLabel>
+                  <FormControl>
+                    <Input placeholder="BUD-001" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

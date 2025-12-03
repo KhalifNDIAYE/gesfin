@@ -1,13 +1,15 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PermissionButton, PermissionGate } from "@/components/auth/PermissionButton";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, Eye, FileText, CheckCircle, Clock, XCircle } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Eye, FileText, CheckCircle, Clock, XCircle, Send, Lock, AlertCircle } from "lucide-react";
 import { useBudgets, useDeleteBudget, Budget } from "@/hooks/useBudget";
-import { useFiscalYears, useCurrencies } from "@/hooks/useParametrage";
+import { useFiscalYears } from "@/hooks/useParametrage";
+import { BudgetWorkflowActions } from "@/components/budget/BudgetWorkflowActions";
+import { useCanPerformBudgetAction, BudgetWorkflowStatus, BUDGET_STATUS_LABELS, BUDGET_STATUS_COLORS } from "@/hooks/useBudgetWorkflow";
 import { useNavigate } from "react-router-dom";
 import {
   Table,
@@ -68,16 +70,28 @@ export default function BudgetsPage() {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'approved':
-        return <Badge className="bg-green-500/10 text-green-500 border-green-500/20"><CheckCircle className="h-3 w-3 mr-1" />Approuvé</Badge>;
-      case 'closed':
-        return <Badge className="bg-gray-500/10 text-gray-500 border-gray-500/20"><XCircle className="h-3 w-3 mr-1" />Clôturé</Badge>;
-      default:
-        return <Badge className="bg-yellow-500/10 text-yellow-500 border-yellow-500/20"><Clock className="h-3 w-3 mr-1" />Brouillon</Badge>;
-    }
+  const getStatusBadge = (status: BudgetWorkflowStatus) => {
+    const label = BUDGET_STATUS_LABELS[status] || status;
+    const colorClass = BUDGET_STATUS_COLORS[status] || 'bg-muted text-muted-foreground';
+    
+    const icons: Record<string, React.ReactNode> = {
+      draft: <Clock className="h-3 w-3 mr-1" />,
+      soumis: <Send className="h-3 w-3 mr-1" />,
+      valide: <CheckCircle className="h-3 w-3 mr-1" />,
+      rejete: <XCircle className="h-3 w-3 mr-1" />,
+      clos: <Lock className="h-3 w-3 mr-1" />,
+    };
+    
+    return (
+      <Badge className={colorClass}>
+        {icons[status]}
+        {label}
+      </Badge>
+    );
   };
+  
+  const canEditBudget = (status: BudgetWorkflowStatus) => status === 'draft' || status === 'rejete';
+  const canDeleteBudget = (status: BudgetWorkflowStatus) => status === 'draft';
 
   return (
     <AppLayout
@@ -142,7 +156,7 @@ export default function BudgetsPage() {
                     <TableHead>Exercice</TableHead>
                     <TableHead>Devise</TableHead>
                     <TableHead className="text-right">Montant Total</TableHead>
-                    <TableHead>Statut</TableHead>
+                    <TableHead>Statut / Workflow</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -167,22 +181,32 @@ export default function BudgetsPage() {
                         <TableCell className="text-right font-mono">
                           {Number(budget.total_amount).toLocaleString('fr-FR')} {budget.currency?.symbol}
                         </TableCell>
-                        <TableCell>{getStatusBadge(budget.status)}</TableCell>
+                        <TableCell onClick={e => e.stopPropagation()}>
+                          <BudgetWorkflowActions
+                            budgetId={budget.id}
+                            currentStatus={budget.status as BudgetWorkflowStatus}
+                            compact
+                          />
+                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-1" onClick={e => e.stopPropagation()}>
                             <Button variant="ghost" size="icon" onClick={() => navigate(`/budget/${budget.id}`)}>
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <PermissionGate module="comptabilite" permission="update">
-                              <Button variant="ghost" size="icon" onClick={() => handleEdit(budget)}>
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </PermissionGate>
-                            <PermissionGate module="comptabilite" permission="delete">
-                              <Button variant="ghost" size="icon" onClick={() => setDeleteId(budget.id)}>
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
-                            </PermissionGate>
+                            {canEditBudget(budget.status as BudgetWorkflowStatus) && (
+                              <PermissionGate module="comptabilite" permission="update">
+                                <Button variant="ghost" size="icon" onClick={() => handleEdit(budget)}>
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </PermissionGate>
+                            )}
+                            {canDeleteBudget(budget.status as BudgetWorkflowStatus) && (
+                              <PermissionGate module="comptabilite" permission="delete">
+                                <Button variant="ghost" size="icon" onClick={() => setDeleteId(budget.id)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </PermissionGate>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
