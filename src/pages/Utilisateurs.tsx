@@ -36,10 +36,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useUsers, useDeleteUser, UserWithRoles } from "@/hooks/useUsers";
-import { useRoles, Role, RoleWithPermissions, useDeleteRole } from "@/hooks/useRoles";
 import { UserDialog } from "@/components/users/UserDialog";
 import { CreateUserDialog } from "@/components/users/CreateUserDialog";
-import { RoleDialog } from "@/components/roles/RoleDialog";
+import { PermissionsMatrix } from "@/components/roles/PermissionsMatrix";
 
 const roleColors: Record<string, string> = {
   admin: "bg-destructive/10 text-destructive",
@@ -54,16 +53,10 @@ const Utilisateurs = () => {
   const [selectedUser, setSelectedUser] = useState<UserWithRoles | null>(null);
   const [userDialogOpen, setUserDialogOpen] = useState(false);
   const [createUserDialogOpen, setCreateUserDialogOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<RoleWithPermissions | null>(null);
-  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
-  const [roleDialogMode, setRoleDialogMode] = useState<'create' | 'edit'>('create');
   const [deleteUserId, setDeleteUserId] = useState<string | null>(null);
-  const [deleteRoleId, setDeleteRoleId] = useState<string | null>(null);
 
   const { data: users, isLoading: usersLoading } = useUsers();
-  const { data: roles, isLoading: rolesLoading } = useRoles();
   const deleteUser = useDeleteUser();
-  const deleteRole = useDeleteRole();
 
   const filteredUsers = users?.filter(user => {
     const search = searchTerm.toLowerCase();
@@ -83,29 +76,10 @@ const Utilisateurs = () => {
     setUserDialogOpen(true);
   };
 
-  const handleCreateRole = () => {
-    setSelectedRole(null);
-    setRoleDialogMode('create');
-    setRoleDialogOpen(true);
-  };
-
-  const handleEditRole = (role: Role) => {
-    setSelectedRole(role as RoleWithPermissions);
-    setRoleDialogMode('edit');
-    setRoleDialogOpen(true);
-  };
-
   const handleDeleteUser = async () => {
     if (deleteUserId) {
       await deleteUser.mutateAsync(deleteUserId);
       setDeleteUserId(null);
-    }
-  };
-
-  const handleDeleteRole = async () => {
-    if (deleteRoleId) {
-      await deleteRole.mutateAsync(deleteRoleId);
-      setDeleteRoleId(null);
     }
   };
 
@@ -326,62 +300,7 @@ const Utilisateurs = () => {
         </TabsContent>
 
         <TabsContent value="roles" className="space-y-6">
-          {/* Actions Bar */}
-          <div className="flex justify-end">
-            <Button variant="gradient" onClick={handleCreateRole}>
-              <Plus className="h-4 w-4" />
-              Nouveau rôle
-            </Button>
-          </div>
-
-          {/* Roles Grid */}
-          {rolesLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-            </div>
-          ) : (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {roles?.map((role) => (
-                <Card key={role.id}>
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Shield className="h-5 w-5 text-primary" />
-                        {role.name}
-                      </CardTitle>
-                      {role.is_system && (
-                        <Badge variant="outline">Système</Badge>
-                      )}
-                    </div>
-                    <CardDescription>{role.description || 'Pas de description'}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex-1"
-                        onClick={() => handleEditRole(role)}
-                      >
-                        <Edit className="h-4 w-4" />
-                        Permissions
-                      </Button>
-                      {!role.is_system && (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() => setDeleteRoleId(role.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
+          <PermissionsMatrix />
         </TabsContent>
       </Tabs>
 
@@ -398,14 +317,6 @@ const Utilisateurs = () => {
         onOpenChange={setCreateUserDialogOpen}
       />
 
-      {/* Role Dialog */}
-      <RoleDialog
-        role={selectedRole}
-        open={roleDialogOpen}
-        onOpenChange={setRoleDialogOpen}
-        mode={roleDialogMode}
-      />
-
       {/* Delete User Confirmation */}
       <AlertDialog open={!!deleteUserId} onOpenChange={() => setDeleteUserId(null)}>
         <AlertDialogContent>
@@ -419,27 +330,6 @@ const Utilisateurs = () => {
             <AlertDialogCancel>Annuler</AlertDialogCancel>
             <AlertDialogAction 
               onClick={handleDeleteUser}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Delete Role Confirmation */}
-      <AlertDialog open={!!deleteRoleId} onOpenChange={() => setDeleteRoleId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer le rôle</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action est irréversible. Le rôle sera supprimé et retiré de tous les utilisateurs.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteRole}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Supprimer
