@@ -5,10 +5,6 @@ import { toast } from 'sonner';
 export interface EmailNotificationSettings {
   id: string;
   is_enabled: boolean;
-  smtp_host: string | null;
-  smtp_port: number | null;
-  smtp_username: string | null;
-  smtp_password: string | null;
   from_email: string | null;
   from_name: string | null;
   organization_logo_url: string | null;

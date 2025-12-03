@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Bell, Save, Mail, Settings, History, AlertTriangle, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import { Bell, Save, Mail, Settings, History, AlertTriangle, CheckCircle, XCircle, Loader2, Info } from "lucide-react";
 import { useEmailNotificationSettings, useEmailAlertTypes, useEmailLogs, useEmailNotificationMutations, EmailAlertType } from "@/hooks/useEmailNotifications";
 import { useRoles } from "@/hooks/useRoles";
 import { format } from "date-fns";
@@ -35,10 +35,6 @@ export function NotificationsTab() {
 
   const [formData, setFormData] = useState({
     is_enabled: false,
-    smtp_host: '',
-    smtp_port: 587,
-    smtp_username: '',
-    smtp_password: '',
     from_email: '',
     from_name: '',
   });
@@ -49,10 +45,6 @@ export function NotificationsTab() {
     if (settings) {
       setFormData({
         is_enabled: settings.is_enabled,
-        smtp_host: settings.smtp_host || '',
-        smtp_port: settings.smtp_port || 587,
-        smtp_username: settings.smtp_username || '',
-        smtp_password: settings.smtp_password || '',
         from_email: settings.from_email || '',
         from_name: settings.from_name || '',
       });
@@ -124,6 +116,18 @@ export function NotificationsTab() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Email Service Info */}
+            <div className="flex items-start gap-3 rounded-lg border border-border p-4 bg-muted/30">
+              <Info className="h-5 w-5 text-primary mt-0.5" />
+              <div className="space-y-1">
+                <p className="font-medium">Service d'envoi d'emails</p>
+                <p className="text-sm text-muted-foreground">
+                  Les emails sont envoyés via Resend, un service sécurisé de livraison d'emails. 
+                  Les identifiants sont stockés de manière sécurisée dans les secrets du serveur.
+                </p>
+              </div>
+            </div>
+
             {/* Enable/Disable */}
             <div className="flex items-center justify-between rounded-lg border border-border p-4 bg-muted/30">
               <div className="space-y-0.5">
@@ -140,58 +144,6 @@ export function NotificationsTab() {
 
             {formData.is_enabled && (
               <>
-                {/* SMTP Configuration */}
-                <div className="space-y-4 rounded-lg border border-border p-4">
-                  <h3 className="font-medium flex items-center gap-2">
-                    <Settings className="h-4 w-4" />
-                    Configuration SMTP (optionnel)
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    Par défaut, les emails sont envoyés via Resend. Configurez ces paramètres uniquement si vous souhaitez utiliser votre propre serveur SMTP.
-                  </p>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="smtp_host">Serveur SMTP</Label>
-                      <Input
-                        id="smtp_host"
-                        placeholder="smtp.example.com"
-                        value={formData.smtp_host}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, smtp_host: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="smtp_port">Port</Label>
-                      <Input
-                        id="smtp_port"
-                        type="number"
-                        placeholder="587"
-                        value={formData.smtp_port}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, smtp_port: parseInt(e.target.value) || 587 }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="smtp_username">Nom d'utilisateur</Label>
-                      <Input
-                        id="smtp_username"
-                        placeholder="user@example.com"
-                        value={formData.smtp_username}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, smtp_username: e.target.value }))}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="smtp_password">Mot de passe</Label>
-                      <Input
-                        id="smtp_password"
-                        type="password"
-                        placeholder="••••••••"
-                        value={formData.smtp_password}
-                        onChange={(e) => setFormData((prev) => ({ ...prev, smtp_password: e.target.value }))}
-                      />
-                    </div>
-                  </div>
-                </div>
-
                 {/* From Address */}
                 <div className="space-y-4 rounded-lg border border-border p-4">
                   <h3 className="font-medium">Adresse d'expédition</h3>
