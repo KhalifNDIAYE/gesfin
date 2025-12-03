@@ -71,8 +71,8 @@ export function GuaranteeDialog({ open, onOpenChange, contractId }: GuaranteeDia
       });
       form.reset();
       onOpenChange(false);
-    } catch (error) {
-      console.error('Error creating guarantee:', error);
+    } catch {
+      // Error handled by mutation
     }
   };
 

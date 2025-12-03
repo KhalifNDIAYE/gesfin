@@ -114,8 +114,8 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
         await createContract.mutateAsync(restValues as any);
       }
       onOpenChange(false);
-    } catch (error) {
-      console.error('Error saving contract:', error);
+    } catch {
+      // Error handled by mutation
     }
   };
 

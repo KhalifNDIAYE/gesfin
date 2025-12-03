@@ -72,7 +72,8 @@ export default function ConventionDetailPage() {
         .order('line_number');
       
       if (error) {
-        console.error('Error fetching report lines:', error);
+        toast.error('Erreur lors du chargement des lignes du rapport');
+        return;
       }
 
       generateDetailedReportPDF(
@@ -83,8 +84,7 @@ export default function ConventionDetailPage() {
       );
       
       toast.success('Rapport PDF généré avec succès');
-    } catch (err) {
-      console.error('Error generating PDF:', err);
+    } catch {
       toast.error('Erreur lors de la génération du PDF');
     }
   };

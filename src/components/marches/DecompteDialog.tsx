@@ -74,8 +74,8 @@ export function DecompteDialog({ open, onOpenChange, contractId }: DecompteDialo
       });
       form.reset();
       onOpenChange(false);
-    } catch (error) {
-      console.error('Error creating decompte:', error);
+    } catch {
+      // Error handled by mutation
     }
   };
 

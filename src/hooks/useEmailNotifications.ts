@@ -180,9 +180,9 @@ export const sendAlertEmail = async (params: {
     });
 
     if (error) {
-      console.error('Error sending alert email:', error);
+      // Email sending failed silently - logged server-side
     }
-  } catch (err) {
-    console.error('Failed to invoke send-alert-email function:', err);
+  } catch {
+    // Failed to invoke function - logged server-side
   }
 };

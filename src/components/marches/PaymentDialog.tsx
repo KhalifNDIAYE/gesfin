@@ -65,8 +65,8 @@ export function PaymentDialog({ open, onOpenChange, contractId }: PaymentDialogP
       });
       form.reset();
       onOpenChange(false);
-    } catch (error) {
-      console.error('Error creating payment:', error);
+    } catch {
+      // Error handled by mutation
     }
   };
 

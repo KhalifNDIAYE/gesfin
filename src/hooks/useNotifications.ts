@@ -233,7 +233,6 @@ export const createNotification = async (params: {
   });
 
   if (error) {
-    console.error('Error creating notification:', error);
     throw error;
   }
 };

@@ -220,8 +220,7 @@ export default function SyntheseAnalytiquePage() {
       
       pdf.save(`synthese-analytique-${selectedFiscalYearName}.pdf`);
       toast.success("PDF exporté avec succès");
-    } catch (error) {
-      console.error('Error exporting PDF:', error);
+    } catch {
       toast.error("Erreur lors de l'export PDF");
     } finally {
       setIsExporting(false);
@@ -342,8 +341,7 @@ export default function SyntheseAnalytiquePage() {
       
       XLSX.writeFile(workbook, `synthese-analytique-${selectedFiscalYearName}.xlsx`);
       toast.success("Excel exporté avec succès");
-    } catch (error) {
-      console.error('Error exporting Excel:', error);
+    } catch {
       toast.error("Erreur lors de l'export Excel");
     } finally {
       setIsExporting(false);
