@@ -9,6 +9,8 @@ interface UserPermissions {
     create: boolean;
     update: boolean;
     delete: boolean;
+    validate: boolean;
+    export: boolean;
   };
 }
 
@@ -27,19 +29,20 @@ export const usePermissions = () => {
 
       // Admin has all permissions
       if (isAdmin) {
+        const allPerms = { read: true, create: true, update: true, delete: true, validate: true, export: true };
         const allPermissions: UserPermissions = {
-          dashboard: { read: true, create: true, update: true, delete: true },
-          projets: { read: true, create: true, update: true, delete: true },
-          comptabilite: { read: true, create: true, update: true, delete: true },
-          bailleurs: { read: true, create: true, update: true, delete: true },
-          conventions: { read: true, create: true, update: true, delete: true },
-          immobilisations: { read: true, create: true, update: true, delete: true },
-          marches: { read: true, create: true, update: true, delete: true },
-          decaissements: { read: true, create: true, update: true, delete: true },
-          rapports: { read: true, create: true, update: true, delete: true },
-          utilisateurs: { read: true, create: true, update: true, delete: true },
-          securite: { read: true, create: true, update: true, delete: true },
-          parametres: { read: true, create: true, update: true, delete: true },
+          dashboard: allPerms,
+          projets: allPerms,
+          comptabilite: allPerms,
+          bailleurs: allPerms,
+          conventions: allPerms,
+          immobilisations: allPerms,
+          marches: allPerms,
+          decaissements: allPerms,
+          rapports: allPerms,
+          utilisateurs: allPerms,
+          securite: allPerms,
+          parametres: allPerms,
         };
         setPermissions(allPermissions);
         setIsLoading(false);
@@ -81,7 +84,7 @@ export const usePermissions = () => {
           
           if (module && perm) {
             if (!permMap[module]) {
-              permMap[module] = { read: false, create: false, update: false, delete: false };
+              permMap[module] = { read: false, create: false, update: false, delete: false, validate: false, export: false };
             }
             permMap[module][perm as PermissionType] = true;
           }

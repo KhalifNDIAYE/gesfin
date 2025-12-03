@@ -24,13 +24,14 @@ import {
   CreditCard,
   Receipt,
   FileCheck,
-  Users
+  CheckCircle
 } from "lucide-react";
 import { useJournalEntries, useJournals, EntryType } from "@/hooks/useComptabilite";
 import { useFiscalYears } from "@/hooks/useParametrage";
 import { JournalEntriesTable } from "@/components/comptabilite/JournalEntriesTable";
 import { JournalEntryDialog } from "@/components/comptabilite/JournalEntryDialog";
 import { ThirdPartiesTab } from "@/components/comptabilite/ThirdPartiesTab";
+import { PermissionButton, PermissionGate, useModulePermissions } from "@/components/auth/PermissionButton";
 
 const ENTRY_TYPE_CARDS: { type: EntryType; label: string; icon: typeof Wallet; color: string }[] = [
   { type: 'depense', label: 'Dépenses', icon: Wallet, color: 'bg-red-500/10 text-red-600' },
@@ -48,6 +49,8 @@ const Comptabilite = () => {
   const [selectedJournal, setSelectedJournal] = useState<string>("");
   const [selectedEntryTypeFilter, setSelectedEntryTypeFilter] = useState<string>("");
 
+  const { canCreate, canValidate, canExport } = useModulePermissions('comptabilite');
+
   const { data: fiscalYears } = useFiscalYears();
   const { data: journals } = useJournals();
   const currentFiscalYear = fiscalYears?.find(fy => fy.is_current);
@@ -64,6 +67,7 @@ const Comptabilite = () => {
   ) || [];
 
   const handleNewEntry = (type: EntryType) => {
+    if (!canCreate) return;
     setSelectedEntryType(type);
     setEntryDialogOpen(true);
   };
@@ -79,26 +83,28 @@ const Comptabilite = () => {
       subtitle="Saisie des écritures comptables avec multi-exercices et multi-devises"
     >
       <div className="space-y-6">
-        {/* Quick Entry Buttons */}
-        <div className="grid gap-4 md:grid-cols-4">
-          {ENTRY_TYPE_CARDS.map(({ type, label, icon: Icon, color }) => (
-            <Card 
-              key={type} 
-              className="cursor-pointer hover:border-primary/50 transition-colors"
-              onClick={() => handleNewEntry(type)}
-            >
-              <CardContent className="flex items-center gap-4 p-4">
-                <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${color}`}>
-                  <Icon className="h-6 w-6" />
-                </div>
-                <div>
-                  <p className="font-medium">{label}</p>
-                  <p className="text-sm text-muted-foreground">Nouvelle saisie</p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* Quick Entry Buttons - Only show if user can create */}
+        <PermissionGate module="comptabilite" permission="create">
+          <div className="grid gap-4 md:grid-cols-4">
+            {ENTRY_TYPE_CARDS.map(({ type, label, icon: Icon, color }) => (
+              <Card 
+                key={type} 
+                className="cursor-pointer hover:border-primary/50 transition-colors"
+                onClick={() => handleNewEntry(type)}
+              >
+                <CardContent className="flex items-center gap-4 p-4">
+                  <div className={`flex h-12 w-12 items-center justify-center rounded-lg ${color}`}>
+                    <Icon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <p className="font-medium">{label}</p>
+                    <p className="text-sm text-muted-foreground">Nouvelle saisie</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </PermissionGate>
 
         {/* Stats */}
         <div className="grid gap-4 md:grid-cols-4">
@@ -160,18 +166,28 @@ const Comptabilite = () => {
             </TabsList>
             {selectedTab === "journal" && (
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm">
+                <PermissionButton module="comptabilite" permission="create" variant="outline" size="sm">
                   <Upload className="h-4 w-4" />
                   Importer
-                </Button>
-                <Button variant="outline" size="sm">
+                </PermissionButton>
+                <PermissionButton module="comptabilite" permission="export" variant="outline" size="sm">
                   <Download className="h-4 w-4" />
                   Exporter
-                </Button>
-                <Button variant="gradient" size="sm" onClick={() => handleNewEntry('autre')}>
+                </PermissionButton>
+                <PermissionButton module="comptabilite" permission="validate" variant="outline" size="sm">
+                  <CheckCircle className="h-4 w-4" />
+                  Valider sélection
+                </PermissionButton>
+                <PermissionButton 
+                  module="comptabilite" 
+                  permission="create" 
+                  variant="gradient" 
+                  size="sm" 
+                  onClick={() => handleNewEntry('autre')}
+                >
                   <Plus className="h-4 w-4" />
                   Nouvelle écriture
-                </Button>
+                </PermissionButton>
               </div>
             )}
           </div>
