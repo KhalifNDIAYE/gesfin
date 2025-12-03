@@ -81,6 +81,7 @@ import RatiosPage from "./pages/rapports/RatiosPage";
 import DashboardReportingPage from "./pages/rapports/DashboardReportingPage";
 import SYSCOHADAPage from "./pages/rapports/SYSCOHADAPage";
 import IFRPage from "./pages/rapports/IFRPage";
+import RisquesAlertesPage from "./pages/rapports/RisquesAlertesPage";
 
 // Administration pages
 import UtilitairesPage from "./pages/administration/UtilitairesPage";
@@ -176,6 +177,7 @@ const App = () => (
             <Route path="/rapports/dashboard" element={<ProtectedRoute requiredModule="rapports"><DashboardReportingPage /></ProtectedRoute>} />
             <Route path="/rapports/syscohada" element={<ProtectedRoute requiredModule="rapports"><SYSCOHADAPage /></ProtectedRoute>} />
             <Route path="/rapports/ifr" element={<ProtectedRoute requiredModule="rapports"><IFRPage /></ProtectedRoute>} />
+            <Route path="/rapports/risques-alertes" element={<ProtectedRoute requiredModule="rapports"><RisquesAlertesPage /></ProtectedRoute>} />
             
             {/* Administration - ADMIN ONLY */}
             <Route path="/utilisateurs" element={<ProtectedRoute adminOnly><Utilisateurs /></ProtectedRoute>} />
