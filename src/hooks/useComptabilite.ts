@@ -51,7 +51,24 @@ export interface JournalEntry {
   validated_at: string | null;
   created_at: string;
   updated_at: string;
-  journal?: Journal;
+  // Workflow fields
+  expense_workflow_status?: string;
+  project_id?: string | null;
+  budget_line_id?: string | null;
+  requested_amount?: number;
+  rejection_reason?: string | null;
+  rejected_by?: string | null;
+  rejected_at?: string | null;
+  daf_validated_by?: string | null;
+  daf_validated_at?: string | null;
+  dt_validated_by?: string | null;
+  dt_validated_at?: string | null;
+  dg_validated_by?: string | null;
+  dg_validated_at?: string | null;
+  paid_by?: string | null;
+  paid_at?: string | null;
+  // Relations
+  journal?: Partial<Journal>;
   fiscal_year?: { id: string; name: string };
   currency?: { id: string; code: string; symbol: string };
   third_party?: ThirdParty;

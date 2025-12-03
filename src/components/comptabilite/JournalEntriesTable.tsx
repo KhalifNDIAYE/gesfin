@@ -15,6 +15,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -27,13 +28,27 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Eye, MoreHorizontal, CheckCircle, Trash2, Pencil } from "lucide-react";
+import { Eye, MoreHorizontal, CheckCircle, Trash2, History } from "lucide-react";
 import { JournalEntry, useJournalEntryMutations, EntryStatus, EntryType } from "@/hooks/useComptabilite";
 import { JournalEntryDetailDialog } from "./JournalEntryDetailDialog";
+import { ExpenseWorkflowActions } from "./ExpenseWorkflowActions";
+import { ExpenseValidationHistory } from "./ExpenseValidationHistory";
+import {
+  ExpenseWorkflowStatus,
+  EXPENSE_STATUS_LABELS,
+  EXPENSE_STATUS_COLORS,
+} from "@/hooks/useExpenseWorkflow";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface JournalEntriesTableProps {
   entries: JournalEntry[];
   isLoading: boolean;
+  showWorkflow?: boolean;
 }
 
 const STATUS_BADGES: Record<EntryStatus, { label: string; variant: "default" | "secondary" | "outline" }> = {
@@ -50,9 +65,10 @@ const ENTRY_TYPE_LABELS: Record<EntryType, string> = {
   autre: "Autre",
 };
 
-export function JournalEntriesTable({ entries, isLoading }: JournalEntriesTableProps) {
+export function JournalEntriesTable({ entries, isLoading, showWorkflow = false }: JournalEntriesTableProps) {
   const [selectedEntry, setSelectedEntry] = useState<JournalEntry | null>(null);
   const [showDetail, setShowDetail] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
   const [entryToDelete, setEntryToDelete] = useState<JournalEntry | null>(null);
   const { validateMutation, deleteMutation } = useJournalEntryMutations();
 
@@ -93,68 +109,113 @@ export function JournalEntriesTable({ entries, isLoading }: JournalEntriesTableP
               <TableHead>Date</TableHead>
               <TableHead>N° Pièce</TableHead>
               <TableHead>Journal</TableHead>
-              <TableHead>Type</TableHead>
+              {!showWorkflow && <TableHead>Type</TableHead>}
               <TableHead>Libellé</TableHead>
               <TableHead>Tiers</TableHead>
               <TableHead>Devise</TableHead>
-              <TableHead>Statut</TableHead>
+              <TableHead>{showWorkflow ? 'Statut Workflow' : 'Statut'}</TableHead>
+              {showWorkflow && <TableHead>Actions</TableHead>}
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {entries.map((entry) => (
-              <TableRow key={entry.id} className="cursor-pointer hover:bg-muted/50">
-                <TableCell className="font-mono text-sm">
-                  {format(new Date(entry.entry_date), "dd/MM/yyyy", { locale: fr })}
-                </TableCell>
-                <TableCell className="font-mono text-sm font-medium">
-                  {entry.entry_number}
-                </TableCell>
-                <TableCell>
-                  <Badge variant="outline">
-                    {entry.journal?.code}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-sm">
-                  {ENTRY_TYPE_LABELS[entry.entry_type]}
-                </TableCell>
-                <TableCell className="max-w-[200px] truncate">
-                  {entry.description}
-                </TableCell>
-                <TableCell className="text-sm text-muted-foreground">
-                  {entry.third_party?.name || "-"}
-                </TableCell>
-                <TableCell className="font-mono text-sm">
-                  {entry.currency?.code}
-                </TableCell>
-                <TableCell>
-                  <Badge variant={STATUS_BADGES[entry.status].variant}>
-                    {STATUS_BADGES[entry.status].label}
-                  </Badge>
-                </TableCell>
-                <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setSelectedEntry(entry);
-                          setShowDetail(true);
-                        }}
-                      >
-                        <Eye className="h-4 w-4 mr-2" />
-                        Voir détail
-                      </DropdownMenuItem>
-                      {entry.status === "brouillon" && (
-                        <>
-                          <DropdownMenuItem onClick={() => handleValidate(entry)}>
-                            <CheckCircle className="h-4 w-4 mr-2" />
-                            Valider
+            {entries.map((entry) => {
+              const workflowStatus = (entry.expense_workflow_status || 'brouillon') as ExpenseWorkflowStatus;
+              
+              return (
+                <TableRow key={entry.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableCell className="font-mono text-sm">
+                    {format(new Date(entry.entry_date), "dd/MM/yyyy", { locale: fr })}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm font-medium">
+                    {entry.entry_number}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant="outline">
+                      {entry.journal?.code}
+                    </Badge>
+                  </TableCell>
+                  {!showWorkflow && (
+                    <TableCell className="text-sm">
+                      {ENTRY_TYPE_LABELS[entry.entry_type]}
+                    </TableCell>
+                  )}
+                  <TableCell className="max-w-[200px] truncate">
+                    {entry.description}
+                  </TableCell>
+                  <TableCell className="text-sm text-muted-foreground">
+                    {entry.third_party?.name || "-"}
+                  </TableCell>
+                  <TableCell className="font-mono text-sm">
+                    {entry.currency?.code}
+                  </TableCell>
+                  <TableCell>
+                    {showWorkflow ? (
+                      <Badge className={EXPENSE_STATUS_COLORS[workflowStatus]}>
+                        {EXPENSE_STATUS_LABELS[workflowStatus]}
+                      </Badge>
+                    ) : (
+                      <Badge variant={STATUS_BADGES[entry.status].variant}>
+                        {STATUS_BADGES[entry.status].label}
+                      </Badge>
+                    )}
+                  </TableCell>
+                  {showWorkflow && (
+                    <TableCell>
+                      <ExpenseWorkflowActions
+                        entryId={entry.id}
+                        currentStatus={workflowStatus}
+                        creatorId={entry.created_by || undefined}
+                        budgetLineId={entry.budget_line_id || undefined}
+                        requestedAmount={entry.requested_amount || 0}
+                      />
+                    </TableCell>
+                  )}
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelectedEntry(entry);
+                            setShowDetail(true);
+                          }}
+                        >
+                          <Eye className="h-4 w-4 mr-2" />
+                          Voir détail
+                        </DropdownMenuItem>
+                        {showWorkflow && (
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelectedEntry(entry);
+                              setShowHistory(true);
+                            }}
+                          >
+                            <History className="h-4 w-4 mr-2" />
+                            Historique validation
                           </DropdownMenuItem>
+                        )}
+                        {!showWorkflow && entry.status === "brouillon" && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem onClick={() => handleValidate(entry)}>
+                              <CheckCircle className="h-4 w-4 mr-2" />
+                              Valider
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              className="text-destructive"
+                              onClick={() => setEntryToDelete(entry)}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Supprimer
+                            </DropdownMenuItem>
+                          </>
+                        )}
+                        {showWorkflow && workflowStatus === 'brouillon' && (
                           <DropdownMenuItem
                             className="text-destructive"
                             onClick={() => setEntryToDelete(entry)}
@@ -162,13 +223,13 @@ export function JournalEntriesTable({ entries, isLoading }: JournalEntriesTableP
                             <Trash2 className="h-4 w-4 mr-2" />
                             Supprimer
                           </DropdownMenuItem>
-                        </>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))}
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -178,6 +239,15 @@ export function JournalEntriesTable({ entries, isLoading }: JournalEntriesTableP
         onOpenChange={setShowDetail}
         entryId={selectedEntry?.id || null}
       />
+
+      <Dialog open={showHistory} onOpenChange={setShowHistory}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Historique de validation</DialogTitle>
+          </DialogHeader>
+          <ExpenseValidationHistory entryId={selectedEntry?.id || null} />
+        </DialogContent>
+      </Dialog>
 
       <AlertDialog open={!!entryToDelete} onOpenChange={() => setEntryToDelete(null)}>
         <AlertDialogContent>

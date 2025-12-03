@@ -2209,6 +2209,54 @@ export type Database = {
           },
         ]
       }
+      expense_validation_history: {
+        Row: {
+          action: string
+          comment: string | null
+          from_status: string
+          id: string
+          journal_entry_id: string
+          performed_at: string | null
+          performed_by: string | null
+          to_status: string
+        }
+        Insert: {
+          action: string
+          comment?: string | null
+          from_status: string
+          id?: string
+          journal_entry_id: string
+          performed_at?: string | null
+          performed_by?: string | null
+          to_status: string
+        }
+        Update: {
+          action?: string
+          comment?: string | null
+          from_status?: string
+          id?: string
+          journal_entry_id?: string
+          performed_at?: string | null
+          performed_by?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "expense_validation_history_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "expense_validation_history_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       financial_report_lines: {
         Row: {
           amount: number | null
@@ -2392,18 +2440,33 @@ export type Database = {
       }
       journal_entries: {
         Row: {
+          budget_line_id: string | null
           created_at: string | null
           created_by: string | null
           currency_id: string
+          daf_validated_at: string | null
+          daf_validated_by: string | null
           description: string
+          dg_validated_at: string | null
+          dg_validated_by: string | null
+          dt_validated_at: string | null
+          dt_validated_by: string | null
           entry_date: string
           entry_number: string
           entry_type: Database["public"]["Enums"]["entry_type"]
           exchange_rate: number | null
+          expense_workflow_status: string | null
           fiscal_year_id: string
           id: string
           journal_id: string
+          paid_at: string | null
+          paid_by: string | null
+          project_id: string | null
           reference: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          requested_amount: number | null
           status: Database["public"]["Enums"]["entry_status"]
           third_party_id: string | null
           updated_at: string | null
@@ -2411,18 +2474,33 @@ export type Database = {
           validated_by: string | null
         }
         Insert: {
+          budget_line_id?: string | null
           created_at?: string | null
           created_by?: string | null
           currency_id: string
+          daf_validated_at?: string | null
+          daf_validated_by?: string | null
           description: string
+          dg_validated_at?: string | null
+          dg_validated_by?: string | null
+          dt_validated_at?: string | null
+          dt_validated_by?: string | null
           entry_date: string
           entry_number: string
           entry_type?: Database["public"]["Enums"]["entry_type"]
           exchange_rate?: number | null
+          expense_workflow_status?: string | null
           fiscal_year_id: string
           id?: string
           journal_id: string
+          paid_at?: string | null
+          paid_by?: string | null
+          project_id?: string | null
           reference?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          requested_amount?: number | null
           status?: Database["public"]["Enums"]["entry_status"]
           third_party_id?: string | null
           updated_at?: string | null
@@ -2430,18 +2508,33 @@ export type Database = {
           validated_by?: string | null
         }
         Update: {
+          budget_line_id?: string | null
           created_at?: string | null
           created_by?: string | null
           currency_id?: string
+          daf_validated_at?: string | null
+          daf_validated_by?: string | null
           description?: string
+          dg_validated_at?: string | null
+          dg_validated_by?: string | null
+          dt_validated_at?: string | null
+          dt_validated_by?: string | null
           entry_date?: string
           entry_number?: string
           entry_type?: Database["public"]["Enums"]["entry_type"]
           exchange_rate?: number | null
+          expense_workflow_status?: string | null
           fiscal_year_id?: string
           id?: string
           journal_id?: string
+          paid_at?: string | null
+          paid_by?: string | null
+          project_id?: string | null
           reference?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          requested_amount?: number | null
           status?: Database["public"]["Enums"]["entry_status"]
           third_party_id?: string | null
           updated_at?: string | null
@@ -2449,6 +2542,13 @@ export type Database = {
           validated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "journal_entries_budget_line_id_fkey"
+            columns: ["budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "journal_entries_created_by_fkey"
             columns: ["created_by"]
@@ -2464,6 +2564,27 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "journal_entries_daf_validated_by_fkey"
+            columns: ["daf_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_dg_validated_by_fkey"
+            columns: ["dg_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_dt_validated_by_fkey"
+            columns: ["dt_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "journal_entries_fiscal_year_id_fkey"
             columns: ["fiscal_year_id"]
             isOneToOne: false
@@ -2475,6 +2596,27 @@ export type Database = {
             columns: ["journal_id"]
             isOneToOne: false
             referencedRelation: "journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -3591,6 +3733,10 @@ export type Database = {
         Args: { _asset_id: string; _period_end: string }
         Returns: number
       }
+      check_budget_availability: {
+        Args: { _amount: number; _budget_line_id: string }
+        Returns: boolean
+      }
       create_notification: {
         Args: {
           _direct_link?: string
@@ -3679,6 +3825,15 @@ export type Database = {
         Returns: string
       }
       reset_failed_login: { Args: { _user_id: string }; Returns: undefined }
+      validate_expense_transition: {
+        Args: {
+          _comment?: string
+          _entry_id: string
+          _new_status: string
+          _user_id: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       entry_status: "brouillon" | "valide" | "cloture"
@@ -3688,6 +3843,15 @@ export type Database = {
         | "decaissement"
         | "prise_en_charge"
         | "autre"
+      expense_status:
+        | "brouillon"
+        | "soumise"
+        | "en_validation_daf"
+        | "en_validation_dt"
+        | "en_validation_dg"
+        | "validee"
+        | "rejetee"
+        | "payee"
       journal_type:
         | "achats"
         | "ventes"
@@ -3861,6 +4025,16 @@ export const Constants = {
         "decaissement",
         "prise_en_charge",
         "autre",
+      ],
+      expense_status: [
+        "brouillon",
+        "soumise",
+        "en_validation_daf",
+        "en_validation_dt",
+        "en_validation_dg",
+        "validee",
+        "rejetee",
+        "payee",
       ],
       journal_type: [
         "achats",

@@ -28,9 +28,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Plus, Trash2, AlertCircle } from "lucide-react";
+import { Plus, Trash2, AlertCircle, AlertTriangle } from "lucide-react";
 import { useJournals, useThirdParties, useJournalEntryMutations, EntryType } from "@/hooks/useComptabilite";
 import { useFiscalYears, useCurrencies, usePlanAccounts, useTrackingAxes } from "@/hooks/useParametrage";
+import { useProjects } from "@/hooks/useProjects";
+import { useBudgetLines } from "@/hooks/useBudget";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const lineSchema = z.object({
   account_id: z.string().min(1, "Compte requis"),
@@ -51,6 +54,9 @@ const formSchema = z.object({
   currency_id: z.string().min(1, "Devise requise"),
   exchange_rate: z.number().min(0.000001),
   third_party_id: z.string().optional(),
+  project_id: z.string().optional(),
+  budget_line_id: z.string().optional(),
+  requested_amount: z.number().min(0).optional(),
   lines: z.array(lineSchema).min(2, "Minimum 2 lignes requises"),
 }).refine((data) => {
   const totalDebit = data.lines.reduce((sum, line) => sum + (line.debit_amount || 0), 0);
@@ -84,10 +90,17 @@ export function JournalEntryDialog({ open, onOpenChange, entryType = 'autre' }: 
   const { data: accounts } = usePlanAccounts('comptable');
   const { data: thirdParties } = useThirdParties();
   const { data: trackingAxes } = useTrackingAxes();
+  const { projects } = useProjects();
   const { createMutation } = useJournalEntryMutations();
 
   const currentFiscalYear = fiscalYears?.find(fy => fy.is_current);
   const defaultCurrency = currencies?.find(c => c.is_default);
+
+  const [selectedProjectId, setSelectedProjectId] = useState<string>("");
+  const { data: budgetLines } = useBudgetLines(selectedProjectId ? undefined : undefined);
+
+  // Get budget lines for the selected fiscal year
+  const availableBudgetLines = budgetLines?.filter(bl => bl.budget_id) || [];
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -101,6 +114,9 @@ export function JournalEntryDialog({ open, onOpenChange, entryType = 'autre' }: 
       currency_id: defaultCurrency?.id || "",
       exchange_rate: 1,
       third_party_id: "",
+      project_id: "",
+      budget_line_id: "",
+      requested_amount: 0,
       lines: [
         { account_id: "", description: "", debit_amount: 0, credit_amount: 0, third_party_id: "", tracking_axis_id: "" },
         { account_id: "", description: "", debit_amount: 0, credit_amount: 0, third_party_id: "", tracking_axis_id: "" },
@@ -374,6 +390,96 @@ export function JournalEntryDialog({ open, onOpenChange, entryType = 'autre' }: 
                     </FormItem>
                   )}
                 />
+
+                {/* Project and Budget fields for expenses */}
+                {entryType === 'depense' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg border">
+                    <FormField
+                      control={form.control}
+                      name="project_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Projet</FormLabel>
+                          <Select 
+                            onValueChange={(value) => {
+                              field.onChange(value);
+                              setSelectedProjectId(value);
+                            }} 
+                            value={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner un projet" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">Aucun</SelectItem>
+                              {projects?.filter(p => p.status === 'active').map((project) => (
+                                <SelectItem key={project.id} value={project.id}>
+                                  {project.code} - {project.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="budget_line_id"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Ligne budgétaire</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Sélectionner une ligne" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="">Aucune</SelectItem>
+                              {availableBudgetLines.map((line) => (
+                                <SelectItem key={line.id} value={line.id}>
+                                  Ligne {line.line_number} - {line.description || 'Sans description'}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name="requested_amount"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Montant demandé</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              placeholder="0.00"
+                              {...field}
+                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <Alert className="col-span-full">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription>
+                        Pour soumettre cette dépense à validation, veuillez sélectionner un projet et une ligne budgétaire avec un budget suffisant.
+                      </AlertDescription>
+                    </Alert>
+                  </div>
+                )}
 
                 {/* Entry Lines */}
                 <div className="space-y-2">
