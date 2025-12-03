@@ -12,6 +12,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
+import { PermissionButton, useModulePermissions } from "@/components/auth/PermissionButton";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ComponentType<{ className?: string }> }> = {
   draft: { label: "Brouillon", variant: "secondary", icon: FileText },
@@ -29,6 +30,8 @@ export default function ConventionsPage() {
   const [selectedConvention, setSelectedConvention] = useState<Convention | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { canCreate, canExport } = useModulePermissions('conventions');
 
   const bailleurFilter = searchParams.get("bailleur");
 
@@ -104,6 +107,12 @@ export default function ConventionsPage() {
     return convention.status;
   };
 
+  const handleAdd = () => {
+    if (!canCreate) return;
+    setSelectedConvention(null);
+    setDialogOpen(true);
+  };
+
   const handleDelete = async () => {
     if (deleteId) {
       await deleteConvention.mutateAsync(deleteId);
@@ -175,12 +184,12 @@ export default function ConventionsPage() {
           />
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <PermissionButton module="conventions" permission="export" variant="outline">
             <Download className="mr-2 h-4 w-4" /> Exporter
-          </Button>
-          <Button onClick={() => { setSelectedConvention(null); setDialogOpen(true); }}>
+          </PermissionButton>
+          <PermissionButton module="conventions" permission="create" onClick={handleAdd}>
             <Plus className="mr-2 h-4 w-4" /> Nouvelle convention
-          </Button>
+          </PermissionButton>
         </div>
       </div>
 

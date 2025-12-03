@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, Download, Building2, Mail, Phone, FileText, ExternalLink, Globe } from "lucide-react";
+import { Plus, Search, Download, Building2, Mail, Phone, FileText, ExternalLink, Globe, Edit, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -9,7 +9,7 @@ import { useBailleurs, useDeleteBailleur, useConventions, Bailleur } from "@/hoo
 import { BailleurDialog } from "@/components/bailleurs/BailleurDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
-
+import { PermissionButton, PermissionGate, useModulePermissions } from "@/components/auth/PermissionButton";
 const bailleurTypeLabels: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   bilateral: { label: "Bilatéral", variant: "default" },
   multilateral: { label: "Multilatéral", variant: "secondary" },
@@ -26,6 +26,8 @@ export default function BailleursPage() {
   const [selectedBailleur, setSelectedBailleur] = useState<Bailleur | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const { canCreate, canUpdate, canDelete, canExport } = useModulePermissions('bailleurs');
 
   // Calculate stats
   const stats = useMemo(() => {
@@ -91,7 +93,14 @@ export default function BailleursPage() {
   };
 
   const handleEdit = (bailleur: Bailleur) => {
+    if (!canUpdate) return;
     setSelectedBailleur(bailleur);
+    setDialogOpen(true);
+  };
+
+  const handleAdd = () => {
+    if (!canCreate) return;
+    setSelectedBailleur(null);
     setDialogOpen(true);
   };
 
@@ -166,12 +175,12 @@ export default function BailleursPage() {
           />
         </div>
         <div className="flex gap-2">
-          <Button variant="outline">
+          <PermissionButton module="bailleurs" permission="export" variant="outline">
             <Download className="mr-2 h-4 w-4" /> Exporter
-          </Button>
-          <Button onClick={() => { setSelectedBailleur(null); setDialogOpen(true); }}>
+          </PermissionButton>
+          <PermissionButton module="bailleurs" permission="create" onClick={handleAdd}>
             <Plus className="mr-2 h-4 w-4" /> Ajouter un bailleur
-          </Button>
+          </PermissionButton>
         </div>
       </div>
 
@@ -252,6 +261,24 @@ export default function BailleursPage() {
                       <ExternalLink className="mr-2 h-4 w-4" />
                       Détails
                     </Button>
+                    <PermissionGate module="bailleurs" permission="update">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEdit(bailleur)}
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                    </PermissionGate>
+                    <PermissionGate module="bailleurs" permission="delete">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setDeleteId(bailleur.id)}
+                      >
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </PermissionGate>
                   </div>
                 </CardContent>
               </Card>
