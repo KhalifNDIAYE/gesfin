@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { SessionTimeoutProvider } from "@/components/auth/SessionTimeoutProvider";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import AccessDenied from "./pages/AccessDenied";
 import Projets from "./pages/Projets";
 import Comptabilite from "./pages/Comptabilite";
 // Old static pages removed - using dynamic pages from bailleurs/ and conventions/ folders
@@ -95,70 +96,93 @@ const App = () => (
           <SessionTimeoutProvider timeoutMinutes={30}>
           <Routes>
             <Route path="/auth" element={<Auth />} />
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="/projets" element={<ProtectedRoute><Projets /></ProtectedRoute>} />
-            <Route path="/comptabilite" element={<ProtectedRoute><Comptabilite /></ProtectedRoute>} />
-            <Route path="/comptabilite/depenses" element={<ProtectedRoute><DepensesPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/financements" element={<ProtectedRoute><FinancementsPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/decaissements" element={<ProtectedRoute><DecaissementsComptaPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/prises-en-charge" element={<ProtectedRoute><PrisesEnChargePage /></ProtectedRoute>} />
-            <Route path="/comptabilite/tiers" element={<ProtectedRoute><TiersPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/grand-livre" element={<ProtectedRoute><GrandLivrePage /></ProtectedRoute>} />
-            <Route path="/comptabilite/balances" element={<ProtectedRoute><BalancesPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/lettrage" element={<ProtectedRoute><LettragePage /></ProtectedRoute>} />
-            <Route path="/comptabilite/rapprochement" element={<ProtectedRoute><RapprochementPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/caisse" element={<ProtectedRoute><CaissePage /></ProtectedRoute>} />
-            <Route path="/comptabilite/echeances" element={<ProtectedRoute><EcheancesPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/a-nouveaux" element={<ProtectedRoute><ANouveauxPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/clotures" element={<ProtectedRoute><CloturesPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/editions" element={<ProtectedRoute><EditionsPage /></ProtectedRoute>} />
-            {/* Comptabilité Analytique routes */}
-            <Route path="/comptabilite/analytique/activite" element={<ProtectedRoute><AffectationActivitePage /></ProtectedRoute>} />
-            <Route path="/comptabilite/analytique/composante" element={<ProtectedRoute><AffectationComposantePage /></ProtectedRoute>} />
-            <Route path="/comptabilite/analytique/geographique" element={<ProtectedRoute><AffectationGeographiquePage /></ProtectedRoute>} />
-            <Route path="/comptabilite/analytique/repartition" element={<ProtectedRoute><RepartitionPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/analytique/reimputation" element={<ProtectedRoute><ReimputationPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/analytique/centres-couts" element={<ProtectedRoute><CentresCoutsPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/analytique/analyse-projet" element={<ProtectedRoute><AnalyseProjetPage /></ProtectedRoute>} />
-            <Route path="/comptabilite/analytique/synthese" element={<ProtectedRoute><SyntheseAnalytiquePage /></ProtectedRoute>} />
-            {/* Budget routes */}
-            <Route path="/budget" element={<ProtectedRoute><BudgetsPage /></ProtectedRoute>} />
-            <Route path="/budget/:id" element={<ProtectedRoute><BudgetDetailPage /></ProtectedRoute>} />
-            <Route path="/budget/dashboard" element={<ProtectedRoute><BudgetDashboardPage /></ProtectedRoute>} />
-            <Route path="/budget/comparaison" element={<ProtectedRoute><BudgetComparisonPage /></ProtectedRoute>} />
-            <Route path="/budget/alertes" element={<ProtectedRoute><BudgetAlertsPage /></ProtectedRoute>} />
-            {/* Bailleurs & Conventions routes */}
-            <Route path="/bailleurs" element={<ProtectedRoute><BailleursPage /></ProtectedRoute>} />
-            <Route path="/bailleurs/:id" element={<ProtectedRoute><BailleurDetailPage /></ProtectedRoute>} />
-            <Route path="/conventions" element={<ProtectedRoute><ConventionsPage /></ProtectedRoute>} />
-            <Route path="/conventions/:id" element={<ProtectedRoute><ConventionDetailPage /></ProtectedRoute>} />
-            <Route path="/immobilisations" element={<ProtectedRoute><Immobilisations /></ProtectedRoute>} />
-            <Route path="/immobilisations/mouvements" element={<ProtectedRoute><MouvementsPage /></ProtectedRoute>} />
-            <Route path="/immobilisations/amortissements" element={<ProtectedRoute><AmortissementsPage /></ProtectedRoute>} />
-            <Route path="/immobilisations/sorties" element={<ProtectedRoute><SortiesPage /></ProtectedRoute>} />
-            <Route path="/immobilisations/rapprochement" element={<ProtectedRoute><RapprochementImmoPage /></ProtectedRoute>} />
-            <Route path="/marches" element={<ProtectedRoute><MarchesPage /></ProtectedRoute>} />
-            <Route path="/marches/:id" element={<ProtectedRoute><ContractDetailPage /></ProtectedRoute>} />
-            {/* Decaissements routes */}
-            <Route path="/decaissements" element={<ProtectedRoute><DecaissementsPage /></ProtectedRoute>} />
-            <Route path="/decaissements/projet" element={<ProtectedRoute><SuiviProjetPage /></ProtectedRoute>} />
-            <Route path="/decaissements/bailleur" element={<ProtectedRoute><SuiviBailleurPage /></ProtectedRoute>} />
-            <Route path="/decaissements/budget" element={<ProtectedRoute><SuiviBudgetPage /></ProtectedRoute>} />
-            <Route path="/decaissements/monitoring" element={<ProtectedRoute><MonitoringDashboardPage /></ProtectedRoute>} />
-            {/* Rapports routes */}
-            <Route path="/rapports" element={<ProtectedRoute><RapportsPage /></ProtectedRoute>} />
-            <Route path="/rapports/bilan" element={<ProtectedRoute><BilanPage /></ProtectedRoute>} />
-            <Route path="/rapports/resultat" element={<ProtectedRoute><ResultatPage /></ProtectedRoute>} />
-            <Route path="/rapports/financement" element={<ProtectedRoute><FinancementPage /></ProtectedRoute>} />
-            <Route path="/rapports/ratios" element={<ProtectedRoute><RatiosPage /></ProtectedRoute>} />
-            <Route path="/rapports/dashboard" element={<ProtectedRoute><DashboardReportingPage /></ProtectedRoute>} />
-            <Route path="/rapports/syscohada" element={<ProtectedRoute><SYSCOHADAPage /></ProtectedRoute>} />
-            <Route path="/rapports/ifr" element={<ProtectedRoute><IFRPage /></ProtectedRoute>} />
-            <Route path="/utilisateurs" element={<ProtectedRoute requiredRole="admin"><Utilisateurs /></ProtectedRoute>} />
-            <Route path="/securite" element={<ProtectedRoute requiredRole="admin"><Securite /></ProtectedRoute>} />
-            <Route path="/parametres" element={<ProtectedRoute requiredRole="admin"><Parametres /></ProtectedRoute>} />
-            <Route path="/utilitaires" element={<ProtectedRoute requiredRole="admin"><UtilitairesPage /></ProtectedRoute>} />
+            <Route path="/acces-refuse" element={<AccessDenied />} />
+            
+            {/* Dashboard - accessible to all authenticated users */}
+            <Route path="/" element={<ProtectedRoute requiredModule="dashboard"><Index /></ProtectedRoute>} />
+            
+            {/* Projets */}
+            <Route path="/projets" element={<ProtectedRoute requiredModule="projets"><Projets /></ProtectedRoute>} />
+            
+            {/* Comptabilité Générale */}
+            <Route path="/comptabilite" element={<ProtectedRoute requiredModule="comptabilite"><Comptabilite /></ProtectedRoute>} />
+            <Route path="/comptabilite/depenses" element={<ProtectedRoute requiredModule="comptabilite"><DepensesPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/financements" element={<ProtectedRoute requiredModule="comptabilite"><FinancementsPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/decaissements" element={<ProtectedRoute requiredModule="comptabilite"><DecaissementsComptaPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/prises-en-charge" element={<ProtectedRoute requiredModule="comptabilite"><PrisesEnChargePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/tiers" element={<ProtectedRoute requiredModule="comptabilite"><TiersPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/grand-livre" element={<ProtectedRoute requiredModule="comptabilite"><GrandLivrePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/balances" element={<ProtectedRoute requiredModule="comptabilite"><BalancesPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/lettrage" element={<ProtectedRoute requiredModule="comptabilite"><LettragePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/rapprochement" element={<ProtectedRoute requiredModule="comptabilite"><RapprochementPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/caisse" element={<ProtectedRoute requiredModule="comptabilite"><CaissePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/echeances" element={<ProtectedRoute requiredModule="comptabilite"><EcheancesPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/a-nouveaux" element={<ProtectedRoute requiredModule="comptabilite"><ANouveauxPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/clotures" element={<ProtectedRoute requiredModule="comptabilite"><CloturesPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/editions" element={<ProtectedRoute requiredModule="comptabilite"><EditionsPage /></ProtectedRoute>} />
+            
+            {/* Comptabilité Analytique */}
+            <Route path="/comptabilite/analytique/activite" element={<ProtectedRoute requiredModule="comptabilite"><AffectationActivitePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/composante" element={<ProtectedRoute requiredModule="comptabilite"><AffectationComposantePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/geographique" element={<ProtectedRoute requiredModule="comptabilite"><AffectationGeographiquePage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/repartition" element={<ProtectedRoute requiredModule="comptabilite"><RepartitionPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/reimputation" element={<ProtectedRoute requiredModule="comptabilite"><ReimputationPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/centres-couts" element={<ProtectedRoute requiredModule="comptabilite"><CentresCoutsPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/analyse-projet" element={<ProtectedRoute requiredModule="comptabilite"><AnalyseProjetPage /></ProtectedRoute>} />
+            <Route path="/comptabilite/analytique/synthese" element={<ProtectedRoute requiredModule="comptabilite"><SyntheseAnalytiquePage /></ProtectedRoute>} />
+            
+            {/* Budget (uses comptabilite module) */}
+            <Route path="/budget" element={<ProtectedRoute requiredModule="comptabilite"><BudgetsPage /></ProtectedRoute>} />
+            <Route path="/budget/:id" element={<ProtectedRoute requiredModule="comptabilite"><BudgetDetailPage /></ProtectedRoute>} />
+            <Route path="/budget/dashboard" element={<ProtectedRoute requiredModule="comptabilite"><BudgetDashboardPage /></ProtectedRoute>} />
+            <Route path="/budget/comparaison" element={<ProtectedRoute requiredModule="comptabilite"><BudgetComparisonPage /></ProtectedRoute>} />
+            <Route path="/budget/alertes" element={<ProtectedRoute requiredModule="comptabilite"><BudgetAlertsPage /></ProtectedRoute>} />
+            
+            {/* Bailleurs */}
+            <Route path="/bailleurs" element={<ProtectedRoute requiredModule="bailleurs"><BailleursPage /></ProtectedRoute>} />
+            <Route path="/bailleurs/:id" element={<ProtectedRoute requiredModule="bailleurs"><BailleurDetailPage /></ProtectedRoute>} />
+            
+            {/* Conventions */}
+            <Route path="/conventions" element={<ProtectedRoute requiredModule="conventions"><ConventionsPage /></ProtectedRoute>} />
+            <Route path="/conventions/:id" element={<ProtectedRoute requiredModule="conventions"><ConventionDetailPage /></ProtectedRoute>} />
+            
+            {/* Immobilisations */}
+            <Route path="/immobilisations" element={<ProtectedRoute requiredModule="immobilisations"><Immobilisations /></ProtectedRoute>} />
+            <Route path="/immobilisations/mouvements" element={<ProtectedRoute requiredModule="immobilisations"><MouvementsPage /></ProtectedRoute>} />
+            <Route path="/immobilisations/amortissements" element={<ProtectedRoute requiredModule="immobilisations"><AmortissementsPage /></ProtectedRoute>} />
+            <Route path="/immobilisations/sorties" element={<ProtectedRoute requiredModule="immobilisations"><SortiesPage /></ProtectedRoute>} />
+            <Route path="/immobilisations/rapprochement" element={<ProtectedRoute requiredModule="immobilisations"><RapprochementImmoPage /></ProtectedRoute>} />
+            
+            {/* Marchés */}
+            <Route path="/marches" element={<ProtectedRoute requiredModule="marches"><MarchesPage /></ProtectedRoute>} />
+            <Route path="/marches/:id" element={<ProtectedRoute requiredModule="marches"><ContractDetailPage /></ProtectedRoute>} />
+            
+            {/* Décaissements */}
+            <Route path="/decaissements" element={<ProtectedRoute requiredModule="decaissements"><DecaissementsPage /></ProtectedRoute>} />
+            <Route path="/decaissements/projet" element={<ProtectedRoute requiredModule="decaissements"><SuiviProjetPage /></ProtectedRoute>} />
+            <Route path="/decaissements/bailleur" element={<ProtectedRoute requiredModule="decaissements"><SuiviBailleurPage /></ProtectedRoute>} />
+            <Route path="/decaissements/budget" element={<ProtectedRoute requiredModule="decaissements"><SuiviBudgetPage /></ProtectedRoute>} />
+            <Route path="/decaissements/monitoring" element={<ProtectedRoute requiredModule="decaissements"><MonitoringDashboardPage /></ProtectedRoute>} />
+            
+            {/* Rapports */}
+            <Route path="/rapports" element={<ProtectedRoute requiredModule="rapports"><RapportsPage /></ProtectedRoute>} />
+            <Route path="/rapports/bilan" element={<ProtectedRoute requiredModule="rapports"><BilanPage /></ProtectedRoute>} />
+            <Route path="/rapports/resultat" element={<ProtectedRoute requiredModule="rapports"><ResultatPage /></ProtectedRoute>} />
+            <Route path="/rapports/financement" element={<ProtectedRoute requiredModule="rapports"><FinancementPage /></ProtectedRoute>} />
+            <Route path="/rapports/ratios" element={<ProtectedRoute requiredModule="rapports"><RatiosPage /></ProtectedRoute>} />
+            <Route path="/rapports/dashboard" element={<ProtectedRoute requiredModule="rapports"><DashboardReportingPage /></ProtectedRoute>} />
+            <Route path="/rapports/syscohada" element={<ProtectedRoute requiredModule="rapports"><SYSCOHADAPage /></ProtectedRoute>} />
+            <Route path="/rapports/ifr" element={<ProtectedRoute requiredModule="rapports"><IFRPage /></ProtectedRoute>} />
+            
+            {/* Administration - ADMIN ONLY */}
+            <Route path="/utilisateurs" element={<ProtectedRoute adminOnly><Utilisateurs /></ProtectedRoute>} />
+            <Route path="/securite" element={<ProtectedRoute adminOnly><Securite /></ProtectedRoute>} />
+            <Route path="/parametres" element={<ProtectedRoute adminOnly><Parametres /></ProtectedRoute>} />
+            <Route path="/utilitaires" element={<ProtectedRoute adminOnly><UtilitairesPage /></ProtectedRoute>} />
+            
+            {/* Profil - accessible to all authenticated users */}
             <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
           </SessionTimeoutProvider>
