@@ -1,6 +1,7 @@
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PermissionButton } from "@/components/auth/PermissionButton";
 import { 
   FileText, 
   Download, 
@@ -150,9 +151,9 @@ const Rapports = () => {
                   Sélectionnez les données, la période et le format souhaités
                 </p>
               </div>
-              <Button variant="gradient">
+              <PermissionButton variant="gradient" module="rapports" permission="create">
                 Créer un rapport
-              </Button>
+              </PermissionButton>
             </div>
           </CardContent>
         </Card>

@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { PermissionButton, PermissionGate } from '@/components/auth/PermissionButton';
 import { Progress } from '@/components/ui/progress';
 import { 
   FileText, Clock, DollarSign, AlertTriangle, Plus, Search, 
@@ -128,10 +129,10 @@ export default function MarchesPage() {
               className="pl-10"
             />
           </div>
-          <Button onClick={handleNew}>
+          <PermissionButton module="marches" permission="create" onClick={handleNew}>
             <Plus className="h-4 w-4 mr-2" />
             Nouveau marché
-          </Button>
+          </PermissionButton>
         </div>
 
         {/* Contracts List */}
@@ -194,13 +195,15 @@ export default function MarchesPage() {
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
-                          <Button 
-                            variant="outline" 
-                            size="sm"
-                            onClick={() => handleEdit(contract)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
+                          <PermissionGate module="marches" permission="update">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleEdit(contract)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </PermissionGate>
                         </div>
                       </div>
                     </div>

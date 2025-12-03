@@ -3,6 +3,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { PermissionButton } from "@/components/auth/PermissionButton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -196,14 +197,14 @@ const DecaissementsPage = () => {
             </Button>
           </div>
           <div className="flex gap-2">
-            <Button variant="outline" onClick={handleExport}>
+            <PermissionButton variant="outline" module="decaissements" permission="export" onClick={handleExport}>
               <Download className="mr-2 h-4 w-4" />
               Exporter
-            </Button>
-            <Button onClick={handleNewMovement}>
+            </PermissionButton>
+            <PermissionButton module="decaissements" permission="create" onClick={handleNewMovement}>
               <Plus className="mr-2 h-4 w-4" />
               Nouveau mouvement
-            </Button>
+            </PermissionButton>
           </div>
         </div>
 

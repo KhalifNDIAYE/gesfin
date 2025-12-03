@@ -3,6 +3,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { PermissionButton, PermissionGate } from "@/components/auth/PermissionButton";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Edit, Trash2, Eye, FileText, CheckCircle, Clock, XCircle } from "lucide-react";
 import { useBudgets, useDeleteBudget, Budget } from "@/hooks/useBudget";
@@ -111,10 +112,10 @@ export default function BudgetsPage() {
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={() => { setEditingBudget(null); setDialogOpen(true); }}>
+          <PermissionButton module="comptabilite" permission="create" onClick={() => { setEditingBudget(null); setDialogOpen(true); }}>
             <Plus className="h-4 w-4 mr-2" />
             Nouveau Budget
-          </Button>
+          </PermissionButton>
         </div>
 
         <Card>
@@ -172,12 +173,16 @@ export default function BudgetsPage() {
                             <Button variant="ghost" size="icon" onClick={() => navigate(`/budget/${budget.id}`)}>
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleEdit(budget)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => setDeleteId(budget.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
+                            <PermissionGate module="comptabilite" permission="update">
+                              <Button variant="ghost" size="icon" onClick={() => handleEdit(budget)}>
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            </PermissionGate>
+                            <PermissionGate module="comptabilite" permission="delete">
+                              <Button variant="ghost" size="icon" onClick={() => setDeleteId(budget.id)}>
+                                <Trash2 className="h-4 w-4 text-destructive" />
+                              </Button>
+                            </PermissionGate>
                           </div>
                         </TableCell>
                       </TableRow>
