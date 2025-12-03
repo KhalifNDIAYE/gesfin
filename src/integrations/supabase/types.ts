@@ -1954,16 +1954,31 @@ export type Database = {
           convention_id: string
           created_at: string | null
           created_by: string | null
+          daf_validated_at: string | null
+          daf_validated_by: string | null
           description: string | null
+          dg_validated_at: string | null
+          dg_validated_by: string | null
           exchange_rate: number | null
           expense_category_id: string | null
           id: string
           invoice_reference: string | null
           notes: string | null
+          paid_at: string | null
+          paid_by: string | null
           payment_date: string | null
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          related_expense_id: string | null
           request_date: string
           status: string
+          submitted_at: string | null
+          submitted_by: string | null
           updated_at: string | null
+          validated_at: string | null
+          validated_by: string | null
+          workflow_status: string | null
         }
         Insert: {
           amount: number
@@ -1977,16 +1992,31 @@ export type Database = {
           convention_id: string
           created_at?: string | null
           created_by?: string | null
+          daf_validated_at?: string | null
+          daf_validated_by?: string | null
           description?: string | null
+          dg_validated_at?: string | null
+          dg_validated_by?: string | null
           exchange_rate?: number | null
           expense_category_id?: string | null
           id?: string
           invoice_reference?: string | null
           notes?: string | null
+          paid_at?: string | null
+          paid_by?: string | null
           payment_date?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          related_expense_id?: string | null
           request_date: string
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+          workflow_status?: string | null
         }
         Update: {
           amount?: number
@@ -2000,16 +2030,31 @@ export type Database = {
           convention_id?: string
           created_at?: string | null
           created_by?: string | null
+          daf_validated_at?: string | null
+          daf_validated_by?: string | null
           description?: string | null
+          dg_validated_at?: string | null
+          dg_validated_by?: string | null
           exchange_rate?: number | null
           expense_category_id?: string | null
           id?: string
           invoice_reference?: string | null
           notes?: string | null
+          paid_at?: string | null
+          paid_by?: string | null
           payment_date?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          related_expense_id?: string | null
           request_date?: string
           status?: string
+          submitted_at?: string | null
+          submitted_by?: string | null
           updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+          workflow_status?: string | null
         }
         Relationships: [
           {
@@ -2034,10 +2079,107 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "direct_payments_daf_validated_by_fkey"
+            columns: ["daf_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_payments_dg_validated_by_fkey"
+            columns: ["dg_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "direct_payments_expense_category_id_fkey"
             columns: ["expense_category_id"]
             isOneToOne: false
             referencedRelation: "expense_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_payments_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_payments_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_payments_related_expense_id_fkey"
+            columns: ["related_expense_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_payments_submitted_by_fkey"
+            columns: ["submitted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_payments_validated_by_fkey"
+            columns: ["validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      disbursement_validation_history: {
+        Row: {
+          action: string
+          comment: string | null
+          disbursement_id: string
+          from_status: string
+          id: string
+          performed_at: string | null
+          performed_by: string | null
+          to_status: string
+        }
+        Insert: {
+          action: string
+          comment?: string | null
+          disbursement_id: string
+          from_status: string
+          id?: string
+          performed_at?: string | null
+          performed_by?: string | null
+          to_status: string
+        }
+        Update: {
+          action?: string
+          comment?: string | null
+          disbursement_id?: string
+          from_status?: string
+          id?: string
+          performed_at?: string | null
+          performed_by?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "disbursement_validation_history_disbursement_id_fkey"
+            columns: ["disbursement_id"]
+            isOneToOne: false
+            referencedRelation: "direct_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "disbursement_validation_history_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3840,6 +3982,10 @@ export type Database = {
         Args: { _amount: number; _budget_line_id: string }
         Returns: boolean
       }
+      check_treasury_availability: {
+        Args: { _amount: number }
+        Returns: boolean
+      }
       create_notification: {
         Args: {
           _direct_link?: string
@@ -3896,6 +4042,7 @@ export type Database = {
       increment_failed_login: { Args: { _email: string }; Returns: undefined }
       is_account_locked: { Args: { _email: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_expense_validated: { Args: { _expense_id: string }; Returns: boolean }
       log_audit_event: {
         Args: {
           _action: string
@@ -3936,6 +4083,15 @@ export type Database = {
         Args: {
           _budget_id: string
           _comment?: string
+          _new_status: string
+          _user_id: string
+        }
+        Returns: Json
+      }
+      validate_disbursement_transition: {
+        Args: {
+          _comment?: string
+          _disbursement_id: string
           _new_status: string
           _user_id: string
         }

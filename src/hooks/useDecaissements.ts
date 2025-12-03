@@ -19,6 +19,7 @@ export interface DisbursementMovement {
   beneficiary: string;
   amount: number;
   status: 'valide' | 'en_attente' | 'rejete';
+  workflow_status?: string;
 }
 
 export interface FluxData {
@@ -157,7 +158,7 @@ export const useRecentMovements = () => {
       const { data: directPayments } = await supabase
         .from('direct_payments')
         .select(`
-          id, code, payment_date, amount, status, description, beneficiary_name,
+          id, code, payment_date, amount, status, description, beneficiary_name, workflow_status,
           conventions!inner (
             name, code,
             bailleurs!inner (name, short_name)
@@ -178,6 +179,7 @@ export const useRecentMovements = () => {
           beneficiary: p.beneficiary_name || '-',
           amount: Number(p.amount || 0),
           status: p.status === 'paid' ? 'valide' : p.status === 'rejected' ? 'rejete' : 'en_attente',
+          workflow_status: p.workflow_status || 'brouillon',
         });
       });
 
