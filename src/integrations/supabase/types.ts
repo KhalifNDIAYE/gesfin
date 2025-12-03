@@ -2647,6 +2647,78 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          archived_at: string | null
+          created_at: string | null
+          direct_link: string | null
+          id: string
+          message: string
+          module: string | null
+          read_at: string | null
+          related_entity_id: string | null
+          related_entity_name: string | null
+          related_entity_type: string | null
+          severity: string
+          status: string
+          title: string
+          triggered_by: string | null
+          type: string
+          user_id: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string | null
+          direct_link?: string | null
+          id?: string
+          message: string
+          module?: string | null
+          read_at?: string | null
+          related_entity_id?: string | null
+          related_entity_name?: string | null
+          related_entity_type?: string | null
+          severity?: string
+          status?: string
+          title: string
+          triggered_by?: string | null
+          type: string
+          user_id?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string | null
+          direct_link?: string | null
+          id?: string
+          message?: string
+          module?: string | null
+          read_at?: string | null
+          related_entity_id?: string | null
+          related_entity_name?: string | null
+          related_entity_type?: string | null
+          severity?: string
+          status?: string
+          title?: string
+          triggered_by?: string | null
+          type?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_triggered_by_fkey"
+            columns: ["triggered_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_settings: {
         Row: {
           address: string | null
@@ -3518,6 +3590,39 @@ export type Database = {
       calculate_asset_depreciation: {
         Args: { _asset_id: string; _period_end: string }
         Returns: number
+      }
+      create_notification: {
+        Args: {
+          _direct_link?: string
+          _message: string
+          _module: string
+          _related_entity_id?: string
+          _related_entity_name?: string
+          _related_entity_type?: string
+          _severity: string
+          _title: string
+          _triggered_by?: string
+          _type: string
+          _user_id: string
+        }
+        Returns: string
+      }
+      create_notification_for_permission: {
+        Args: {
+          _direct_link?: string
+          _message: string
+          _module: Database["public"]["Enums"]["module_name"]
+          _notification_module: string
+          _permission: Database["public"]["Enums"]["permission_type"]
+          _related_entity_id?: string
+          _related_entity_name?: string
+          _related_entity_type?: string
+          _severity: string
+          _title: string
+          _triggered_by?: string
+          _type: string
+        }
+        Returns: undefined
       }
       generate_entry_number: {
         Args: { _fiscal_year_id: string; _journal_code: string }

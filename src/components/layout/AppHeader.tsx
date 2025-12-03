@@ -1,6 +1,7 @@
-import { Bell, Search, HelpCircle } from "lucide-react";
+import { Search, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 
 interface AppHeaderProps {
   title: string;
@@ -26,13 +27,8 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
           />
         </div>
 
-        {/* Notifications */}
-        <Button variant="ghost" size="icon" className="relative">
-          <Bell className="h-5 w-5" />
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] font-bold text-destructive-foreground">
-            3
-          </span>
-        </Button>
+        {/* Notifications Center */}
+        <NotificationCenter />
 
         {/* Help */}
         <Button variant="ghost" size="icon">
