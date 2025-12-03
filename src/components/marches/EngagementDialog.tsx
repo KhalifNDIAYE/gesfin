@@ -64,8 +64,8 @@ export function EngagementDialog({ open, onOpenChange, contractId }: EngagementD
       });
       form.reset();
       onOpenChange(false);
-    } catch (error) {
-      console.error('Error creating engagement:', error);
+    } catch {
+      // Error handled by mutation
     }
   };
 

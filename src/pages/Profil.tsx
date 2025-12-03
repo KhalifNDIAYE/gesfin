@@ -106,8 +106,7 @@ export default function Profil() {
       toast.success("Photo de profil mise à jour");
       // Force reload to update avatar everywhere
       window.location.reload();
-    } catch (error: any) {
-      console.error("Error uploading avatar:", error);
+    } catch {
       toast.error("Erreur lors de l'upload de la photo");
     } finally {
       setIsUploadingAvatar(false);

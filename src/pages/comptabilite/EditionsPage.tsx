@@ -86,7 +86,7 @@ export default function EditionsPage() {
 
   const handleGenerate = (editionId: string) => {
     setSelectedEdition(editionId);
-    console.log("Génération:", editionId);
+    // TODO: Implement generation logic for editionId
   };
 
   return (

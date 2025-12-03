@@ -56,11 +56,11 @@ export default function CloturesPage() {
   const currentFiscalYear = fiscalYears?.find(fy => fy.is_current);
 
   const handleCloseMonth = () => {
-    console.log("Clôture du mois:", selectedMonth);
+    // TODO: Implement month closing logic
   };
 
   const handleCloseYear = () => {
-    console.log("Clôture de l'exercice:", selectedFiscalYear);
+    // TODO: Implement year closing logic
   };
 
   return (

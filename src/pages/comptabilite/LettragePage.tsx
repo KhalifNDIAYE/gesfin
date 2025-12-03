@@ -32,11 +32,11 @@ export default function LettragePage() {
   const { data: thirdParties } = useThirdParties();
 
   const handleLettering = () => {
-    console.log("Lettrage des lignes:", selectedLines);
+    // TODO: Implement manual lettering logic
   };
 
   const handleAutoLettering = () => {
-    console.log("Lettrage automatique pour:", selectedThirdParty);
+    // TODO: Implement auto lettering logic
   };
 
   return (

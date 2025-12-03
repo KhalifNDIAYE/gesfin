@@ -39,7 +39,7 @@ export default function ANouveauxPage() {
   const { data: fiscalYears } = useFiscalYears();
 
   const handleGenerateANouveaux = () => {
-    console.log("Génération des à-nouveaux de", selectedSourceYear, "vers", selectedTargetYear);
+    // TODO: Implement generation logic
   };
 
   return (
