@@ -40,6 +40,7 @@ import {
   Building,
   TrendingUp,
   Database,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -171,6 +172,7 @@ const rapportsGroup: NavGroup = {
   module: "rapports",
   items: [
     { title: "Vue d'ensemble", href: "/rapports", icon: FileText, module: "rapports" },
+    { title: "Risques & Alertes", href: "/rapports/risques-alertes", icon: AlertTriangle, module: "rapports" },
     { title: "Bilan", href: "/rapports/bilan", icon: FileText, module: "rapports" },
     { title: "Compte de Résultat", href: "/rapports/resultat", icon: TrendingUp, module: "rapports" },
     { title: "Financement", href: "/rapports/financement", icon: Wallet, module: "rapports" },
