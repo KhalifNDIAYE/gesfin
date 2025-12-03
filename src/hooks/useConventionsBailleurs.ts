@@ -97,6 +97,7 @@ export interface DirectPayment {
   request_date: string;
   payment_date: string | null;
   status: string;
+  workflow_status?: string;
   description: string | null;
   invoice_reference: string | null;
   contract_reference: string | null;
@@ -104,6 +105,20 @@ export interface DirectPayment {
   notes: string | null;
   created_by: string | null;
   approved_by: string | null;
+  submitted_at?: string | null;
+  submitted_by?: string | null;
+  daf_validated_at?: string | null;
+  daf_validated_by?: string | null;
+  dg_validated_at?: string | null;
+  dg_validated_by?: string | null;
+  validated_at?: string | null;
+  validated_by?: string | null;
+  rejected_at?: string | null;
+  rejected_by?: string | null;
+  rejection_reason?: string | null;
+  paid_at?: string | null;
+  paid_by?: string | null;
+  related_expense_id?: string | null;
   created_at: string;
   updated_at: string;
   convention?: Convention;

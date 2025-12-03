@@ -18,6 +18,8 @@ import {
   TrendingUp
 } from "lucide-react";
 import { useDisbursementStats, useFluxEvolution, useRecentMovements } from "@/hooks/useDecaissements";
+import { DisbursementWorkflowActions } from "@/components/decaissements/DisbursementWorkflowActions";
+import { DisbursementWorkflowStatus, DISBURSEMENT_STATUS_LABELS, DISBURSEMENT_STATUS_COLORS } from "@/hooks/useDisbursementWorkflow";
 import { formatCurrency } from "@/lib/utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { toast } from "sonner";
@@ -225,7 +227,7 @@ const DecaissementsPage = () => {
                   <TableHead>Bailleur/Projet</TableHead>
                   <TableHead>Bénéficiaire</TableHead>
                   <TableHead className="text-right">Montant</TableHead>
-                  <TableHead>Statut</TableHead>
+                  <TableHead>Workflow</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -258,7 +260,17 @@ const DecaissementsPage = () => {
                       <TableCell className={`text-right font-medium ${movement.type === 'encaissement' ? 'text-success' : ''}`}>
                         {movement.type === 'encaissement' ? '+' : '-'}{formatCurrency(movement.amount)}
                       </TableCell>
-                      <TableCell>{getStatusBadge(movement.status)}</TableCell>
+                      <TableCell>
+                        {movement.type === 'decaissement' && movement.workflow_status ? (
+                          <DisbursementWorkflowActions
+                            disbursementId={movement.id}
+                            currentStatus={movement.workflow_status as DisbursementWorkflowStatus}
+                            compact
+                          />
+                        ) : (
+                          getStatusBadge(movement.status)
+                        )}
+                      </TableCell>
                     </TableRow>
                   ))
                 )}
