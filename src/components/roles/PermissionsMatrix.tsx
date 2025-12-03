@@ -63,74 +63,74 @@ interface ModuleConfigItem {
 const MODULE_CONFIG: Record<string, ModuleConfigItem> = {
   dashboard: {
     label: 'Tableau de bord',
-    permissions: ['read'],
-    permissionLabels: { read: 'Voir' },
+    permissions: ['read', 'export'],
+    permissionLabels: { read: 'Voir', export: 'Exporter' },
     adminOnly: false
   },
   comptabilite: {
     label: 'Comptabilité',
-    permissions: ['read', 'create', 'update', 'delete'],
-    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer' },
+    permissions: ['read', 'create', 'update', 'delete', 'validate', 'export'],
+    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer', validate: 'Valider', export: 'Exporter' },
     adminOnly: false
   },
   projets: {
     label: 'Projets',
-    permissions: ['read', 'create', 'update', 'delete'],
-    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer' },
+    permissions: ['read', 'create', 'update', 'delete', 'export'],
+    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer', export: 'Exporter' },
     adminOnly: false
   },
   bailleurs: {
     label: 'Bailleurs',
-    permissions: ['read', 'create', 'update', 'delete'],
-    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer' },
+    permissions: ['read', 'create', 'update', 'delete', 'export'],
+    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer', export: 'Exporter' },
     adminOnly: false
   },
   conventions: {
     label: 'Conventions',
-    permissions: ['read', 'create', 'update', 'delete'],
-    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer' },
+    permissions: ['read', 'create', 'update', 'delete', 'validate', 'export'],
+    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer', validate: 'Valider', export: 'Exporter' },
     adminOnly: false
   },
   decaissements: {
     label: 'Décaissements',
-    permissions: ['read', 'create', 'update', 'delete'],
-    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer' },
+    permissions: ['read', 'create', 'update', 'delete', 'validate', 'export'],
+    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer', validate: 'Valider', export: 'Exporter' },
     adminOnly: false
   },
   immobilisations: {
     label: 'Immobilisations',
-    permissions: ['read', 'create', 'update', 'delete'],
-    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer' },
+    permissions: ['read', 'create', 'update', 'delete', 'validate', 'export'],
+    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer', validate: 'Valider', export: 'Exporter' },
     adminOnly: false
   },
   marches: {
     label: 'Marchés',
-    permissions: ['read', 'create', 'update', 'delete'],
-    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer' },
+    permissions: ['read', 'create', 'update', 'delete', 'validate', 'export'],
+    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer', validate: 'Valider', export: 'Exporter' },
     adminOnly: false
   },
   rapports: {
     label: 'Rapports',
-    permissions: ['read', 'create'],
-    permissionLabels: { read: 'Voir', create: 'Exporter' },
+    permissions: ['read', 'create', 'export'],
+    permissionLabels: { read: 'Voir', create: 'Créer', export: 'Exporter' },
     adminOnly: false
   },
   utilisateurs: {
     label: 'Utilisateurs (Admin)',
-    permissions: ['read', 'create', 'update', 'delete'],
-    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer' },
+    permissions: ['read', 'create', 'update', 'delete', 'export'],
+    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer', export: 'Exporter' },
     adminOnly: true
   },
   securite: {
     label: 'Sécurité (Admin)',
-    permissions: ['read', 'create', 'update', 'delete'],
-    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer' },
+    permissions: ['read', 'create', 'update', 'delete', 'export'],
+    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer', export: 'Exporter' },
     adminOnly: true
   },
   parametres: {
     label: 'Paramètres (Admin)',
-    permissions: ['read', 'create', 'update', 'delete'],
-    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer' },
+    permissions: ['read', 'create', 'update', 'delete', 'export'],
+    permissionLabels: { read: 'Voir', create: 'Créer', update: 'Modifier', delete: 'Supprimer', export: 'Exporter' },
     adminOnly: true
   },
 };

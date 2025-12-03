@@ -12,9 +12,12 @@ import {
   AlertTriangle,
   CheckCircle2,
   Clock,
-  Download
+  Download,
+  Edit,
+  Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PermissionButton, PermissionGate, useModulePermissions } from "@/components/auth/PermissionButton";
 
 interface Convention {
   id: string;
@@ -116,6 +119,8 @@ const statusConfig = {
 };
 
 const Conventions = () => {
+  const { canCreate, canUpdate, canDelete, canExport } = useModulePermissions('conventions');
+
   return (
     <AppLayout 
       title="Conventions" 
@@ -185,14 +190,14 @@ const Conventions = () => {
             <Input placeholder="Rechercher une convention..." className="pl-9" />
           </div>
           <div className="flex gap-2">
-            <Button variant="outline">
+            <PermissionButton module="conventions" permission="export" variant="outline">
               <Download className="h-4 w-4" />
               Exporter
-            </Button>
-            <Button variant="gradient">
+            </PermissionButton>
+            <PermissionButton module="conventions" permission="create" variant="gradient">
               <Plus className="h-4 w-4" />
               Nouvelle convention
-            </Button>
+            </PermissionButton>
           </div>
         </div>
 
@@ -213,7 +218,7 @@ const Conventions = () => {
                   <div 
                     key={conv.id}
                     className={cn(
-                      "rounded-lg border border-border p-4 transition-all duration-200 hover:bg-muted/50 animate-slide-up opacity-0",
+                      "group rounded-lg border border-border p-4 transition-all duration-200 hover:bg-muted/50 animate-slide-up opacity-0",
                       `stagger-${index + 1}`
                     )}
                   >
@@ -249,9 +254,21 @@ const Conventions = () => {
                           <span>{(conv.montant / 1000000).toLocaleString()} M FCFA</span>
                         </div>
                       </div>
-                      <Button variant="outline" size="sm">
-                        Voir détails
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="sm">
+                          Voir détails
+                        </Button>
+                        <PermissionGate module="conventions" permission="update">
+                          <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        </PermissionGate>
+                        <PermissionGate module="conventions" permission="delete">
+                          <Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 transition-opacity text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </PermissionGate>
+                      </div>
                     </div>
                   </div>
                 );

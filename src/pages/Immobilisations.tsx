@@ -4,7 +4,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Plus, 
   Search, 
@@ -17,12 +16,6 @@ import {
   QrCode,
   Edit,
   Trash2,
-  Eye,
-  ArrowRightLeft,
-  Calculator,
-  FileX,
-  ClipboardCheck,
-  Filter
 } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
 import { useAssets, useAssetStats, useAssetCategories, useAssetMutations } from "@/hooks/useAssets";
@@ -46,6 +39,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Asset } from "@/hooks/useAssets";
+import { PermissionButton, PermissionGate, useModulePermissions } from "@/components/auth/PermissionButton";
 
 const categoryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   'VEH': Car,
@@ -71,6 +65,8 @@ const Immobilisations = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [assetToDelete, setAssetToDelete] = useState<Asset | null>(null);
 
+  const { canCreate, canUpdate, canDelete, canExport } = useModulePermissions('immobilisations');
+
   const { data: assets, isLoading } = useAssets();
   const { data: stats } = useAssetStats();
   const { data: categories } = useAssetCategories();
@@ -90,11 +86,13 @@ const Immobilisations = () => {
   }) || [];
 
   const handleEdit = (asset: Asset) => {
+    if (!canUpdate) return;
     setSelectedAsset(asset);
     setDialogOpen(true);
   };
 
   const handleDelete = (asset: Asset) => {
+    if (!canDelete) return;
     setAssetToDelete(asset);
     setDeleteDialogOpen(true);
   };
@@ -108,6 +106,7 @@ const Immobilisations = () => {
   };
 
   const handleAdd = () => {
+    if (!canCreate) return;
     setSelectedAsset(null);
     setDialogOpen(true);
   };
@@ -236,14 +235,14 @@ const Immobilisations = () => {
               <QrCode className="h-4 w-4" />
               Scanner
             </Button>
-            <Button variant="outline">
+            <PermissionButton module="immobilisations" permission="export" variant="outline">
               <Download className="h-4 w-4" />
               Exporter
-            </Button>
-            <Button variant="gradient" onClick={handleAdd}>
+            </PermissionButton>
+            <PermissionButton module="immobilisations" permission="create" variant="gradient" onClick={handleAdd}>
               <Plus className="h-4 w-4" />
               Ajouter un actif
-            </Button>
+            </PermissionButton>
           </div>
         </div>
 
@@ -271,10 +270,10 @@ const Immobilisations = () => {
                     ? "Modifiez vos filtres ou ajoutez un nouvel actif"
                     : "Commencez par ajouter votre premier actif"}
                 </p>
-                <Button onClick={handleAdd}>
+                <PermissionButton module="immobilisations" permission="create" onClick={handleAdd}>
                   <Plus className="h-4 w-4 mr-2" />
                   Ajouter un actif
-                </Button>
+                </PermissionButton>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -335,20 +334,24 @@ const Immobilisations = () => {
                           </td>
                           <td>
                             <div className="flex items-center justify-end gap-1">
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                onClick={() => handleEdit(asset)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                onClick={() => handleDelete(asset)}
-                              >
-                                <Trash2 className="h-4 w-4 text-destructive" />
-                              </Button>
+                              <PermissionGate module="immobilisations" permission="update">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={() => handleEdit(asset)}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </PermissionGate>
+                              <PermissionGate module="immobilisations" permission="delete">
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={() => handleDelete(asset)}
+                                >
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </PermissionGate>
                             </div>
                           </td>
                         </tr>

@@ -11,9 +11,13 @@ import {
   Mail,
   Phone,
   FileText,
-  ExternalLink
+  ExternalLink,
+  Download,
+  Edit,
+  Trash2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { PermissionButton, PermissionGate, useModulePermissions } from "@/components/auth/PermissionButton";
 
 interface Donor {
   id: string;
@@ -96,6 +100,8 @@ const typeConfig = {
 };
 
 const Bailleurs = () => {
+  const { canCreate, canUpdate, canDelete, canExport } = useModulePermissions('bailleurs');
+
   return (
     <AppLayout 
       title="Bailleurs de Fonds" 
@@ -164,10 +170,27 @@ const Bailleurs = () => {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input placeholder="Rechercher un bailleur..." className="pl-9" />
           </div>
-          <Button variant="gradient">
-            <Plus className="h-4 w-4" />
-            Ajouter un bailleur
-          </Button>
+          <div className="flex items-center gap-2">
+            {/* Export button - only visible if user has export permission */}
+            <PermissionButton 
+              module="bailleurs" 
+              permission="export" 
+              variant="outline"
+            >
+              <Download className="h-4 w-4" />
+              Exporter
+            </PermissionButton>
+            
+            {/* Add button - only visible if user has create permission */}
+            <PermissionButton 
+              module="bailleurs" 
+              permission="create" 
+              variant="gradient"
+            >
+              <Plus className="h-4 w-4" />
+              Ajouter un bailleur
+            </PermissionButton>
+          </div>
         </div>
 
         {/* Donors Grid */}
@@ -193,6 +216,19 @@ const Bailleurs = () => {
                         <CardTitle className="text-base">{donor.name}</CardTitle>
                         <CardDescription>{donor.country}</CardDescription>
                       </div>
+                    </div>
+                    {/* Edit/Delete actions - only visible with appropriate permissions */}
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <PermissionGate module="bailleurs" permission="update">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </PermissionGate>
+                      <PermissionGate module="bailleurs" permission="delete">
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </PermissionGate>
                     </div>
                   </div>
                   <Badge variant="secondary" className={cn("w-fit mt-2", typeInfo.className)}>
