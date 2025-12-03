@@ -2795,6 +2795,98 @@ export type Database = {
         }
         Relationships: []
       }
+      security_blocked_actions: {
+        Row: {
+          action_attempted: string
+          additional_context: Json | null
+          block_source: string
+          browser: string | null
+          created_at: string
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          module: string
+          operating_system: string | null
+          permission_required: string
+          permissions_held: string[] | null
+          request_method: string | null
+          request_url: string | null
+          resource_id: string | null
+          resource_type: string | null
+          severity: string
+          status: string
+          timestamp: string
+          timezone: string | null
+          user_agent: string | null
+          user_email: string | null
+          user_full_name: string | null
+          user_id: string | null
+          user_roles: string[] | null
+        }
+        Insert: {
+          action_attempted: string
+          additional_context?: Json | null
+          block_source: string
+          browser?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          module: string
+          operating_system?: string | null
+          permission_required: string
+          permissions_held?: string[] | null
+          request_method?: string | null
+          request_url?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          severity?: string
+          status?: string
+          timestamp?: string
+          timezone?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_full_name?: string | null
+          user_id?: string | null
+          user_roles?: string[] | null
+        }
+        Update: {
+          action_attempted?: string
+          additional_context?: Json | null
+          block_source?: string
+          browser?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          module?: string
+          operating_system?: string | null
+          permission_required?: string
+          permissions_held?: string[] | null
+          request_method?: string | null
+          request_url?: string | null
+          resource_id?: string | null
+          resource_type?: string | null
+          severity?: string
+          status?: string
+          timestamp?: string
+          timezone?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_full_name?: string | null
+          user_id?: string | null
+          user_roles?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_blocked_actions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sites: {
         Row: {
           address: string | null
@@ -3023,6 +3115,30 @@ export type Database = {
           _old_values?: Json
           _resource_id?: string
           _resource_type?: string
+        }
+        Returns: string
+      }
+      log_blocked_action: {
+        Args: {
+          _action_attempted: string
+          _additional_context?: Json
+          _block_source: string
+          _browser: string
+          _device_type: string
+          _ip_address: string
+          _module: string
+          _operating_system: string
+          _permission_required: string
+          _permissions_held: string[]
+          _request_method: string
+          _request_url: string
+          _resource_id: string
+          _resource_type: string
+          _user_agent: string
+          _user_email: string
+          _user_full_name: string
+          _user_id: string
+          _user_roles: string[]
         }
         Returns: string
       }

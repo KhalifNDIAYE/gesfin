@@ -83,6 +83,7 @@ import IFRPage from "./pages/rapports/IFRPage";
 
 // Administration pages
 import UtilitairesPage from "./pages/administration/UtilitairesPage";
+import BlockedActionsPage from "./pages/administration/BlockedActionsPage";
 
 const queryClient = new QueryClient();
 
@@ -177,6 +178,7 @@ const App = () => (
             {/* Administration - ADMIN ONLY */}
             <Route path="/utilisateurs" element={<ProtectedRoute adminOnly><Utilisateurs /></ProtectedRoute>} />
             <Route path="/securite" element={<ProtectedRoute adminOnly><Securite /></ProtectedRoute>} />
+            <Route path="/securite/tentatives-bloquees" element={<ProtectedRoute adminOnly><BlockedActionsPage /></ProtectedRoute>} />
             <Route path="/parametres" element={<ProtectedRoute adminOnly><Parametres /></ProtectedRoute>} />
             <Route path="/utilitaires" element={<ProtectedRoute adminOnly><UtilitairesPage /></ProtectedRoute>} />
             

@@ -13,10 +13,17 @@ import {
   Download,
   RefreshCw,
   Database,
-  Eye
+  Eye,
+  ShieldAlert,
+  ArrowRight
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { useBlockedActionsStats } from "@/hooks/useBlockedActions";
 
 const Securite = () => {
+  const navigate = useNavigate();
+  const { data: blockedStats } = useBlockedActionsStats();
+
   return (
     <AppLayout 
       title="Sécurité" 
@@ -64,15 +71,18 @@ const Securite = () => {
               </div>
             </CardContent>
           </Card>
-          <Card>
+          <Card 
+            className="cursor-pointer hover:border-primary/50 transition-colors"
+            onClick={() => navigate('/securite/tentatives-bloquees')}
+          >
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
-                  <Eye className="h-5 w-5 text-primary" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-destructive/10">
+                  <ShieldAlert className="h-5 w-5 text-destructive" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Sessions actives</p>
-                  <p className="text-lg font-semibold">12</p>
+                  <p className="text-sm text-muted-foreground">Tentatives bloquées</p>
+                  <p className="text-lg font-semibold">{blockedStats?.total || 0}</p>
                 </div>
               </div>
             </CardContent>
