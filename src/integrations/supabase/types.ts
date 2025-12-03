@@ -3056,7 +3056,13 @@ export type Database = {
         | "utilisateurs"
         | "securite"
         | "parametres"
-      permission_type: "read" | "create" | "update" | "delete"
+      permission_type:
+        | "read"
+        | "create"
+        | "update"
+        | "delete"
+        | "validate"
+        | "export"
       plan_type:
         | "comptable"
         | "budgetaire"
@@ -3226,7 +3232,14 @@ export const Constants = {
         "securite",
         "parametres",
       ],
-      permission_type: ["read", "create", "update", "delete"],
+      permission_type: [
+        "read",
+        "create",
+        "update",
+        "delete",
+        "validate",
+        "export",
+      ],
       plan_type: [
         "comptable",
         "budgetaire",
