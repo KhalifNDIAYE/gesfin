@@ -2009,6 +2009,165 @@ export type Database = {
           },
         ]
       }
+      email_alert_recipients: {
+        Row: {
+          alert_type_id: string | null
+          created_at: string | null
+          id: string
+          role_id: string | null
+        }
+        Insert: {
+          alert_type_id?: string | null
+          created_at?: string | null
+          id?: string
+          role_id?: string | null
+        }
+        Update: {
+          alert_type_id?: string | null
+          created_at?: string | null
+          id?: string
+          role_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "email_alert_recipients_alert_type_id_fkey"
+            columns: ["alert_type_id"]
+            isOneToOne: false
+            referencedRelation: "email_alert_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "email_alert_recipients_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      email_alert_types: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          description: string | null
+          id: string
+          is_enabled: boolean | null
+          name: string
+          send_immediately: boolean | null
+          severity: string | null
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          name: string
+          send_immediately?: boolean | null
+          severity?: string | null
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          name?: string
+          send_immediately?: boolean | null
+          severity?: string | null
+        }
+        Relationships: []
+      }
+      email_logs: {
+        Row: {
+          alert_type: string
+          body_preview: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          recipient_email: string
+          recipient_name: string | null
+          related_entity_id: string | null
+          related_entity_name: string | null
+          related_module: string | null
+          sent_at: string | null
+          status: string | null
+          subject: string
+        }
+        Insert: {
+          alert_type: string
+          body_preview?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          recipient_email: string
+          recipient_name?: string | null
+          related_entity_id?: string | null
+          related_entity_name?: string | null
+          related_module?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject: string
+        }
+        Update: {
+          alert_type?: string
+          body_preview?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          recipient_email?: string
+          recipient_name?: string | null
+          related_entity_id?: string | null
+          related_entity_name?: string | null
+          related_module?: string | null
+          sent_at?: string | null
+          status?: string | null
+          subject?: string
+        }
+        Relationships: []
+      }
+      email_notification_settings: {
+        Row: {
+          created_at: string | null
+          from_email: string | null
+          from_name: string | null
+          id: string
+          is_enabled: boolean | null
+          organization_logo_url: string | null
+          smtp_host: string | null
+          smtp_password: string | null
+          smtp_port: number | null
+          smtp_username: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          organization_logo_url?: string | null
+          smtp_host?: string | null
+          smtp_password?: string | null
+          smtp_port?: number | null
+          smtp_username?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          from_email?: string | null
+          from_name?: string | null
+          id?: string
+          is_enabled?: boolean | null
+          organization_logo_url?: string | null
+          smtp_host?: string | null
+          smtp_password?: string | null
+          smtp_port?: number | null
+          smtp_username?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       expense_categories: {
         Row: {
           code: string
