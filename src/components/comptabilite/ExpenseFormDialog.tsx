@@ -178,11 +178,14 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
 
       if (error) throw error;
 
-      const { data: urlData } = supabase.storage
+      // Use signed URL for private bucket (24 hours expiry)
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
         .from('expense-attachments')
-        .getPublicUrl(fileName);
+        .createSignedUrl(fileName, 60 * 60 * 24);
 
-      return urlData.publicUrl;
+      if (signedUrlError) throw signedUrlError;
+
+      return signedUrlData.signedUrl;
     } catch (error) {
       console.error('Upload error:', error);
       toast({ title: "Erreur", description: "Échec de l'upload du fichier", variant: "destructive" });

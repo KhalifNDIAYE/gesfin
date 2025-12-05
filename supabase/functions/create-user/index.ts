@@ -1,9 +1,27 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
+// Dynamic CORS origin - allow app domain in production, or localhost for development
+const getAllowedOrigin = (requestOrigin: string | null): string => {
+  const allowedPatterns = [
+    /^https:\/\/.*\.lovable\.app$/,
+    /^https:\/\/.*\.lovableproject\.com$/,
+    /^http:\/\/localhost:\d+$/,
+    /^http:\/\/127\.0\.0\.1:\d+$/,
+  ];
+  
+  if (requestOrigin && allowedPatterns.some(pattern => pattern.test(requestOrigin))) {
+    return requestOrigin;
+  }
+  
+  // Default to the Supabase project URL
+  return Deno.env.get('SUPABASE_URL') || 'https://swdswiyxdopxwkiwrdva.supabase.co';
+};
+
+const getCorsHeaders = (requestOrigin: string | null) => ({
+  'Access-Control-Allow-Origin': getAllowedOrigin(requestOrigin),
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  'Access-Control-Allow-Credentials': 'true',
+});
 
 interface CreateUserRequest {
   email: string;
@@ -14,6 +32,9 @@ interface CreateUserRequest {
 }
 
 Deno.serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -176,6 +197,8 @@ Deno.serve(async (req) => {
     );
 
   } catch (error) {
+    const origin = req.headers.get('Origin');
+    const corsHeaders = getCorsHeaders(origin);
     console.error('Unexpected error:', error);
     return new Response(
       JSON.stringify({ error: 'Erreur serveur inattendue' }),
