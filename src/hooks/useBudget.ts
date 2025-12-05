@@ -89,7 +89,14 @@ export interface BudgetAlert {
   budget_line?: BudgetLine;
 }
 
-// Fetch all budgets
+// Extended Budget with aggregated amounts
+export interface BudgetWithAggregates extends Budget {
+  committed_amount?: number;
+  realized_amount?: number;
+  remaining_amount?: number;
+}
+
+// Fetch all budgets with aggregated line amounts
 export function useBudgets(fiscalYearId?: string) {
   return useQuery({
     queryKey: ['budgets', fiscalYearId],
@@ -107,9 +114,36 @@ export function useBudgets(fiscalYearId?: string) {
         query = query.eq('fiscal_year_id', fiscalYearId);
       }
 
-      const { data, error } = await query;
+      const { data: budgets, error } = await query;
       if (error) throw error;
-      return data as Budget[];
+
+      // Fetch aggregated amounts for each budget
+      const budgetIds = budgets?.map(b => b.id) || [];
+      if (budgetIds.length === 0) return [] as BudgetWithAggregates[];
+
+      const { data: lines, error: linesError } = await supabase
+        .from('budget_lines')
+        .select('budget_id, committed_amount, realized_amount, forecast_amount')
+        .in('budget_id', budgetIds);
+
+      if (linesError) throw linesError;
+
+      // Aggregate amounts by budget
+      const aggregates = new Map<string, { committed: number; realized: number }>();
+      lines?.forEach(line => {
+        const current = aggregates.get(line.budget_id) || { committed: 0, realized: 0 };
+        aggregates.set(line.budget_id, {
+          committed: current.committed + Number(line.committed_amount || 0),
+          realized: current.realized + Number(line.realized_amount || 0),
+        });
+      });
+
+      return budgets?.map(budget => ({
+        ...budget,
+        committed_amount: aggregates.get(budget.id)?.committed || 0,
+        realized_amount: aggregates.get(budget.id)?.realized || 0,
+        remaining_amount: Number(budget.total_amount) - (aggregates.get(budget.id)?.realized || 0),
+      })) as BudgetWithAggregates[];
     },
   });
 }
