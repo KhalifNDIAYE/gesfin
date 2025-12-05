@@ -5,18 +5,24 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Switch } from '@/components/ui/switch';
 import { useRoles } from '@/hooks/useRoles';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2, User, Mail, Lock, Building } from 'lucide-react';
+import { Loader2, User, Mail, Lock, Eye, EyeOff } from 'lucide-react';
 import { z } from 'zod';
 import { useQueryClient } from '@tanstack/react-query';
 
 const createUserSchema = z.object({
-  fullName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères'),
-  email: z.string().email('Email invalide'),
-  password: z.string().min(8, 'Le mot de passe doit contenir au moins 8 caractères'),
-  department: z.string().optional(),
+  lastName: z.string().min(2, 'Le nom doit contenir au moins 2 caractères').max(50, 'Le nom ne peut pas dépasser 50 caractères'),
+  firstName: z.string().max(50, 'Le prénom ne peut pas dépasser 50 caractères').optional(),
+  email: z.string().email('Email invalide').max(255, 'Email trop long'),
+  password: z.string()
+    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+    .max(72, 'Le mot de passe ne peut pas dépasser 72 caractères')
+    .regex(/[A-Z]/, 'Le mot de passe doit contenir au moins une majuscule')
+    .regex(/[a-z]/, 'Le mot de passe doit contenir au moins une minuscule')
+    .regex(/[0-9]/, 'Le mot de passe doit contenir au moins un chiffre'),
 });
 
 interface CreateUserDialogProps {
@@ -26,12 +32,14 @@ interface CreateUserDialogProps {
 
 export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ open, onOpenChange }) => {
   const [formData, setFormData] = useState({
-    fullName: '',
+    lastName: '',
+    firstName: '',
     email: '',
     password: '',
-    department: '',
   });
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [isActive, setIsActive] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -39,8 +47,10 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ open, onOpen
   const queryClient = useQueryClient();
 
   const resetForm = () => {
-    setFormData({ fullName: '', email: '', password: '', department: '' });
+    setFormData({ lastName: '', firstName: '', email: '', password: '' });
     setSelectedRoles([]);
+    setIsActive(true);
+    setShowPassword(false);
     setErrors({});
   };
 
@@ -50,6 +60,11 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ open, onOpen
         ? prev.filter(id => id !== roleId)
         : [...prev, roleId]
     );
+  };
+
+  const getFullName = () => {
+    const parts = [formData.lastName, formData.firstName].filter(Boolean);
+    return parts.join(' ');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -84,10 +99,10 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ open, onOpen
 
       const response = await supabase.functions.invoke('create-user', {
         body: {
-          email: formData.email,
+          email: formData.email.trim().toLowerCase(),
           password: formData.password,
-          fullName: formData.fullName,
-          department: formData.department || undefined,
+          fullName: getFullName(),
+          isActive: isActive,
           roleIds: selectedRoles.length > 0 ? selectedRoles : undefined,
         },
       });
@@ -122,24 +137,37 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ open, onOpen
         <DialogHeader>
           <DialogTitle>Nouvel utilisateur</DialogTitle>
           <DialogDescription>
-            Créez un nouveau compte utilisateur avec des rôles prédéfinis
+            Créez un nouveau compte utilisateur
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="fullName">Nom complet *</Label>
-            <div className="relative">
-              <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="fullName"
-                placeholder="Jean Dupont"
-                className="pl-10"
-                value={formData.fullName}
-                onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-              />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="lastName">Nom *</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  id="lastName"
+                  placeholder="Dupont"
+                  className="pl-10"
+                  value={formData.lastName}
+                  onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                />
+              </div>
+              {errors.lastName && <p className="text-xs text-destructive">{errors.lastName}</p>}
             </div>
-            {errors.fullName && <p className="text-sm text-destructive">{errors.fullName}</p>}
+
+            <div className="space-y-2">
+              <Label htmlFor="firstName">Prénom</Label>
+              <Input
+                id="firstName"
+                placeholder="Jean"
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+              />
+              {errors.firstName && <p className="text-xs text-destructive">{errors.firstName}</p>}
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -155,7 +183,7 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ open, onOpen
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               />
             </div>
-            {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
           </div>
 
           <div className="space-y-2">
@@ -164,33 +192,29 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ open, onOpen
               <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="password"
-                type="password"
-                placeholder="Min. 8 caractères"
-                className="pl-10"
+                type={showPassword ? "text" : "password"}
+                placeholder="Min. 8 caractères, 1 maj., 1 min., 1 chiffre"
+                className="pl-10 pr-10"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
-            {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+            {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
+            <p className="text-xs text-muted-foreground">
+              Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule et un chiffre.
+            </p>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="department">Département</Label>
-            <div className="relative">
-              <Building className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                id="department"
-                placeholder="Direction Financière"
-                className="pl-10"
-                value={formData.department}
-                onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Rôles à assigner</Label>
-            <ScrollArea className="h-[150px] rounded-lg border border-border p-3">
+            <Label>Rôles</Label>
+            <ScrollArea className="h-[120px] rounded-lg border border-border p-3">
               <div className="space-y-2">
                 {roles?.map((role) => (
                   <div key={role.id} className="flex items-center space-x-2">
@@ -205,24 +229,47 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({ open, onOpen
                     >
                       <span className="font-medium">{role.name}</span>
                       {role.description && (
-                        <span className="text-muted-foreground ml-2">- {role.description}</span>
+                        <span className="text-muted-foreground ml-2 text-xs">- {role.description}</span>
                       )}
                     </label>
                   </div>
                 ))}
+                {(!roles || roles.length === 0) && (
+                  <p className="text-sm text-muted-foreground">Aucun rôle disponible</p>
+                )}
               </div>
             </ScrollArea>
           </div>
 
-          <div className="flex justify-end gap-2 pt-4">
+          <div className="flex items-center justify-between rounded-lg border border-border p-4">
+            <div>
+              <Label>Statut</Label>
+              <p className="text-sm text-muted-foreground">
+                {isActive ? "L'utilisateur pourra se connecter" : "L'utilisateur ne pourra pas se connecter"}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-sm ${!isActive ? 'text-muted-foreground' : 'text-muted-foreground/50'}`}>Inactif</span>
+              <Switch
+                checked={isActive}
+                onCheckedChange={setIsActive}
+              />
+              <span className={`text-sm ${isActive ? 'text-success' : 'text-muted-foreground/50'}`}>Actif</span>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Annuler
             </Button>
             <Button type="submit" variant="gradient" disabled={isLoading}>
               {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Création...
+                </>
               ) : (
-                'Créer l\'utilisateur'
+                'Enregistrer'
               )}
             </Button>
           </div>
