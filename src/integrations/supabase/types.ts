@@ -2673,6 +2673,7 @@ export type Database = {
       }
       journal_entries: {
         Row: {
+          attachment_url: string | null
           budget_line_id: string | null
           created_at: string | null
           created_by: string | null
@@ -2707,6 +2708,7 @@ export type Database = {
           validated_by: string | null
         }
         Insert: {
+          attachment_url?: string | null
           budget_line_id?: string | null
           created_at?: string | null
           created_by?: string | null
@@ -2741,6 +2743,7 @@ export type Database = {
           validated_by?: string | null
         }
         Update: {
+          attachment_url?: string | null
           budget_line_id?: string | null
           created_at?: string | null
           created_by?: string | null

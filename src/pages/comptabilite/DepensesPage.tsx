@@ -6,7 +6,7 @@ import { Plus, Wallet } from "lucide-react";
 import { useJournalEntries } from "@/hooks/useComptabilite";
 import { useFiscalYears } from "@/hooks/useParametrage";
 import { ExpensesTable } from "@/components/comptabilite/ExpensesTable";
-import { JournalEntryDialog } from "@/components/comptabilite/JournalEntryDialog";
+import { ExpenseFormDialog } from "@/components/comptabilite/ExpenseFormDialog";
 import {
   Select,
   SelectContent,
@@ -130,10 +130,9 @@ export default function DepensesPage() {
         </Card>
       </div>
 
-      <JournalEntryDialog
+      <ExpenseFormDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        entryType="depense"
       />
     </AppLayout>
   );
