@@ -67,11 +67,12 @@ export interface JournalEntry {
   dg_validated_at?: string | null;
   paid_by?: string | null;
   paid_at?: string | null;
+  attachment_url?: string | null;
   // Relations
   journal?: Partial<Journal>;
   fiscal_year?: { id: string; name: string };
   currency?: { id: string; code: string; symbol: string };
-  third_party?: ThirdParty;
+  third_party?: Partial<ThirdParty>;
   lines?: JournalEntryLine[];
 }
 
