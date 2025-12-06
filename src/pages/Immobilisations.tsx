@@ -4,21 +4,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Plus, 
   Search, 
   Package,
-  Car,
   Building,
   Monitor,
   Wrench,
   Download,
   QrCode,
-  Edit,
+  Eye,
+  Pencil,
   Trash2,
 } from "lucide-react";
 import { cn, formatCurrency } from "@/lib/utils";
-import { useAssets, useAssetStats, useAssetCategories, useAssetMutations } from "@/hooks/useAssets";
+import { useAssets, useAssetStats, useAssetCategories, useAssetMutations, Asset } from "@/hooks/useAssets";
+import { useProjects } from "@/hooks/useProjects";
 import { AssetDialog } from "@/components/immobilisations/AssetDialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -38,16 +40,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Asset } from "@/hooks/useAssets";
 import { PermissionButton, PermissionGate, useModulePermissions } from "@/components/auth/PermissionButton";
-
-const categoryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
-  'VEH': Car,
-  'MOB': Package,
-  'INF': Monitor,
-  'BAT': Building,
-  'EQP': Wrench,
-};
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   active: { label: "En service", className: "bg-success/10 text-success border-success/20" },
@@ -59,7 +54,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 const Immobilisations = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [projectFilter, setProjectFilter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -69,7 +64,7 @@ const Immobilisations = () => {
 
   const { data: assets, isLoading } = useAssets();
   const { data: stats } = useAssetStats();
-  const { data: categories } = useAssetCategories();
+  const { projects } = useProjects();
   const { deleteMutation } = useAssetMutations();
 
   const filteredAssets = assets?.filter((asset) => {
@@ -80,9 +75,9 @@ const Immobilisations = () => {
       (asset.serial_number?.toLowerCase().includes(searchQuery.toLowerCase()));
     
     const matchesStatus = statusFilter === "all" || asset.status === statusFilter;
-    const matchesCategory = categoryFilter === "all" || asset.category_id === categoryFilter;
+    const matchesProject = projectFilter === "all" || asset.project_id === projectFilter;
     
-    return matchesSearch && matchesStatus && matchesCategory;
+    return matchesSearch && matchesStatus && matchesProject;
   }) || [];
 
   const handleEdit = (asset: Asset) => {
@@ -111,10 +106,15 @@ const Immobilisations = () => {
     setDialogOpen(true);
   };
 
-  const getCategoryIcon = (categoryCode?: string) => {
-    if (!categoryCode) return Package;
-    const prefix = categoryCode.substring(0, 3).toUpperCase();
-    return categoryIcons[prefix] || Package;
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "-";
+    return format(new Date(dateString), "dd/MM/yyyy", { locale: fr });
+  };
+
+  const clearFilters = () => {
+    setStatusFilter("all");
+    setProjectFilter("all");
+    setSearchQuery("");
   };
 
   return (
@@ -195,64 +195,78 @@ const Immobilisations = () => {
           </Card>
         </div>
 
-        {/* Actions Bar */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex flex-1 items-center gap-2">
-            <div className="relative max-w-md flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input 
-                placeholder="Rechercher (code, désignation, marque, N° série)..." 
-                className="pl-9" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+        {/* Filters Card */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Search */}
+              <div className="relative lg:col-span-2">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input 
+                  placeholder="Rechercher par code, libellé..." 
+                  className="pl-9" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              
+              {/* Project Filter */}
+              <Select value={projectFilter} onValueChange={setProjectFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Projet" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les projets</SelectItem>
+                  {projects?.map((project) => (
+                    <SelectItem key={project.id} value={project.id}>
+                      {project.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* Status Filter */}
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Statut" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous les statuts</SelectItem>
+                  <SelectItem value="active">En service</SelectItem>
+                  <SelectItem value="maintenance">En maintenance</SelectItem>
+                  <SelectItem value="disposed">Sorti</SelectItem>
+                  <SelectItem value="inactive">Inactif</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[150px]">
-                <SelectValue placeholder="Statut" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tous les statuts</SelectItem>
-                <SelectItem value="active">En service</SelectItem>
-                <SelectItem value="maintenance">En maintenance</SelectItem>
-                <SelectItem value="disposed">Sorti</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Catégorie" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Toutes catégories</SelectItem>
-                {categories?.map((cat) => (
-                  <SelectItem key={cat.id} value={cat.id}>{cat.name}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <QrCode className="h-4 w-4" />
-              Scanner
-            </Button>
-            <PermissionButton module="immobilisations" permission="export" variant="outline">
-              <Download className="h-4 w-4" />
-              Exporter
-            </PermissionButton>
-            <PermissionButton module="immobilisations" permission="create" variant="gradient" onClick={handleAdd}>
-              <Plus className="h-4 w-4" />
-              Ajouter un actif
-            </PermissionButton>
-          </div>
-        </div>
+            
+            {/* Actions Row */}
+            <div className="flex justify-between items-center mt-4">
+              <Button variant="ghost" size="sm" onClick={clearFilters}>
+                Réinitialiser les filtres
+              </Button>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm">
+                  <QrCode className="h-4 w-4 mr-2" />
+                  Scanner
+                </Button>
+                <PermissionButton module="immobilisations" permission="export" variant="outline" size="sm">
+                  <Download className="h-4 w-4 mr-2" />
+                  Exporter
+                </PermissionButton>
+                <PermissionButton module="immobilisations" permission="create" size="sm" onClick={handleAdd}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Ajouter un actif
+                </PermissionButton>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Assets Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Registre des Immobilisations</CardTitle>
-            <CardDescription>
-              {filteredAssets.length} actif(s) trouvé(s)
-            </CardDescription>
+            <CardTitle>Registre des Immobilisations ({filteredAssets.length})</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -266,7 +280,7 @@ const Immobilisations = () => {
                 <Package className="h-12 w-12 text-muted-foreground/50 mb-4" />
                 <h3 className="text-lg font-semibold">Aucun actif trouvé</h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  {searchQuery || statusFilter !== "all" || categoryFilter !== "all"
+                  {searchQuery || statusFilter !== "all" || projectFilter !== "all"
                     ? "Modifiez vos filtres ou ajoutez un nouvel actif"
                     : "Commencez par ajouter votre premier actif"}
                 </p>
@@ -277,29 +291,31 @@ const Immobilisations = () => {
               </div>
             ) : (
               <div className="overflow-x-auto">
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Code</th>
-                      <th>Désignation</th>
-                      <th>Catégorie</th>
-                      <th>Acquisition</th>
-                      <th className="text-right">Valeur brute</th>
-                      <th className="text-right">VNC</th>
-                      <th>Localisation</th>
-                      <th>Statut</th>
-                      <th className="text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Code</TableHead>
+                      <TableHead>Libellé</TableHead>
+                      <TableHead>Projet</TableHead>
+                      <TableHead className="text-right">Valeur</TableHead>
+                      <TableHead>Date acquisition</TableHead>
+                      <TableHead>Durée</TableHead>
+                      <TableHead className="text-right">Amortissement</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
                     {filteredAssets.map((asset) => {
-                      const CategoryIcon = getCategoryIcon(asset.category?.code);
                       const status = statusConfig[asset.status] || statusConfig.inactive;
+                      const project = projects?.find(p => p.id === asset.project_id);
                       
                       return (
-                        <tr key={asset.id}>
-                          <td className="font-mono text-sm font-medium">{asset.code}</td>
-                          <td>
+                        <TableRow key={asset.id}>
+                          <TableCell className="font-mono font-medium">
+                            {asset.code}
+                          </TableCell>
+                          <TableCell>
                             <div>
                               <p className="font-medium">{asset.designation}</p>
                               {asset.brand && (
@@ -308,39 +324,44 @@ const Immobilisations = () => {
                                 </p>
                               )}
                             </div>
-                          </td>
-                          <td>
-                            <div className="flex items-center gap-2">
-                              <CategoryIcon className="h-4 w-4 text-primary" />
-                              <span className="text-sm">{asset.category?.name || '-'}</span>
-                            </div>
-                          </td>
-                          <td className="text-sm text-muted-foreground">
-                            {new Date(asset.acquisition_date).toLocaleDateString('fr-FR')}
-                          </td>
-                          <td className="text-right font-mono">
+                          </TableCell>
+                          <TableCell>
+                            {project?.name || <span className="text-muted-foreground">-</span>}
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
                             {formatCurrency(asset.acquisition_value)}
-                          </td>
-                          <td className="text-right font-mono">
-                            {formatCurrency(asset.net_book_value || 0)}
-                          </td>
-                          <td className="text-sm">
-                            {asset.location?.name || asset.site?.name || '-'}
-                          </td>
-                          <td>
+                          </TableCell>
+                          <TableCell>
+                            {formatDate(asset.acquisition_date)}
+                          </TableCell>
+                          <TableCell>
+                            {asset.useful_life_years ? `${asset.useful_life_years} ans` : "-"}
+                          </TableCell>
+                          <TableCell className="text-right font-mono">
+                            {formatCurrency(asset.accumulated_depreciation || 0)}
+                          </TableCell>
+                          <TableCell>
                             <Badge variant="outline" className={status.className}>
                               {status.label}
                             </Badge>
-                          </td>
-                          <td>
+                          </TableCell>
+                          <TableCell>
                             <div className="flex items-center justify-end gap-1">
+                              <Button 
+                                variant="ghost" 
+                                size="icon"
+                                title="Voir détails"
+                              >
+                                <Eye className="h-4 w-4" />
+                              </Button>
                               <PermissionGate module="immobilisations" permission="update">
                                 <Button 
                                   variant="ghost" 
                                   size="icon"
                                   onClick={() => handleEdit(asset)}
+                                  title="Modifier"
                                 >
-                                  <Edit className="h-4 w-4" />
+                                  <Pencil className="h-4 w-4" />
                                 </Button>
                               </PermissionGate>
                               <PermissionGate module="immobilisations" permission="delete">
@@ -348,17 +369,19 @@ const Immobilisations = () => {
                                   variant="ghost" 
                                   size="icon"
                                   onClick={() => handleDelete(asset)}
+                                  title="Supprimer"
+                                  className="text-destructive hover:text-destructive"
                                 >
-                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                  <Trash2 className="h-4 w-4" />
                                 </Button>
                               </PermissionGate>
                             </div>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       );
                     })}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
               </div>
             )}
           </CardContent>
