@@ -17,14 +17,11 @@ import {
   Clock, 
   CheckCircle2, 
   Search, 
-  Download, 
   Plus,
   TrendingUp,
   CalendarIcon,
   X,
   Eye,
-  Pencil,
-  Trash2,
   CreditCard
 } from "lucide-react";
 import { useDisbursementStats, useFluxEvolution, useRecentMovements } from "@/hooks/useDecaissements";
@@ -34,6 +31,7 @@ import { formatCurrency, cn } from "@/lib/utils";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { toast } from "sonner";
 import { useProjects } from "@/hooks/useProjects";
+import { TableExportButtons, ExportColumn } from "@/components/export/TableExportButtons";
 
 const PAYMENT_METHODS: Record<string, string> = {
   transfer: "Virement",
@@ -243,10 +241,26 @@ const DecaissementsPage = () => {
                 <CardDescription>Historique des paiements et décaissements</CardDescription>
               </div>
               <div className="flex gap-2">
-                <PermissionButton variant="outline" module="decaissements" permission="export" onClick={handleExport}>
-                  <Download className="mr-2 h-4 w-4" />
-                  Exporter
-                </PermissionButton>
+                <TableExportButtons
+                  data={(filteredMovements?.filter(m => m.type === 'decaissement') || []).map(m => ({
+                    ...m,
+                    formattedDate: m.date ? format(new Date(m.date), "dd/MM/yyyy") : "-",
+                    statusLabel: STATUS_OPTIONS.find(s => s.value === m.workflow_status)?.label || m.workflow_status || "Brouillon",
+                    paymentMethod: PAYMENT_METHODS.transfer,
+                  }))}
+                  columns={[
+                    { key: "reference", label: "Numéro" },
+                    { key: "description", label: "Dépense" },
+                    { key: "project", label: "Projet" },
+                    { key: "amount", label: "Montant", format: (v) => formatCurrency(v) },
+                    { key: "paymentMethod", label: "Mode paiement" },
+                    { key: "formattedDate", label: "Date" },
+                    { key: "statusLabel", label: "Statut" },
+                  ] as ExportColumn[]}
+                  filename="decaissements"
+                  title="Liste des Décaissements"
+                  subtitle={`${filteredMovements?.filter(m => m.type === 'decaissement').length || 0} décaissements`}
+                />
                 <PermissionButton module="decaissements" permission="create" onClick={handleNewMovement}>
                   <Plus className="mr-2 h-4 w-4" />
                   Nouveau

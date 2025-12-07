@@ -18,6 +18,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { TableExportButtons, ExportColumn } from "@/components/export/TableExportButtons";
+import { formatCurrency } from "@/lib/utils";
 
 export default function ProjetsPage() {
   const { projects, isLoading, deleteProject } = useProjects();
@@ -80,16 +82,36 @@ export default function ProjetsPage() {
               <Filter className="h-4 w-4" />
             </Button>
           </div>
-          <PermissionButton
-            variant="default"
-            module="projets"
-            permission="create"
-            onClick={handleAdd}
-            className="bg-primary hover:bg-primary/90"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nouveau projet
-          </PermissionButton>
+          <div className="flex gap-2">
+            <TableExportButtons
+              data={filteredProjects.map(p => ({
+                ...p,
+                statusLabel: p.status === 'active' ? 'En cours' : p.status === 'completed' ? 'Terminé' : p.status,
+                consumptionRate: p.total_budget > 0 ? Math.round((p.consumed_budget / p.total_budget) * 100) : 0,
+              }))}
+              columns={[
+                { key: "code", label: "Code" },
+                { key: "name", label: "Nom" },
+                { key: "total_budget", label: "Budget", format: (v) => formatCurrency(v) },
+                { key: "consumed_budget", label: "Consommé", format: (v) => formatCurrency(v) },
+                { key: "consumptionRate", label: "Taux", format: (v) => `${v}%` },
+                { key: "statusLabel", label: "Statut" },
+              ] as ExportColumn[]}
+              filename="projets"
+              title="Liste des Projets"
+              subtitle={`${filteredProjects.length} projets`}
+            />
+            <PermissionButton
+              variant="default"
+              module="projets"
+              permission="create"
+              onClick={handleAdd}
+              className="bg-primary hover:bg-primary/90"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Nouveau projet
+            </PermissionButton>
+          </div>
         </div>
 
         {/* Projects Grid */}

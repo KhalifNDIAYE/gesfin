@@ -12,7 +12,6 @@ import {
   Building,
   Monitor,
   Wrench,
-  Download,
   QrCode,
   Eye,
   Pencil,
@@ -43,6 +42,7 @@ import {
 import { PermissionButton, PermissionGate, useModulePermissions } from "@/components/auth/PermissionButton";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { TableExportButtons, ExportColumn } from "@/components/export/TableExportButtons";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   active: { label: "En service", className: "bg-success/10 text-success border-success/20" },
@@ -250,10 +250,27 @@ const Immobilisations = () => {
                   <QrCode className="h-4 w-4 mr-2" />
                   Scanner
                 </Button>
-                <PermissionButton module="immobilisations" permission="export" variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exporter
-                </PermissionButton>
+                <TableExportButtons
+                  data={filteredAssets.map(a => ({
+                    ...a,
+                    projectName: projects?.find(p => p.id === a.project_id)?.name || "-",
+                    statusLabel: statusConfig[a.status]?.label || a.status,
+                    usefulLife: a.useful_life_years ? `${a.useful_life_years} ans` : "-",
+                  }))}
+                  columns={[
+                    { key: "code", label: "Code" },
+                    { key: "designation", label: "Libellé" },
+                    { key: "projectName", label: "Projet" },
+                    { key: "acquisition_value", label: "Valeur", format: (v) => formatCurrency(v) },
+                    { key: "acquisition_date", label: "Date acquisition", format: (v) => v ? format(new Date(v), "dd/MM/yyyy") : "-" },
+                    { key: "usefulLife", label: "Durée" },
+                    { key: "accumulated_depreciation", label: "Amortissement", format: (v) => formatCurrency(v || 0) },
+                    { key: "statusLabel", label: "Statut" },
+                  ] as ExportColumn[]}
+                  filename="immobilisations"
+                  title="Registre des Immobilisations"
+                  subtitle={`${filteredAssets.length} actifs`}
+                />
                 <PermissionButton module="immobilisations" permission="create" size="sm" onClick={handleAdd}>
                   <Plus className="h-4 w-4 mr-2" />
                   Ajouter un actif
