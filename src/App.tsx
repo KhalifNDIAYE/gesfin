@@ -86,6 +86,7 @@ import RisquesAlertesPage from "./pages/rapports/RisquesAlertesPage";
 // Dashboard pages
 import VueDirectionPage from "./pages/dashboard/VueDirectionPage";
 import VueFinancePage from "./pages/dashboard/VueFinancePage";
+import VueProjetPage from "./pages/dashboard/VueProjetPage";
 
 // Administration pages
 import UtilitairesPage from "./pages/administration/UtilitairesPage";
@@ -109,6 +110,7 @@ const App = () => (
             <Route path="/" element={<ProtectedRoute requiredModule="dashboard"><Index /></ProtectedRoute>} />
             <Route path="/dashboard/direction" element={<ProtectedRoute requiredModule="dashboard"><VueDirectionPage /></ProtectedRoute>} />
             <Route path="/dashboard/finance" element={<ProtectedRoute requiredModule="dashboard"><VueFinancePage /></ProtectedRoute>} />
+            <Route path="/dashboard/projet" element={<ProtectedRoute requiredModule="dashboard"><VueProjetPage /></ProtectedRoute>} />
             
             {/* Projets */}
             <Route path="/projets" element={<ProtectedRoute requiredModule="projets"><ProjetsPage /></ProtectedRoute>} />
