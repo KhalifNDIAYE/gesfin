@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { PermissionButton, PermissionGate } from '@/components/auth/PermissionButton';
 import { 
   FileText, Clock, DollarSign, AlertTriangle, Plus, Search, 
-  Eye, Pencil, Trash2, Download
+  Eye, Pencil, Trash2
 } from 'lucide-react';
 import { useContracts, useContractStats, Contract, useContractMutations } from '@/hooks/useContracts';
 import { useProjects } from '@/hooks/useProjects';
@@ -26,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { TableExportButtons, ExportColumn } from "@/components/export/TableExportButtons";
 
 const contractStatusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: 'Brouillon', className: 'bg-muted text-muted-foreground' },
@@ -234,10 +235,27 @@ export default function MarchesPage() {
                 Réinitialiser les filtres
               </Button>
               <div className="flex gap-2">
-                <PermissionButton module="marches" permission="export" variant="outline" size="sm">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exporter
-                </PermissionButton>
+                <TableExportButtons
+                  data={filteredContracts.map(c => ({
+                    ...c,
+                    projectName: projects?.find(p => p.id === c.project_id)?.name || "-",
+                    statusLabel: contractStatusConfig[c.status]?.label || c.status,
+                    paidAmount: c.paid_amount || 0,
+                    remainingAmount: c.remaining_amount || (c.total_amount - (c.paid_amount || 0)),
+                  }))}
+                  columns={[
+                    { key: "code", label: "Numéro" },
+                    { key: "supplier_name", label: "Fournisseur" },
+                    { key: "projectName", label: "Projet" },
+                    { key: "total_amount", label: "Montant", format: (v) => formatCurrency(v) },
+                    { key: "paidAmount", label: "Payé", format: (v) => formatCurrency(v) },
+                    { key: "remainingAmount", label: "Reste", format: (v) => formatCurrency(v) },
+                    { key: "statusLabel", label: "Statut" },
+                  ] as ExportColumn[]}
+                  filename="marches"
+                  title="Liste des Marchés"
+                  subtitle={`${filteredContracts.length} marchés`}
+                />
                 <PermissionButton module="marches" permission="create" size="sm" onClick={handleNew}>
                   <Plus className="h-4 w-4 mr-2" />
                   Nouveau marché

@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, Download, FileText, CheckCircle, AlertTriangle, Clock, XCircle, Eye, Pencil, Trash2 } from "lucide-react";
+import { Plus, Search, FileText, CheckCircle, AlertTriangle, Clock, XCircle, Eye, Pencil, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +15,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { format, differenceInDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { PermissionButton, useModulePermissions } from "@/components/auth/PermissionButton";
+import { TableExportButtons, ExportColumn } from "@/components/export/TableExportButtons";
 
 const statusConfig: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline"; icon: React.ComponentType<{ className?: string }> }> = {
   draft: { label: "Brouillon", variant: "secondary", icon: FileText },
@@ -288,9 +289,28 @@ export default function ConventionsPage() {
               Réinitialiser les filtres
             </Button>
             <div className="flex gap-2">
-              <PermissionButton module="conventions" permission="export" variant="outline" size="sm">
-                <Download className="mr-2 h-4 w-4" /> Exporter
-              </PermissionButton>
+              <TableExportButtons
+                data={filteredConventions.map(c => ({
+                  ...c,
+                  bailleurName: c.bailleur?.name || "-",
+                  formattedAmount: c.total_amount,
+                  effectiveDate: c.effective_date,
+                  closingDate: c.closing_date,
+                  displayStatus: statusConfig[getConventionStatus(c)]?.label || c.status,
+                }))}
+                columns={[
+                  { key: "code", label: "Numéro" },
+                  { key: "bailleurName", label: "Bailleur" },
+                  { key: "name", label: "Nom" },
+                  { key: "formattedAmount", label: "Montant", format: (v) => new Intl.NumberFormat("fr-FR").format(v) + " FCFA" },
+                  { key: "effectiveDate", label: "Début", format: (v) => v ? format(new Date(v), "dd/MM/yyyy") : "-" },
+                  { key: "closingDate", label: "Fin", format: (v) => v ? format(new Date(v), "dd/MM/yyyy") : "-" },
+                  { key: "displayStatus", label: "Statut" },
+                ] as ExportColumn[]}
+                filename="conventions"
+                title="Liste des Conventions"
+                subtitle={`Exporté le ${format(new Date(), "dd/MM/yyyy")}`}
+              />
               <PermissionButton module="conventions" permission="create" size="sm" onClick={handleAdd}>
                 <Plus className="mr-2 h-4 w-4" /> Nouvelle convention
               </PermissionButton>

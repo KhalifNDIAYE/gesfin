@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, Download, Building2, Mail, Phone, FileText, ExternalLink, Globe, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Building2, Mail, Phone, FileText, ExternalLink, Globe, Edit, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { BailleurDialog } from "@/components/bailleurs/BailleurDialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useNavigate } from "react-router-dom";
 import { PermissionButton, PermissionGate, useModulePermissions } from "@/components/auth/PermissionButton";
+import { TableExportButtons, ExportColumn } from "@/components/export/TableExportButtons";
 const bailleurTypeLabels: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
   bilateral: { label: "Bilatéral", variant: "default" },
   multilateral: { label: "Multilatéral", variant: "secondary" },
@@ -175,9 +176,26 @@ export default function BailleursPage() {
           />
         </div>
         <div className="flex gap-2">
-          <PermissionButton module="bailleurs" permission="export" variant="outline">
-            <Download className="mr-2 h-4 w-4" /> Exporter
-          </PermissionButton>
+          <TableExportButtons
+            data={filteredBailleurs.map(b => ({
+              ...b,
+              typeLabel: bailleurTypeLabels[b.bailleur_type]?.label || b.bailleur_type,
+              totalFinancing: bailleurStats[b.id]?.totalFinancing || 0,
+              conventionsCount: bailleurStats[b.id]?.conventionsCount || 0,
+            }))}
+            columns={[
+              { key: "code", label: "Code" },
+              { key: "name", label: "Nom" },
+              { key: "typeLabel", label: "Type" },
+              { key: "totalFinancing", label: "Financement Total", format: (v) => formatAmount(v) + " FCFA" },
+              { key: "conventionsCount", label: "Conventions" },
+              { key: "email", label: "Email" },
+              { key: "phone", label: "Téléphone" },
+            ] as ExportColumn[]}
+            filename="bailleurs"
+            title="Liste des Bailleurs de Fonds"
+            subtitle={`${filteredBailleurs.length} bailleurs`}
+          />
           <PermissionButton module="bailleurs" permission="create" onClick={handleAdd}>
             <Plus className="mr-2 h-4 w-4" /> Ajouter un bailleur
           </PermissionButton>
