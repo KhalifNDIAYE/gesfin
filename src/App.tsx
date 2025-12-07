@@ -83,6 +83,9 @@ import SYSCOHADAPage from "./pages/rapports/SYSCOHADAPage";
 import IFRPage from "./pages/rapports/IFRPage";
 import RisquesAlertesPage from "./pages/rapports/RisquesAlertesPage";
 
+// Dashboard pages
+import VueDirectionPage from "./pages/dashboard/VueDirectionPage";
+
 // Administration pages
 import UtilitairesPage from "./pages/administration/UtilitairesPage";
 import BlockedActionsPage from "./pages/administration/BlockedActionsPage";
@@ -103,6 +106,7 @@ const App = () => (
             
             {/* Dashboard - accessible to all authenticated users */}
             <Route path="/" element={<ProtectedRoute requiredModule="dashboard"><Index /></ProtectedRoute>} />
+            <Route path="/dashboard/direction" element={<ProtectedRoute requiredModule="dashboard"><VueDirectionPage /></ProtectedRoute>} />
             
             {/* Projets */}
             <Route path="/projets" element={<ProtectedRoute requiredModule="projets"><ProjetsPage /></ProtectedRoute>} />
