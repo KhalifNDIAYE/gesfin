@@ -162,6 +162,7 @@ const budgetGroup: NavGroup = {
     { title: "Tableau de Bord", href: "/budget/dashboard", icon: BarChart3, module: "comptabilite" },
     { title: "Comparaison", href: "/budget/comparaison", icon: Scale, module: "comptabilite" },
     { title: "Alertes", href: "/budget/alertes", icon: Activity, module: "comptabilite" },
+    { title: "Risques Budgétaires", href: "/budget/risques", icon: AlertTriangle, module: "comptabilite" },
   ],
 };
 
