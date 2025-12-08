@@ -281,7 +281,7 @@ export const useJournalEntryWithLines = (entryId: string | null) => {
 
       if (linesError) throw linesError;
 
-      return { ...entry, lines } as JournalEntry;
+      return { ...entry, lines } as unknown as JournalEntry;
     },
     enabled: !!entryId,
   });
