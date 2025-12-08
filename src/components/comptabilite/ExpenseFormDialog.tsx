@@ -36,7 +36,12 @@ import { useFiscalYears, useCurrencies } from "@/hooks/useParametrage";
 import { useProjects } from "@/hooks/useProjects";
 import { useBudgetLines } from "@/hooks/useBudget";
 import { useCheckBudgetAvailability, useExpenseWorkflowTransition } from "@/hooks/useExpenseWorkflow";
-import { validateExpenseWithBudgetControl, checkBudgetControl, type BudgetControlResult } from "@/hooks/useBudgetControl";
+import { 
+  validateExpenseWithBudgetControl, 
+  checkBudgetControl, 
+  isBudgetLineBudgeted,
+  type BudgetControlResult 
+} from "@/hooks/useBudgetControl";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -83,12 +88,15 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
 
   const { data: allBudgetLines } = useBudgetLines();
 
-  // Filter budget lines by project - filter those linked to project's budgets
+  // Filter budget lines by project and only show budgeted lines (forecast > 0)
   const availableBudgetLines = useMemo(() => {
     if (!allBudgetLines || !selectedProjectId) return [];
-    // For now, show all budget lines - ideally filter by project's associated budget
-    return allBudgetLines;
+    // Filter to only show lines with a budget (forecast_amount > 0)
+    return allBudgetLines.filter(line => isBudgetLineBudgeted(line));
   }, [allBudgetLines, selectedProjectId]);
+
+  // Check if there are any budgeted lines available
+  const hasBudgetedLines = availableBudgetLines.length > 0;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -193,11 +201,15 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
     setIsSubmitting(true);
     
     try {
-      // Validate budget control before proceeding
+      // Validate required fields and budget control before proceeding
       const action = shouldSubmit ? 'soumission' : 'creation';
       const { canProceed, result } = await validateExpenseWithBudgetControl(
-        data.budget_line_id,
-        data.requested_amount,
+        {
+          budgetLineId: data.budget_line_id,
+          projectId: data.project_id,
+          fiscalYearId: currentFiscalYear?.id,
+          requestedAmount: data.requested_amount,
+        },
         allBudgetLines,
         user?.id,
         action
@@ -327,20 +339,47 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
         <ScrollArea className="max-h-[70vh] pr-4">
           <Form {...form}>
             <form className="space-y-6">
+              {/* No Fiscal Year Warning */}
+              {!currentFiscalYear && (
+                <Alert variant="destructive" className="border-2 border-destructive">
+                  <Ban className="h-4 w-4" />
+                  <AlertDescription className="font-semibold">
+                    Aucun exercice fiscal courant défini. Impossible de créer une dépense.
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* No Budgeted Lines Warning */}
+              {selectedProjectId && !hasBudgetedLines && (
+                <Alert variant="destructive" className="border-2 border-destructive">
+                  <Ban className="h-4 w-4" />
+                  <AlertDescription className="font-semibold">
+                    Aucune ligne budgétisée disponible. Toutes les lignes ont un budget prévisionnel à 0.
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* Budget Control Warning */}
               {budgetControlResult && !budgetControlResult.isAvailable && (
                 <Alert variant="destructive" className="border-2 border-destructive">
                   <Ban className="h-4 w-4" />
                   <AlertDescription className="font-semibold">
                     {budgetControlResult.message}
-                    <div className="mt-2 text-sm font-normal">
-                      <div>Budget validé: {budgetControlResult.forecastAmount.toLocaleString()} XOF</div>
-                      <div>Engagé: {budgetControlResult.committedAmount.toLocaleString()} XOF</div>
-                      <div>Réalisé: {budgetControlResult.realizedAmount.toLocaleString()} XOF</div>
-                      <div className="font-semibold text-destructive">
-                        Restant: {budgetControlResult.remainingBudget.toLocaleString()} XOF
+                    {budgetControlResult.blockReason === 'not_budgeted' ? (
+                      <div className="mt-2 text-sm font-normal">
+                        Cette ligne budgétaire n'a pas de budget prévisionnel alloué.
+                        Veuillez sélectionner une ligne avec un budget disponible.
                       </div>
-                    </div>
+                    ) : budgetControlResult.blockReason === 'insufficient' && (
+                      <div className="mt-2 text-sm font-normal">
+                        <div>Budget validé: {budgetControlResult.forecastAmount.toLocaleString()} XOF</div>
+                        <div>Engagé: {budgetControlResult.committedAmount.toLocaleString()} XOF</div>
+                        <div>Réalisé: {budgetControlResult.realizedAmount.toLocaleString()} XOF</div>
+                        <div className="font-semibold text-destructive">
+                          Restant: {budgetControlResult.remainingBudget.toLocaleString()} XOF
+                        </div>
+                      </div>
+                    )}
                   </AlertDescription>
                 </Alert>
               )}
@@ -629,7 +668,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
                   type="button"
                   variant="secondary"
                   onClick={handleSave}
-                  disabled={isSubmitting || isUploading}
+                  disabled={isSubmitting || isUploading || !currentFiscalYear || (selectedProjectId && !hasBudgetedLines)}
                 >
                   {isSubmitting ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -642,7 +681,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
                   type="button"
                   variant="gradient"
                   onClick={handleSubmit}
-                  disabled={isSubmitting || isUploading || (budgetControlResult && !budgetControlResult.isAvailable)}
+                  disabled={isSubmitting || isUploading || !currentFiscalYear || (selectedProjectId && !hasBudgetedLines) || (budgetControlResult && !budgetControlResult.isAvailable)}
                 >
                   {isSubmitting ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
