@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -28,6 +28,8 @@ import {
 } from "@/components/ui/select";
 import { useCreateConvention, useUpdateConvention, Convention, useBailleurs } from "@/hooks/useConventionsBailleurs";
 import { useCurrencies } from "@/hooks/useParametrage";
+import { useUploadConventionDocument } from "@/hooks/useConventionDocuments";
+import { ConventionDocumentsUpload } from "./ConventionDocumentsUpload";
 import { Lock } from "lucide-react";
 
 const formSchema = z.object({
@@ -71,8 +73,10 @@ const typeOptions = [
 export function ConventionDialog({ open, onOpenChange, convention }: ConventionDialogProps) {
   const createConvention = useCreateConvention();
   const updateConvention = useUpdateConvention();
+  const uploadDocuments = useUploadConventionDocument();
   const { data: bailleurs } = useBailleurs();
   const { data: currencies } = useCurrencies();
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -112,6 +116,7 @@ export function ConventionDialog({ open, onOpenChange, convention }: ConventionD
         objectives: convention.objectives || "",
         special_conditions: convention.special_conditions || "",
       });
+      setPendingFiles([]);
     } else {
       form.reset({
         code: "",
@@ -129,8 +134,9 @@ export function ConventionDialog({ open, onOpenChange, convention }: ConventionD
         objectives: "",
         special_conditions: "",
       });
+      setPendingFiles([]);
     }
-  }, [convention, form]);
+  }, [convention, form, open]);
 
   const onSubmit = async (values: FormValues) => {
     const { code, ...restValues } = values;
@@ -143,11 +149,22 @@ export function ConventionDialog({ open, onOpenChange, convention }: ConventionD
       closing_date: restValues.closing_date || null,
     };
 
+    let conventionId: string;
+    
     if (convention) {
       await updateConvention.mutateAsync({ id: convention.id, code: convention.code, ...data });
+      conventionId = convention.id;
     } else {
-      await createConvention.mutateAsync(data as any);
+      const result = await createConvention.mutateAsync(data as any);
+      conventionId = result.id;
     }
+    
+    // Upload pending files if any
+    if (pendingFiles.length > 0 && conventionId) {
+      await uploadDocuments.mutateAsync({ conventionId, files: pendingFiles });
+    }
+    
+    setPendingFiles([]);
     onOpenChange(false);
   };
 
@@ -428,12 +445,19 @@ export function ConventionDialog({ open, onOpenChange, convention }: ConventionD
               )}
             />
 
+            <ConventionDocumentsUpload
+              files={pendingFiles}
+              onChange={setPendingFiles}
+            />
+
             <div className="flex justify-end gap-2 pt-4">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={createConvention.isPending || updateConvention.isPending}>
-                {convention ? "Mettre à jour" : "Créer"}
+              <Button type="submit" disabled={createConvention.isPending || updateConvention.isPending || uploadDocuments.isPending}>
+                {createConvention.isPending || updateConvention.isPending || uploadDocuments.isPending 
+                  ? "Enregistrement..." 
+                  : convention ? "Mettre à jour" : "Créer"}
               </Button>
             </div>
           </form>
