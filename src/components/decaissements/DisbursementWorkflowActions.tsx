@@ -19,6 +19,9 @@ import {
   Banknote,
   Loader2,
   UserCheck,
+  AlertTriangle,
+  ShieldCheck,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   DisbursementWorkflowStatus,
@@ -27,6 +30,13 @@ import {
   useCanPerformDisbursementAction,
   useDisbursementWorkflowTransition,
 } from '@/hooks/useDisbursementWorkflow';
+import { useDisbursementControlCheck } from '@/hooks/useDisbursementControl';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface DisbursementWorkflowActionsProps {
   disbursementId: string;
@@ -44,6 +54,12 @@ export function DisbursementWorkflowActions({
   
   const permissions = useCanPerformDisbursementAction(currentStatus);
   const transitionMutation = useDisbursementWorkflowTransition();
+  
+  // Vérifier les conditions de paiement uniquement si le statut permet le paiement
+  const shouldCheckControl = currentStatus === 'valide';
+  const { data: controlData, isLoading: controlLoading } = useDisbursementControlCheck(
+    shouldCheckControl ? disbursementId : null
+  );
   
   const handleTransition = async (newStatus: DisbursementWorkflowStatus, comment?: string) => {
     await transitionMutation.mutateAsync({
@@ -67,12 +83,69 @@ export function DisbursementWorkflowActions({
   
   const isLoading = transitionMutation.isPending;
   
+  // Indicateur des conditions de paiement
+  const renderPaymentConditions = () => {
+    if (!shouldCheckControl || !controlData?.control) return null;
+    
+    const { control } = controlData;
+    const allConditionsMet = control.canProceed;
+    
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className={`flex items-center gap-1 px-2 py-1 rounded text-xs ${
+              allConditionsMet 
+                ? 'bg-success/10 text-success' 
+                : 'bg-destructive/10 text-destructive'
+            }`}>
+              {allConditionsMet ? (
+                <ShieldCheck className="h-3 w-3" />
+              ) : (
+                <ShieldAlert className="h-3 w-3" />
+              )}
+              <span className="hidden sm:inline">
+                {allConditionsMet ? 'Prêt' : 'Bloqué'}
+              </span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent className="max-w-xs">
+            <div className="space-y-2">
+              <p className="font-medium">Conditions de paiement :</p>
+              <ul className="space-y-1 text-sm">
+                <li className={`flex items-center gap-2 ${control.expenseValidated ? 'text-success' : 'text-destructive'}`}>
+                  {control.expenseValidated ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                  Dépense validée
+                </li>
+                <li className={`flex items-center gap-2 ${control.budgetAvailable ? 'text-success' : 'text-destructive'}`}>
+                  {control.budgetAvailable ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                  Budget disponible
+                </li>
+                <li className={`flex items-center gap-2 ${control.treasuryAvailable ? 'text-success' : 'text-destructive'}`}>
+                  {control.treasuryAvailable ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                  Trésorerie disponible
+                </li>
+              </ul>
+              {control.blockReasons.length > 0 && (
+                <div className="pt-2 border-t border-border">
+                  <p className="text-destructive text-xs">{control.blockReasons[0]}</p>
+                </div>
+              )}
+            </div>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+  
   if (compact) {
     return (
       <div className="flex items-center gap-2">
         <Badge className={DISBURSEMENT_STATUS_COLORS[currentStatus]}>
           {DISBURSEMENT_STATUS_LABELS[currentStatus]}
         </Badge>
+        
+        {renderPaymentConditions()}
         
         {permissions.canSubmit && (
           <Button size="sm" variant="outline" onClick={() => handleTransition('soumis')} disabled={isLoading}>
@@ -99,9 +172,28 @@ export function DisbursementWorkflowActions({
         )}
         
         {permissions.canPay && (
-          <Button size="sm" variant="outline" className="text-emerald-600 border-emerald-600" onClick={() => handleTransition('paye')} disabled={isLoading}>
-            {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Banknote className="h-3 w-3" />}
-          </Button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className={`${controlData?.control?.canProceed === false 
+                    ? 'text-muted-foreground border-muted cursor-not-allowed' 
+                    : 'text-emerald-600 border-emerald-600'}`} 
+                  onClick={() => handleTransition('paye')} 
+                  disabled={isLoading}
+                >
+                  {isLoading ? <Loader2 className="h-3 w-3 animate-spin" /> : <Banknote className="h-3 w-3" />}
+                </Button>
+              </TooltipTrigger>
+              {controlData?.control?.canProceed === false && (
+                <TooltipContent>
+                  <p className="text-xs">Conditions non remplies - cliquez pour voir les détails</p>
+                </TooltipContent>
+              )}
+            </Tooltip>
+          </TooltipProvider>
         )}
         
         {permissions.canResubmit && (
@@ -124,11 +216,12 @@ export function DisbursementWorkflowActions({
   
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <span className="text-sm font-medium">Statut actuel:</span>
         <Badge className={DISBURSEMENT_STATUS_COLORS[currentStatus]}>
           {DISBURSEMENT_STATUS_LABELS[currentStatus]}
         </Badge>
+        {renderPaymentConditions()}
       </div>
       
       <div className="flex flex-wrap gap-2">
