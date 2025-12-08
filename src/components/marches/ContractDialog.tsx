@@ -1,4 +1,4 @@
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -7,9 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useContractMutations, Contract } from '@/hooks/useContracts';
-import { useEffect } from 'react';
-import { Lock } from 'lucide-react';
+import { useAvailableBudgetLines, validateContractEngagement, validateContractWithBudgetControl } from '@/hooks/useContractBudgetControl';
+import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useMemo } from 'react';
+import { Lock, AlertTriangle, Ban, CheckCircle } from 'lucide-react';
 
 const contractSchema = z.object({
   code: z.string().optional(),
@@ -17,6 +20,7 @@ const contractSchema = z.object({
   contract_type: z.string().min(1, 'Le type est requis'),
   status: z.string().min(1, 'Le statut est requis'),
   supplier_name: z.string().optional(),
+  budget_line_id: z.string().optional(),
   total_amount: z.coerce.number().min(0, 'Le montant doit être positif'),
   progress_percentage: z.coerce.number().min(0).max(100).optional(),
   signing_date: z.string().optional(),
@@ -52,6 +56,8 @@ const contractStatuses = [
 
 export function ContractDialog({ open, onOpenChange, contract }: ContractDialogProps) {
   const { createContract, updateContract } = useContractMutations();
+  const { data: budgetLines } = useAvailableBudgetLines();
+  const { user } = useAuth();
   
   const form = useForm<ContractFormValues>({
     resolver: zodResolver(contractSchema),
@@ -61,6 +67,7 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
       contract_type: 'works',
       status: 'draft',
       supplier_name: '',
+      budget_line_id: '',
       total_amount: 0,
       progress_percentage: 0,
       signing_date: '',
@@ -71,6 +78,20 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
     },
   });
 
+  // Watch budget line and amount for real-time validation
+  const watchedBudgetLineId = useWatch({ control: form.control, name: 'budget_line_id' });
+  const watchedAmount = useWatch({ control: form.control, name: 'total_amount' });
+
+  // Real-time budget control validation
+  const budgetControlResult = useMemo(() => {
+    if (!watchedBudgetLineId || !watchedAmount) {
+      return null;
+    }
+    return validateContractEngagement(watchedBudgetLineId, watchedAmount, budgetLines);
+  }, [watchedBudgetLineId, watchedAmount, budgetLines]);
+
+  const isBlocked = budgetControlResult?.isBlocked || (budgetControlResult && !budgetControlResult.isAvailable);
+
   useEffect(() => {
     if (contract) {
       form.reset({
@@ -79,6 +100,7 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
         contract_type: contract.contract_type,
         status: contract.status,
         supplier_name: contract.supplier_name || '',
+        budget_line_id: contract.budget_line_id || '',
         total_amount: contract.total_amount,
         progress_percentage: contract.progress_percentage || 0,
         signing_date: contract.signing_date || '',
@@ -94,6 +116,7 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
         contract_type: 'works',
         status: 'draft',
         supplier_name: '',
+        budget_line_id: '',
         total_amount: 0,
         progress_percentage: 0,
         signing_date: '',
@@ -107,11 +130,35 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
 
   const onSubmit = async (values: ContractFormValues) => {
     try {
-      const { code, ...restValues } = values;
+      const { code, budget_line_id, ...restValues } = values;
+      
+      // Validate budget control if budget line is selected
+      if (budget_line_id) {
+        const { canProceed } = await validateContractWithBudgetControl(
+          budget_line_id,
+          values.total_amount,
+          budgetLines,
+          user?.id,
+          values.object
+        );
+
+        if (!canProceed) {
+          return; // Blocked - toast already shown
+        }
+      }
+
       if (contract) {
-        await updateContract.mutateAsync({ id: contract.id, code: contract.code, ...restValues });
+        await updateContract.mutateAsync({ 
+          id: contract.id, 
+          code: contract.code, 
+          budget_line_id: budget_line_id || null,
+          ...restValues 
+        });
       } else {
-        await createContract.mutateAsync(restValues as any);
+        await createContract.mutateAsync({
+          budget_line_id: budget_line_id || null,
+          ...restValues
+        } as any);
       }
       onOpenChange(false);
     } catch {
@@ -237,6 +284,73 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
               />
             </div>
 
+            {/* Budget Line Selection */}
+            <FormField
+              control={form.control}
+              name="budget_line_id"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Ligne budgétaire</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner une ligne budgétaire (optionnel)" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="">Aucune ligne budgétaire</SelectItem>
+                      {budgetLines?.filter(bl => bl.budget?.status === 'validated' || bl.budget?.status === 'approved')
+                        .map((line) => {
+                          const available = (line.forecast_amount || 0) - (line.committed_amount || 0) - (line.realized_amount || 0);
+                          return (
+                            <SelectItem key={line.id} value={line.id}>
+                              {line.budget?.code} - {line.description || `Ligne ${line.id.slice(0, 8)}`} 
+                              (Dispo: {available.toLocaleString()} XOF)
+                            </SelectItem>
+                          );
+                        })}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Budget Control Feedback */}
+            {budgetControlResult && watchedBudgetLineId && (
+              <div className="space-y-2">
+                {budgetControlResult.isAvailable ? (
+                  <Alert className="border-green-500/50 bg-green-500/10">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                    <AlertDescription className="text-green-700">
+                      Budget suffisant. Disponible: {budgetControlResult.availableBudget.toLocaleString()} XOF
+                      {budgetControlResult.requestedAmount > 0 && (
+                        <span className="ml-2">
+                          (après engagement: {(budgetControlResult.availableBudget - budgetControlResult.requestedAmount).toLocaleString()} XOF)
+                        </span>
+                      )}
+                    </AlertDescription>
+                  </Alert>
+                ) : (
+                  <Alert variant="destructive" className="border-destructive/50 bg-destructive/10">
+                    <Ban className="h-4 w-4" />
+                    <AlertDescription className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      <span className="font-semibold">MARCHÉ EXCÉDENTAIRE BLOQUÉ</span>
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {budgetControlResult.message && !budgetControlResult.isAvailable && (
+                  <p className="text-sm text-destructive">{budgetControlResult.message}</p>
+                )}
+                <div className="text-xs text-muted-foreground grid grid-cols-3 gap-2">
+                  <span>Prévision: {budgetControlResult.forecastAmount.toLocaleString()} XOF</span>
+                  <span>Engagé: {budgetControlResult.committedAmount.toLocaleString()} XOF</span>
+                  <span>Consommé: {budgetControlResult.consumptionPercentage.toFixed(1)}%</span>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -326,8 +440,19 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={createContract.isPending || updateContract.isPending}>
-                {contract ? 'Mettre à jour' : 'Créer'}
+              <Button 
+                type="submit" 
+                disabled={createContract.isPending || updateContract.isPending || isBlocked}
+                className={isBlocked ? 'bg-destructive hover:bg-destructive cursor-not-allowed' : ''}
+              >
+                {isBlocked ? (
+                  <>
+                    <Ban className="h-4 w-4 mr-2" />
+                    Bloqué
+                  </>
+                ) : (
+                  contract ? 'Mettre à jour' : 'Créer'
+                )}
               </Button>
             </div>
           </form>
