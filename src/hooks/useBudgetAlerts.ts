@@ -4,37 +4,18 @@ import { sendAlertEmail } from './useEmailNotifications';
 
 export type BudgetAlertLevel = 'preventive' | 'critical' | 'blocking';
 
-export interface BudgetAlertThreshold {
+export interface BudgetAlertSetting {
+  id: string;
   level: BudgetAlertLevel;
-  percentage: number;
   label: string;
-  severity: 'warning' | 'major' | 'critical';
-  recipientRoles: string[];
+  threshold_percentage: number;
+  is_enabled: boolean;
+  send_notification: boolean;
+  send_email: boolean;
+  log_to_audit: boolean;
+  block_operations: boolean;
+  budget_alert_recipients?: { role_id: string }[];
 }
-
-export const BUDGET_ALERT_THRESHOLDS: BudgetAlertThreshold[] = [
-  {
-    level: 'preventive',
-    percentage: 80,
-    label: 'Alerte préventive (80%)',
-    severity: 'warning',
-    recipientRoles: ['comptable', 'daf'],
-  },
-  {
-    level: 'critical',
-    percentage: 90,
-    label: 'Alerte critique (90%)',
-    severity: 'major',
-    recipientRoles: ['daf', 'dg'],
-  },
-  {
-    level: 'blocking',
-    percentage: 100,
-    label: 'Blocage total (100%)',
-    severity: 'critical',
-    recipientRoles: ['admin', 'dg'],
-  },
-];
 
 export interface BudgetConsumptionInfo {
   budgetLineId: string;
@@ -45,6 +26,24 @@ export interface BudgetConsumptionInfo {
   consumedAmount: number; // committed + realized
   consumptionPercentage: number;
   remainingAmount: number;
+}
+
+/**
+ * Fetch budget alert settings from database
+ */
+async function fetchBudgetAlertSettings(): Promise<BudgetAlertSetting[]> {
+  const { data, error } = await supabase
+    .from('budget_alert_settings')
+    .select('*, budget_alert_recipients(role_id)')
+    .eq('is_enabled', true)
+    .order('threshold_percentage', { ascending: false });
+
+  if (error) {
+    console.error('Failed to fetch budget alert settings:', error);
+    return [];
+  }
+
+  return (data as unknown as BudgetAlertSetting[]) || [];
 }
 
 /**
@@ -63,15 +62,17 @@ export function calculateBudgetConsumption(
 }
 
 /**
- * Determine which alert level should be triggered based on consumption percentage
+ * Determine which alert setting should be triggered based on consumption percentage
  */
-export function determineAlertLevel(consumptionPercentage: number): BudgetAlertThreshold | null {
-  // Sort by percentage descending to get the highest applicable threshold
-  const sortedThresholds = [...BUDGET_ALERT_THRESHOLDS].sort((a, b) => b.percentage - a.percentage);
+async function determineAlertSetting(consumptionPercentage: number): Promise<BudgetAlertSetting | null> {
+  const settings = await fetchBudgetAlertSettings();
   
-  for (const threshold of sortedThresholds) {
-    if (consumptionPercentage >= threshold.percentage) {
-      return threshold;
+  // Sort by percentage descending to get the highest applicable threshold
+  const sortedSettings = settings.sort((a, b) => b.threshold_percentage - a.threshold_percentage);
+  
+  for (const setting of sortedSettings) {
+    if (consumptionPercentage >= setting.threshold_percentage) {
+      return setting;
     }
   }
   
@@ -79,19 +80,12 @@ export function determineAlertLevel(consumptionPercentage: number): BudgetAlertT
 }
 
 /**
- * Get users by role names
+ * Get users by role IDs
  */
-async function getUsersByRoles(roleNames: string[]): Promise<{ id: string; email: string; fullName: string }[]> {
+async function getUsersByRoleIds(roleIds: string[]): Promise<{ id: string; email: string; fullName: string }[]> {
+  if (roleIds.length === 0) return [];
+
   try {
-    const { data: roles } = await supabase
-      .from('roles')
-      .select('id, name')
-      .in('name', roleNames);
-
-    if (!roles || roles.length === 0) return [];
-
-    const roleIds = roles.map(r => r.id);
-
     const { data: userRoles } = await supabase
       .from('user_roles')
       .select('user_id, profiles!inner(id, email, full_name)')
@@ -114,7 +108,7 @@ async function getUsersByRoles(roleNames: string[]): Promise<{ id: string; email
 
     return Array.from(uniqueUsers.values());
   } catch (error) {
-    console.error('Failed to get users by roles:', error);
+    console.error('Failed to get users by role IDs:', error);
     return [];
   }
 }
@@ -123,13 +117,15 @@ async function getUsersByRoles(roleNames: string[]): Promise<{ id: string; email
  * Log budget alert to audit log
  */
 async function logBudgetAlertToAudit(
-  alertLevel: BudgetAlertLevel,
+  setting: BudgetAlertSetting,
   consumptionInfo: BudgetConsumptionInfo,
   triggeredBy?: string
 ): Promise<void> {
+  if (!setting.log_to_audit) return;
+
   try {
     await supabase.rpc('log_audit_event', {
-      _action: `alerte_budget_${alertLevel}`,
+      _action: `alerte_budget_${setting.level}`,
       _module: 'comptabilite',
       _resource_type: 'budget_line',
       _resource_id: consumptionInfo.budgetLineId,
@@ -137,16 +133,18 @@ async function logBudgetAlertToAudit(
         budget_line_name: consumptionInfo.budgetLineName,
         budget_name: consumptionInfo.budgetName,
         forecast_amount: consumptionInfo.forecastAmount,
+        threshold_percentage: setting.threshold_percentage,
       }),
       _new_values: JSON.stringify({
         consumed_amount: consumptionInfo.consumedAmount,
         consumption_percentage: consumptionInfo.consumptionPercentage.toFixed(2),
         remaining_amount: consumptionInfo.remainingAmount,
-        alert_level: alertLevel,
+        alert_level: setting.level,
+        alert_label: setting.label,
         triggered_by: triggeredBy,
       }),
     });
-    console.log(`Budget alert ${alertLevel} logged to audit for line ${consumptionInfo.budgetLineId}`);
+    console.log(`Budget alert ${setting.level} logged to audit for line ${consumptionInfo.budgetLineId}`);
   } catch (error) {
     console.error('Failed to log budget alert to audit:', error);
   }
@@ -156,25 +154,28 @@ async function logBudgetAlertToAudit(
  * Create internal notifications for budget alerts
  */
 async function sendBudgetNotifications(
-  threshold: BudgetAlertThreshold,
+  setting: BudgetAlertSetting,
   consumptionInfo: BudgetConsumptionInfo,
   triggeredBy?: string
 ): Promise<void> {
-  const recipients = await getUsersByRoles(threshold.recipientRoles);
+  if (!setting.send_notification) return;
 
-  const notificationType = threshold.level === 'blocking' 
+  const roleIds = setting.budget_alert_recipients?.map(r => r.role_id) || [];
+  const recipients = await getUsersByRoleIds(roleIds);
+
+  const notificationType = setting.level === 'blocking' 
     ? 'budget_overrun' as const
     : 'validation_pending' as const;
   
-  const notificationSeverity = threshold.severity === 'critical' 
+  const notificationSeverity = setting.level === 'blocking' 
     ? 'critical' as const
-    : threshold.severity === 'major' 
+    : setting.level === 'critical' 
       ? 'warning' as const 
       : 'info' as const;
 
-  const title = threshold.level === 'blocking'
+  const title = setting.level === 'blocking'
     ? `🚫 Blocage budgétaire (${consumptionInfo.consumptionPercentage.toFixed(0)}%)`
-    : threshold.level === 'critical'
+    : setting.level === 'critical'
       ? `⚠️ Alerte budgétaire critique (${consumptionInfo.consumptionPercentage.toFixed(0)}%)`
       : `📊 Alerte budgétaire préventive (${consumptionInfo.consumptionPercentage.toFixed(0)}%)`;
 
@@ -205,19 +206,27 @@ async function sendBudgetNotifications(
  * Send email alerts for budget thresholds
  */
 async function sendBudgetEmailAlerts(
-  threshold: BudgetAlertThreshold,
+  setting: BudgetAlertSetting,
   consumptionInfo: BudgetConsumptionInfo,
   triggeredByName?: string
 ): Promise<void> {
+  if (!setting.send_email) return;
+
   const alertTypeMap: Record<BudgetAlertLevel, string> = {
     preventive: 'budget_warning_80',
     critical: 'budget_warning_90',
     blocking: 'budget_overrun',
   };
 
+  const severityMap: Record<BudgetAlertLevel, 'warning' | 'major' | 'critical'> = {
+    preventive: 'warning',
+    critical: 'major',
+    blocking: 'critical',
+  };
+
   try {
     await sendAlertEmail({
-      alertType: alertTypeMap[threshold.level],
+      alertType: alertTypeMap[setting.level],
       module: 'Budget',
       entityName: `${consumptionInfo.budgetLineName} (${consumptionInfo.budgetName})`,
       entityId: consumptionInfo.budgetLineId,
@@ -225,7 +234,7 @@ async function sendBudgetEmailAlerts(
       actualValue: `${consumptionInfo.consumedAmount.toLocaleString()} XOF (${consumptionInfo.consumptionPercentage.toFixed(1)}% consommé)`,
       userName: triggeredByName,
       directLink: `/budget/${consumptionInfo.budgetId}`,
-      severity: threshold.severity,
+      severity: severityMap[setting.level],
     });
   } catch (error) {
     console.error('Failed to send budget alert email:', error);
@@ -238,7 +247,7 @@ async function sendBudgetEmailAlerts(
  */
 async function hasAlertBeenSent(
   budgetLineId: string,
-  alertLevel: BudgetAlertLevel,
+  level: BudgetAlertLevel,
   withinHours: number = 24
 ): Promise<boolean> {
   try {
@@ -249,7 +258,7 @@ async function hasAlertBeenSent(
       .from('budget_alerts')
       .select('id')
       .eq('budget_line_id', budgetLineId)
-      .eq('alert_type', `consumption_${alertLevel}`)
+      .eq('alert_type', `consumption_${level}`)
       .eq('is_resolved', false)
       .gte('created_at', since.toISOString())
       .limit(1);
@@ -265,7 +274,7 @@ async function hasAlertBeenSent(
  * Record the alert in budget_alerts table
  */
 async function recordBudgetAlert(
-  threshold: BudgetAlertThreshold,
+  setting: BudgetAlertSetting,
   consumptionInfo: BudgetConsumptionInfo,
   budgetId: string
 ): Promise<void> {
@@ -273,8 +282,8 @@ async function recordBudgetAlert(
     await supabase.from('budget_alerts').insert({
       budget_id: budgetId,
       budget_line_id: consumptionInfo.budgetLineId,
-      alert_type: `consumption_${threshold.level}`,
-      message: `${threshold.label}: ${consumptionInfo.consumptionPercentage.toFixed(1)}% du budget consommé (${consumptionInfo.consumedAmount.toLocaleString()} / ${consumptionInfo.forecastAmount.toLocaleString()} XOF)`,
+      alert_type: `consumption_${setting.level}`,
+      message: `${setting.label} (${setting.threshold_percentage}%): ${consumptionInfo.consumptionPercentage.toFixed(1)}% du budget consommé (${consumptionInfo.consumedAmount.toLocaleString()} / ${consumptionInfo.forecastAmount.toLocaleString()} XOF)`,
       threshold_reached: consumptionInfo.consumptionPercentage,
       is_read: false,
       is_resolved: false,
@@ -329,17 +338,17 @@ export async function checkAndTriggerBudgetAlerts(
       realizedAmount
     );
 
-    const threshold = determineAlertLevel(consumptionPercentage);
+    const setting = await determineAlertSetting(consumptionPercentage);
 
-    if (!threshold) {
+    if (!setting) {
       return { triggered: false, level: null, isBlocking: false };
     }
 
     // Check if alert was already sent recently
-    const alreadySent = await hasAlertBeenSent(budgetLineId, threshold.level);
+    const alreadySent = await hasAlertBeenSent(budgetLineId, setting.level);
     if (alreadySent) {
-      console.log(`Alert ${threshold.level} already sent for budget line ${budgetLineId}`);
-      return { triggered: false, level: threshold.level, isBlocking: threshold.level === 'blocking' };
+      console.log(`Alert ${setting.level} already sent for budget line ${budgetLineId}`);
+      return { triggered: false, level: setting.level, isBlocking: setting.block_operations };
     }
 
     const budget = budgetLine.budgets as any;
@@ -354,24 +363,28 @@ export async function checkAndTriggerBudgetAlerts(
       remainingAmount,
     };
 
-    // Execute all alert actions in parallel
-    await Promise.all([
-      // 1. Log to audit
-      logBudgetAlertToAudit(threshold.level, consumptionInfo, triggeredBy),
-      // 2. Send internal notifications
-      sendBudgetNotifications(threshold, consumptionInfo, triggeredBy),
-      // 3. Send email alerts
-      sendBudgetEmailAlerts(threshold, consumptionInfo, triggeredByName),
-      // 4. Record in budget_alerts table
-      recordBudgetAlert(threshold, consumptionInfo, budget.id),
-    ]);
+    // Execute all alert actions in parallel based on settings
+    const actions: Promise<void>[] = [];
+    
+    if (setting.log_to_audit) {
+      actions.push(logBudgetAlertToAudit(setting, consumptionInfo, triggeredBy));
+    }
+    if (setting.send_notification) {
+      actions.push(sendBudgetNotifications(setting, consumptionInfo, triggeredBy));
+    }
+    if (setting.send_email) {
+      actions.push(sendBudgetEmailAlerts(setting, consumptionInfo, triggeredByName));
+    }
+    actions.push(recordBudgetAlert(setting, consumptionInfo, budget.id));
 
-    console.log(`Budget alert ${threshold.level} triggered for line ${budgetLineId}`);
+    await Promise.all(actions);
+
+    console.log(`Budget alert ${setting.level} triggered for line ${budgetLineId}`);
 
     return {
       triggered: true,
-      level: threshold.level,
-      isBlocking: threshold.level === 'blocking',
+      level: setting.level,
+      isBlocking: setting.block_operations,
     };
   } catch (error) {
     console.error('Failed to check and trigger budget alerts:', error);

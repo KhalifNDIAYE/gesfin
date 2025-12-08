@@ -12,7 +12,8 @@ import {
   Bell,
   Palette,
   Database,
-  Tags
+  Tags,
+  AlertTriangle
 } from "lucide-react";
 import { FiscalYearsTab } from "@/components/parametrage/FiscalYearsTab";
 import { CurrenciesTab } from "@/components/parametrage/CurrenciesTab";
@@ -28,6 +29,7 @@ import { NotificationsTab } from "@/components/parametrage/NotificationsTab";
 import { InterfaceTab } from "@/components/parametrage/InterfaceTab";
 import { SystemeTab } from "@/components/parametrage/SystemeTab";
 import { ExpenseCategoriesTab } from "@/components/parametrage/ExpenseCategoriesTab";
+import { BudgetAlertsTab } from "@/components/parametrage/BudgetAlertsTab";
 
 const tabs = [
   { value: "organisation", label: "Organisation", icon: Building2 },
@@ -41,6 +43,7 @@ const tabs = [
   { value: "axes-suivi", label: "Axes de suivi", icon: GitBranch },
   { value: "categories-depenses", label: "Catégories dépenses", icon: Tags },
   { value: "comptabilite", label: "Comptabilité", icon: FileText },
+  { value: "alertes-budget", label: "Alertes Budget", icon: AlertTriangle },
   { value: "notifications", label: "Notifications", icon: Bell },
   { value: "interface", label: "Interface", icon: Palette },
   { value: "systeme", label: "Système", icon: Database },
@@ -112,6 +115,10 @@ const Parametrage = () => {
 
           <TabsContent value="comptabilite">
             <ComptabiliteTab />
+          </TabsContent>
+
+          <TabsContent value="alertes-budget">
+            <BudgetAlertsTab />
           </TabsContent>
 
           <TabsContent value="notifications">

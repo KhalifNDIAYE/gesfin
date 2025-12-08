@@ -779,6 +779,84 @@ export type Database = {
           },
         ]
       }
+      budget_alert_recipients: {
+        Row: {
+          alert_setting_id: string
+          created_at: string | null
+          id: string
+          role_id: string
+        }
+        Insert: {
+          alert_setting_id: string
+          created_at?: string | null
+          id?: string
+          role_id: string
+        }
+        Update: {
+          alert_setting_id?: string
+          created_at?: string | null
+          id?: string
+          role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_alert_recipients_alert_setting_id_fkey"
+            columns: ["alert_setting_id"]
+            isOneToOne: false
+            referencedRelation: "budget_alert_settings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_alert_recipients_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_alert_settings: {
+        Row: {
+          block_operations: boolean
+          created_at: string | null
+          id: string
+          is_enabled: boolean
+          label: string
+          level: string
+          log_to_audit: boolean
+          send_email: boolean
+          send_notification: boolean
+          threshold_percentage: number
+          updated_at: string | null
+        }
+        Insert: {
+          block_operations?: boolean
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean
+          label: string
+          level: string
+          log_to_audit?: boolean
+          send_email?: boolean
+          send_notification?: boolean
+          threshold_percentage?: number
+          updated_at?: string | null
+        }
+        Update: {
+          block_operations?: boolean
+          created_at?: string | null
+          id?: string
+          is_enabled?: boolean
+          label?: string
+          level?: string
+          log_to_audit?: boolean
+          send_email?: boolean
+          send_notification?: boolean
+          threshold_percentage?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       budget_alerts: {
         Row: {
           alert_type: string
