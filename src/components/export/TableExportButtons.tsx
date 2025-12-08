@@ -68,7 +68,13 @@ export const exportToExcel = (
     }));
     worksheet["!cols"] = colWidths;
 
-    XLSX.writeFile(workbook, `${filename}.xlsx`);
+    // Generate filename with date
+    const today = new Date().toISOString().split('T')[0];
+    const finalFilename = filename.includes('-') && filename.match(/\d{4}-\d{2}-\d{2}/) 
+      ? filename 
+      : `${filename.toUpperCase()}-${today}`;
+
+    XLSX.writeFile(workbook, `${finalFilename}.xlsx`);
     toast.success("Export Excel réussi");
   } catch (error) {
     console.error("Erreur export Excel:", error);
@@ -86,33 +92,41 @@ export const exportToPDF = (
   try {
     const doc = new jsPDF({ orientation: "landscape" });
     const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
     const margin = 15;
     let yPos = margin;
 
-    // Header
+    // Header with logo placeholder
     doc.setFillColor(41, 65, 114);
-    doc.rect(0, 0, pageWidth, 25, "F");
+    doc.rect(0, 0, pageWidth, 30, "F");
+
+    // Logo placeholder (left side)
+    doc.setFillColor(255, 255, 255);
+    doc.roundedRect(margin, 5, 20, 20, 2, 2, "F");
+    doc.setFontSize(8);
+    doc.setTextColor(41, 65, 114);
+    doc.text("LOGO", margin + 10, 17, { align: "center" });
 
     doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14);
+    doc.setFontSize(16);
     doc.setFont("helvetica", "bold");
-    doc.text(title || filename, margin, 12);
+    doc.text(title || filename, margin + 28, 14);
 
     if (subtitle) {
       doc.setFontSize(10);
       doc.setFont("helvetica", "normal");
-      doc.text(subtitle, margin, 20);
+      doc.text(subtitle, margin + 28, 22);
     }
 
     doc.setFontSize(9);
     doc.text(
       `Exporté le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR")}`,
       pageWidth - margin,
-      12,
+      14,
       { align: "right" }
     );
 
-    yPos = 35;
+    yPos = 40;
     doc.setTextColor(0, 0, 0);
 
     // Calculate column widths
@@ -141,7 +155,7 @@ export const exportToPDF = (
 
     data.forEach((row, rowIndex) => {
       // Check for page break
-      if (yPos > 190) {
+      if (yPos > pageHeight - 25) {
         doc.addPage();
         yPos = margin;
 
@@ -181,18 +195,27 @@ export const exportToPDF = (
       yPos += 7;
     });
 
-    // Footer
+    // Footer on all pages
     const pageCount = doc.getNumberOfPages();
     for (let i = 1; i <= pageCount; i++) {
       doc.setPage(i);
       doc.setFontSize(8);
       doc.setTextColor(128, 128, 128);
-      doc.text(`Page ${i} sur ${pageCount}`, pageWidth / 2, 205, {
-        align: "center",
-      });
+      doc.text(
+        `${new Date().toLocaleDateString("fr-FR")} - Page ${i} sur ${pageCount}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: "center" }
+      );
     }
 
-    doc.save(`${filename}.pdf`);
+    // Generate filename with date
+    const today = new Date().toISOString().split('T')[0];
+    const finalFilename = filename.includes('-') && filename.match(/\d{4}-\d{2}-\d{2}/) 
+      ? filename 
+      : `${filename.toUpperCase()}-${today}`;
+
+    doc.save(`${finalFilename}.pdf`);
     toast.success("Export PDF réussi");
   } catch (error) {
     console.error("Erreur export PDF:", error);
