@@ -168,6 +168,10 @@ export function JournalEntriesTable({ entries, isLoading, showWorkflow = false }
                         creatorId={entry.created_by || undefined}
                         budgetLineId={entry.budget_line_id || undefined}
                         requestedAmount={entry.requested_amount || 0}
+                        projectResponsibleId={entry.project?.responsible_id || undefined}
+                        dafValidatedBy={entry.daf_validated_by || undefined}
+                        dtValidatedBy={entry.dt_validated_by || undefined}
+                        dgValidatedBy={entry.dg_validated_by || undefined}
                       />
                     </TableCell>
                   )}

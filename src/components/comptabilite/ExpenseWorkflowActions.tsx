@@ -19,6 +19,7 @@ import {
   RotateCcw,
   Clock,
   AlertTriangle,
+  ShieldAlert,
 } from 'lucide-react';
 import {
   ExpenseWorkflowStatus,
@@ -37,6 +38,10 @@ interface ExpenseWorkflowActionsProps {
   creatorId?: string;
   budgetLineId?: string;
   requestedAmount?: number;
+  projectResponsibleId?: string;
+  dafValidatedBy?: string;
+  dtValidatedBy?: string;
+  dgValidatedBy?: string;
   onStatusChange?: () => void;
 }
 
@@ -46,13 +51,24 @@ export function ExpenseWorkflowActions({
   creatorId,
   budgetLineId,
   requestedAmount = 0,
+  projectResponsibleId,
+  dafValidatedBy,
+  dtValidatedBy,
+  dgValidatedBy,
   onStatusChange,
 }: ExpenseWorkflowActionsProps) {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   
-  const permissions = useCanPerformWorkflowAction(currentStatus, creatorId);
+  const permissions = useCanPerformWorkflowAction(
+    currentStatus, 
+    creatorId,
+    projectResponsibleId,
+    dafValidatedBy,
+    dtValidatedBy,
+    dgValidatedBy
+  );
   const transitionMutation = useExpenseWorkflowTransition();
   const checkBudget = useCheckBudgetAvailability();
   
@@ -233,10 +249,18 @@ export function ExpenseWorkflowActions({
         </div>
       )}
       
-      {['en_validation_daf', 'en_validation_dt', 'en_validation_dg'].includes(currentStatus) && (
+      {['en_validation_daf', 'en_validation_dt', 'en_validation_dg'].includes(currentStatus) && !permissions.fraudBlocked && (
         <div className="flex items-center gap-1 text-sm text-muted-foreground">
           <Clock className="h-4 w-4" />
           En attente de validation
+        </div>
+      )}
+      
+      {permissions.fraudBlocked && permissions.fraudReason && (
+        <div className="flex items-center gap-2 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950 dark:border-amber-800 dark:text-amber-200">
+          <ShieldAlert className="h-4 w-4 shrink-0" />
+          <span className="font-medium">Règle anti-fraude:</span>
+          <span>{permissions.fraudReason}</span>
         </div>
       )}
       

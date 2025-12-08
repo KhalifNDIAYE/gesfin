@@ -4051,6 +4051,10 @@ export type Database = {
         Args: { _amount: number; _budget_line_id: string }
         Returns: boolean
       }
+      check_expense_fraud_rules: {
+        Args: { _entry_id: string; _intended_action: string; _user_id: string }
+        Returns: Json
+      }
       check_treasury_availability: {
         Args: { _amount: number }
         Returns: boolean
