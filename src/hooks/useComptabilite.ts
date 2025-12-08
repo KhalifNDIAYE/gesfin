@@ -73,6 +73,7 @@ export interface JournalEntry {
   fiscal_year?: { id: string; name: string };
   currency?: { id: string; code: string; symbol: string };
   third_party?: Partial<ThirdParty>;
+  project?: { id: string; responsible_id: string | null };
   lines?: JournalEntryLine[];
 }
 
@@ -215,7 +216,8 @@ export const useJournalEntries = (filters?: {
           journal:journals(id, code, name, journal_type),
           fiscal_year:fiscal_years(id, name),
           currency:currencies(id, code, symbol),
-          third_party:third_parties(id, code, name)
+          third_party:third_parties(id, code, name),
+          project:projects(id, responsible_id)
         `)
         .order('entry_date', { ascending: false })
         .order('entry_number', { ascending: false });

@@ -78,35 +78,117 @@ export const useUserWorkflowRole = () => {
   });
 };
 
+export interface FraudConflict {
+  rule: string;
+  message: string;
+}
+
+export interface FraudCheckResult {
+  has_conflicts: boolean;
+  conflicts: FraudConflict[];
+}
+
+export const useCheckFraudRules = () => {
+  return useMutation({
+    mutationFn: async ({ 
+      entryId, 
+      userId, 
+      action 
+    }: { 
+      entryId: string; 
+      userId: string; 
+      action: string;
+    }) => {
+      const { data, error } = await supabase.rpc('check_expense_fraud_rules', {
+        _entry_id: entryId,
+        _user_id: userId,
+        _intended_action: action,
+      });
+      
+      if (error) throw error;
+      return data as unknown as FraudCheckResult;
+    },
+  });
+};
+
 export const useCanPerformWorkflowAction = (
   currentStatus: ExpenseWorkflowStatus | undefined,
-  entryCreatorId: string | undefined
+  entryCreatorId: string | undefined,
+  projectResponsibleId?: string | undefined,
+  dafValidatedBy?: string | undefined,
+  dtValidatedBy?: string | undefined,
+  dgValidatedBy?: string | undefined
 ) => {
   const { user } = useAuth();
   const { data: userRole } = useUserWorkflowRole();
   
   if (!currentStatus || !userRole) {
-    return { canSubmit: false, canValidate: false, canReject: false, canPay: false, canEdit: false, canResubmit: false };
+    return { 
+      canSubmit: false, 
+      canValidate: false, 
+      canReject: false, 
+      canPay: false, 
+      canEdit: false, 
+      canResubmit: false,
+      fraudBlocked: false,
+      fraudReason: null as string | null
+    };
   }
   
   const isCreator = user?.id === entryCreatorId;
   const { isAdmin, isDaf, isDt, isDg } = userRole;
   
+  // Vérifications anti-fraude
+  const isProjectResponsible = projectResponsibleId && user?.id === projectResponsibleId;
+  const hasAlreadyValidatedDaf = dafValidatedBy && user?.id === dafValidatedBy;
+  const hasAlreadyValidatedDt = dtValidatedBy && user?.id === dtValidatedBy;
+  const hasAlreadyValidatedDg = dgValidatedBy && user?.id === dgValidatedBy;
+  
+  // Déterminer si l'utilisateur est bloqué par les règles anti-fraude
+  let fraudBlocked = false;
+  let fraudReason: string | null = null;
+  
+  // Règle 1: Le créateur ne peut pas valider
+  if (isCreator && ['soumise', 'en_validation_daf', 'en_validation_dt', 'en_validation_dg'].includes(currentStatus)) {
+    fraudBlocked = true;
+    fraudReason = 'Vous êtes le créateur de cette dépense';
+  }
+  
+  // Règle 2: Le responsable du projet ne peut pas valider
+  if (isProjectResponsible && ['soumise', 'en_validation_daf', 'en_validation_dt', 'en_validation_dg'].includes(currentStatus)) {
+    fraudBlocked = true;
+    fraudReason = 'Vous êtes responsable du projet lié';
+  }
+  
+  // Règle 3: Un utilisateur ne peut valider qu'une seule étape
+  if (hasAlreadyValidatedDaf || hasAlreadyValidatedDt || hasAlreadyValidatedDg) {
+    if (['soumise', 'en_validation_daf', 'en_validation_dt', 'en_validation_dg'].includes(currentStatus)) {
+      fraudBlocked = true;
+      fraudReason = 'Vous avez déjà validé une étape de cette dépense';
+    }
+  }
+  
+  const baseCanValidate = 
+    (currentStatus === 'soumise' && (isDaf || isAdmin)) ||
+    (currentStatus === 'en_validation_daf' && (isDaf || isAdmin)) ||
+    (currentStatus === 'en_validation_dt' && (isDt || isAdmin)) ||
+    (currentStatus === 'en_validation_dg' && (isDg || isAdmin));
+  
+  const baseCanReject =
+    (currentStatus === 'soumise' && (isDaf || isAdmin)) ||
+    (currentStatus === 'en_validation_daf' && (isDaf || isAdmin)) ||
+    (currentStatus === 'en_validation_dt' && (isDt || isAdmin)) ||
+    (currentStatus === 'en_validation_dg' && (isDg || isAdmin));
+  
   return {
     canEdit: currentStatus === 'brouillon' && (isCreator || isAdmin),
     canSubmit: currentStatus === 'brouillon' && (isCreator || isAdmin),
-    canValidate: 
-      (currentStatus === 'soumise' && (isDaf || isAdmin)) ||
-      (currentStatus === 'en_validation_daf' && (isDaf || isAdmin)) ||
-      (currentStatus === 'en_validation_dt' && (isDt || isAdmin)) ||
-      (currentStatus === 'en_validation_dg' && (isDg || isAdmin)),
-    canReject:
-      (currentStatus === 'soumise' && (isDaf || isAdmin)) ||
-      (currentStatus === 'en_validation_daf' && (isDaf || isAdmin)) ||
-      (currentStatus === 'en_validation_dt' && (isDt || isAdmin)) ||
-      (currentStatus === 'en_validation_dg' && (isDg || isAdmin)),
+    canValidate: baseCanValidate && !fraudBlocked,
+    canReject: baseCanReject && !fraudBlocked,
     canPay: currentStatus === 'validee' && (isDaf || isAdmin),
     canResubmit: currentStatus === 'rejetee' && (isCreator || isAdmin),
+    fraudBlocked,
+    fraudReason,
   };
 };
 
