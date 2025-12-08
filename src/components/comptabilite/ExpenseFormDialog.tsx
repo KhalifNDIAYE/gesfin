@@ -30,12 +30,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, Save, Send, Upload, X, FileText, Loader2, Ban } from "lucide-react";
+import { AlertCircle, Save, Send, Upload, X, FileText, Loader2, Ban, Snowflake } from "lucide-react";
 import { useJournals, useThirdParties, useJournalEntryMutations } from "@/hooks/useComptabilite";
 import { useFiscalYears, useCurrencies } from "@/hooks/useParametrage";
 import { useProjects } from "@/hooks/useProjects";
 import { useBudgetLines } from "@/hooks/useBudget";
 import { useCheckBudgetAvailability, useExpenseWorkflowTransition } from "@/hooks/useExpenseWorkflow";
+import { useIsExpenseAllowed } from "@/hooks/useBudgetFreeze";
 import { 
   validateExpenseWithBudgetControl, 
   checkBudgetControl, 
@@ -80,6 +81,10 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
   const currentFiscalYear = fiscalYears?.find(fy => fy.is_current);
   const defaultCurrency = currencies?.find(c => c.is_default);
   const expenseJournal = journals?.find(j => j.journal_type === 'achats');
+
+  // Check if expense creation is allowed (fiscal year not closed/frozen)
+  const { data: expenseAllowedStatus } = useIsExpenseAllowed(currentFiscalYear?.id || null);
+  const isFrozen = expenseAllowedStatus && !expenseAllowedStatus.allowed;
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
@@ -356,8 +361,26 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
         <ScrollArea className="max-h-[70vh] pr-4">
           <Form {...form}>
             <form className="space-y-6">
+              {/* Budget Frozen Warning */}
+              {isFrozen && (
+                <Alert variant="destructive" className="border-2 border-blue-500 bg-blue-50 dark:bg-blue-950">
+                  <Snowflake className="h-4 w-4 text-blue-500" />
+                  <AlertDescription className="font-semibold text-blue-800 dark:text-blue-300">
+                    <div className="flex items-center gap-2">
+                      <span>BUDGET GELÉ</span>
+                    </div>
+                    <div className="mt-1 text-sm font-normal">
+                      {expenseAllowedStatus?.reason}
+                    </div>
+                    <div className="mt-2 text-xs italic">
+                      Seules les consultations et les exports sont autorisés.
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
               {/* No Fiscal Year Warning */}
-              {!currentFiscalYear && (
+              {!currentFiscalYear && !isFrozen && (
                 <Alert variant="destructive" className="border-2 border-destructive">
                   <Ban className="h-4 w-4" />
                   <AlertDescription className="font-semibold">
@@ -367,7 +390,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
               )}
 
               {/* No Budgeted Lines Warning */}
-              {selectedProjectId && !hasBudgetedLines && (
+              {selectedProjectId && !hasBudgetedLines && !isFrozen && (
                 <Alert variant="destructive" className="border-2 border-destructive">
                   <Ban className="h-4 w-4" />
                   <AlertDescription className="font-semibold">
@@ -718,10 +741,12 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
                   type="button"
                   variant="secondary"
                   onClick={handleSave}
-                  disabled={isSubmitting || isUploading || !currentFiscalYear || (selectedProjectId && !hasBudgetedLines)}
+                  disabled={isSubmitting || isUploading || !currentFiscalYear || isFrozen || (selectedProjectId && !hasBudgetedLines)}
                 >
                   {isSubmitting ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : isFrozen ? (
+                    <Snowflake className="h-4 w-4 mr-2" />
                   ) : (
                     <Save className="h-4 w-4 mr-2" />
                   )}
@@ -731,10 +756,12 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
                   type="button"
                   variant="gradient"
                   onClick={handleSubmit}
-                  disabled={isSubmitting || isUploading || !currentFiscalYear || (selectedProjectId && !hasBudgetedLines) || (budgetControlResult && !budgetControlResult.isAvailable)}
+                  disabled={isSubmitting || isUploading || !currentFiscalYear || isFrozen || (selectedProjectId && !hasBudgetedLines) || (budgetControlResult && !budgetControlResult.isAvailable)}
                 >
                   {isSubmitting ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : isFrozen ? (
+                    <Snowflake className="h-4 w-4 mr-2" />
                   ) : (
                     <Send className="h-4 w-4 mr-2" />
                   )}
