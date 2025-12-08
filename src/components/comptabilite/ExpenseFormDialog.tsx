@@ -30,12 +30,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, Save, Send, Upload, X, FileText, Loader2 } from "lucide-react";
+import { AlertCircle, Save, Send, Upload, X, FileText, Loader2, Ban } from "lucide-react";
 import { useJournals, useThirdParties, useJournalEntryMutations } from "@/hooks/useComptabilite";
 import { useFiscalYears, useCurrencies } from "@/hooks/useParametrage";
 import { useProjects } from "@/hooks/useProjects";
 import { useBudgetLines } from "@/hooks/useBudget";
 import { useCheckBudgetAvailability, useExpenseWorkflowTransition } from "@/hooks/useExpenseWorkflow";
+import { validateExpenseWithBudgetControl, checkBudgetControl, type BudgetControlResult } from "@/hooks/useBudgetControl";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "@/hooks/use-toast";
@@ -77,7 +78,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const [attachmentFile, setAttachmentFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
-  const [budgetWarning, setBudgetWarning] = useState<string | null>(null);
+  const [budgetControlResult, setBudgetControlResult] = useState<BudgetControlResult | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { data: allBudgetLines } = useBudgetLines();
@@ -124,22 +125,15 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
   const watchedBudgetLine = form.watch("budget_line_id");
 
   useEffect(() => {
-    const checkBudget = async () => {
+    const performBudgetCheck = async () => {
       if (watchedBudgetLine && watchedAmount > 0) {
-        const budgetLine = allBudgetLines?.find(bl => bl.id === watchedBudgetLine);
-        if (budgetLine) {
-          const available = (budgetLine.forecast_amount || 0) - (budgetLine.committed_amount || 0) - (budgetLine.realized_amount || 0);
-          if (watchedAmount > available) {
-            setBudgetWarning(`Budget insuffisant ! Disponible: ${available.toLocaleString()} XOF. Votre demande: ${watchedAmount.toLocaleString()} XOF`);
-          } else {
-            setBudgetWarning(null);
-          }
-        }
+        const result = await checkBudgetControl(watchedBudgetLine, watchedAmount, allBudgetLines);
+        setBudgetControlResult(result);
       } else {
-        setBudgetWarning(null);
+        setBudgetControlResult(null);
       }
     };
-    checkBudget();
+    performBudgetCheck();
   }, [watchedAmount, watchedBudgetLine, allBudgetLines]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -196,18 +190,25 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
   };
 
   const onSubmit = async (data: FormData, shouldSubmit: boolean = false) => {
-    // Block if budget is insufficient and trying to submit
-    if (budgetWarning && shouldSubmit) {
-      toast({ 
-        title: "Blocage", 
-        description: "Impossible de soumettre : budget insuffisant", 
-        variant: "destructive" 
-      });
-      return;
-    }
-
     setIsSubmitting(true);
+    
     try {
+      // Validate budget control before proceeding
+      const action = shouldSubmit ? 'soumission' : 'creation';
+      const { canProceed, result } = await validateExpenseWithBudgetControl(
+        data.budget_line_id,
+        data.requested_amount,
+        allBudgetLines,
+        user?.id,
+        action
+      );
+
+      if (!canProceed) {
+        setBudgetControlResult(result);
+        setIsSubmitting(false);
+        return;
+      }
+
       // Upload attachment if present
       let attachmentUrl: string | null = null;
       if (attachmentFile) {
@@ -326,11 +327,31 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
         <ScrollArea className="max-h-[70vh] pr-4">
           <Form {...form}>
             <form className="space-y-6">
-              {/* Budget Warning */}
-              {budgetWarning && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{budgetWarning}</AlertDescription>
+              {/* Budget Control Warning */}
+              {budgetControlResult && !budgetControlResult.isAvailable && (
+                <Alert variant="destructive" className="border-2 border-destructive">
+                  <Ban className="h-4 w-4" />
+                  <AlertDescription className="font-semibold">
+                    {budgetControlResult.message}
+                    <div className="mt-2 text-sm font-normal">
+                      <div>Budget validé: {budgetControlResult.forecastAmount.toLocaleString()} XOF</div>
+                      <div>Engagé: {budgetControlResult.committedAmount.toLocaleString()} XOF</div>
+                      <div>Réalisé: {budgetControlResult.realizedAmount.toLocaleString()} XOF</div>
+                      <div className="font-semibold text-destructive">
+                        Restant: {budgetControlResult.remainingBudget.toLocaleString()} XOF
+                      </div>
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {/* Budget Available Info */}
+              {budgetControlResult && budgetControlResult.isAvailable && (
+                <Alert className="border-green-500 bg-green-50 dark:bg-green-950">
+                  <AlertCircle className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-green-700 dark:text-green-300">
+                    Budget disponible: {budgetControlResult.remainingBudget.toLocaleString()} XOF
+                  </AlertDescription>
                 </Alert>
               )}
 
@@ -621,7 +642,7 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
                   type="button"
                   variant="gradient"
                   onClick={handleSubmit}
-                  disabled={isSubmitting || isUploading || !!budgetWarning}
+                  disabled={isSubmitting || isUploading || (budgetControlResult && !budgetControlResult.isAvailable)}
                 >
                   {isSubmitting ? (
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
