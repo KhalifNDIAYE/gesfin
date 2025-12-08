@@ -4900,6 +4900,10 @@ export type Database = {
       }
     }
     Functions: {
+      admin_cancel_record: {
+        Args: { p_reason: string; p_record_id: string; p_table_name: string }
+        Returns: Json
+      }
       calculate_asset_depreciation: {
         Args: { _asset_id: string; _period_end: string }
         Returns: number
