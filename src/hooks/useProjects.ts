@@ -26,19 +26,26 @@ export interface Project {
   currency?: { id: string; code: string; symbol: string } | null;
   site?: { id: string; name: string } | null;
   project_bailleurs?: ProjectBailleur[];
+  project_conventions?: ProjectConventionLink[];
 }
 
 export interface ProjectBailleur {
   id: string;
-  project_id: string;
+  project_id?: string;
   bailleur_id: string;
   committed_amount: number;
   disbursed_amount: number;
   remaining_amount: number;
   execution_rate: number;
-  convention_id: string | null;
-  notes: string | null;
+  convention_id?: string | null;
+  notes?: string | null;
   bailleur?: { id: string; name: string; short_name: string; code: string } | null;
+}
+
+export interface ProjectConventionLink {
+  id: string;
+  convention_id: string;
+  convention?: { id: string; code: string; name: string; status: string; total_amount?: number; disbursed_amount?: number; remaining_amount?: number } | null;
 }
 
 export interface ProjectFormData {
@@ -72,6 +79,10 @@ export const useProjects = () => {
           project_bailleurs(
             id, bailleur_id, committed_amount, disbursed_amount, remaining_amount, execution_rate,
             bailleur:bailleurs(id, name, short_name, code)
+          ),
+          project_conventions(
+            id, convention_id,
+            convention:conventions(id, code, name, status)
           )
         `)
         .order('created_at', { ascending: false });
@@ -169,6 +180,10 @@ export const useProject = (id: string | undefined) => {
           project_bailleurs(
             id, bailleur_id, committed_amount, disbursed_amount, remaining_amount, execution_rate, notes,
             bailleur:bailleurs(id, name, short_name, code)
+          ),
+          project_conventions(
+            id, convention_id,
+            convention:conventions(id, code, name, status, total_amount, disbursed_amount, remaining_amount)
           )
         `)
         .eq('id', id)

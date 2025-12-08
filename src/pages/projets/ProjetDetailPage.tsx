@@ -16,9 +16,15 @@ import {
   FileText,
   History,
   TrendingUp,
-  Loader2
+  Loader2,
+  FileSignature,
+  Eye
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { ProjectConventionsTab } from "@/components/projets/ProjectConventionsTab";
+import { ProjectDocumentsTab } from "@/components/projets/ProjectDocumentsTab";
+import { ProjectBudgetsTab } from "@/components/projets/ProjectBudgetsTab";
+import { ProjectHistoryTab } from "@/components/projets/ProjectHistoryTab";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: "Brouillon", className: "bg-muted text-muted-foreground" },
@@ -81,7 +87,7 @@ export default function ProjetDetailPage() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid gap-4 md:grid-cols-4">
+        <div className="grid gap-4 md:grid-cols-5">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
@@ -145,6 +151,22 @@ export default function ProjetDetailPage() {
               </div>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-accent/50">
+                  <FileSignature className="h-5 w-5 text-accent-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Conventions</p>
+                  <p className="text-lg font-semibold">
+                    {project.project_conventions?.length || 0}
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Tabs */}
@@ -152,6 +174,7 @@ export default function ProjetDetailPage() {
           <TabsList>
             <TabsTrigger value="general">Informations générales</TabsTrigger>
             <TabsTrigger value="bailleurs">Bailleurs</TabsTrigger>
+            <TabsTrigger value="conventions">Conventions</TabsTrigger>
             <TabsTrigger value="budgets">Budgets</TabsTrigger>
             <TabsTrigger value="documents">Documents</TabsTrigger>
             <TabsTrigger value="history">Historique</TabsTrigger>
@@ -273,7 +296,7 @@ export default function ProjetDetailPage() {
 
           <TabsContent value="bailleurs" className="space-y-4">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle className="text-lg">Bailleurs du projet</CardTitle>
               </CardHeader>
               <CardContent>
@@ -282,15 +305,27 @@ export default function ProjetDetailPage() {
                     {project.project_bailleurs.map((pb) => (
                       <div key={pb.id} className="p-4 rounded-lg border">
                         <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <Building2 className="h-5 w-5 text-primary" />
-                            <span className="font-medium">
-                              {pb.bailleur?.name || "Bailleur"}
-                            </span>
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-primary/10">
+                              <Building2 className="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                              <span className="font-medium">
+                                {pb.bailleur?.name || "Bailleur"}
+                              </span>
+                              {pb.bailleur?.short_name && (
+                                <p className="text-sm text-muted-foreground">{pb.bailleur.short_name}</p>
+                              )}
+                            </div>
                           </div>
-                          <Badge variant="outline">
-                            {pb.execution_rate.toFixed(1)}% exécuté
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Badge variant="outline">
+                              {pb.execution_rate.toFixed(1)}% exécuté
+                            </Badge>
+                            <Button size="sm" variant="ghost">
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
                         <div className="grid grid-cols-3 gap-4 text-sm">
                           <div>
@@ -325,49 +360,20 @@ export default function ProjetDetailPage() {
             </Card>
           </TabsContent>
 
+          <TabsContent value="conventions" className="space-y-4">
+            <ProjectConventionsTab projectId={id!} />
+          </TabsContent>
+
           <TabsContent value="budgets" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Suivi budgétaire détaillé</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-center text-muted-foreground py-8">
-                  Les lignes budgétaires seront affichées ici
-                </p>
-              </CardContent>
-            </Card>
+            <ProjectBudgetsTab projectId={id!} />
           </TabsContent>
 
           <TabsContent value="documents" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <FileText className="h-5 w-5" />
-                  Documents du projet
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-center text-muted-foreground py-8">
-                  Aucun document attaché
-                </p>
-              </CardContent>
-            </Card>
+            <ProjectDocumentsTab projectId={id!} />
           </TabsContent>
 
           <TabsContent value="history" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-lg flex items-center gap-2">
-                  <History className="h-5 w-5" />
-                  Historique & Audit
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-center text-muted-foreground py-8">
-                  L'historique des modifications sera affiché ici
-                </p>
-              </CardContent>
-            </Card>
+            <ProjectHistoryTab projectId={id!} />
           </TabsContent>
         </Tabs>
       </div>

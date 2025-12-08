@@ -4328,6 +4328,7 @@ export type Database = {
           file_size: number | null
           file_type: string | null
           id: string
+          mime_type: string | null
           name: string
           project_id: string
           uploaded_by: string | null
@@ -4338,6 +4339,7 @@ export type Database = {
           file_size?: number | null
           file_type?: string | null
           id?: string
+          mime_type?: string | null
           name: string
           project_id: string
           uploaded_by?: string | null
@@ -4348,6 +4350,7 @@ export type Database = {
           file_size?: number | null
           file_type?: string | null
           id?: string
+          mime_type?: string | null
           name?: string
           project_id?: string
           uploaded_by?: string | null
