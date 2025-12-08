@@ -13,6 +13,7 @@ import { useConvention, useReplenishments, useDirectPayments, useFinancialReport
 import { ReplenishmentDialog } from "@/components/conventions/ReplenishmentDialog";
 import { DirectPaymentDialog } from "@/components/conventions/DirectPaymentDialog";
 import { FinancialReportDialog } from "@/components/conventions/FinancialReportDialog";
+import { ConventionDocumentsSection } from "@/components/conventions/ConventionDocumentsSection";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { generateDetailedReportPDF } from "@/utils/reportGenerator";
 import { format } from "date-fns";
@@ -454,6 +455,9 @@ export default function ConventionDetailPage() {
             </Card>
           </TabsContent>
         </Tabs>
+
+        {/* Documents Section */}
+        <ConventionDocumentsSection conventionId={id || ""} />
 
         {/* Dialogs */}
         <ReplenishmentDialog open={replenishmentDialog} onOpenChange={setReplenishmentDialog} replenishment={selectedReplenishment} conventionId={id} />

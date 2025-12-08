@@ -2223,6 +2223,53 @@ export type Database = {
           },
         ]
       }
+      convention_documents: {
+        Row: {
+          convention_id: string
+          created_at: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id: string
+          mime_type: string
+          updated_at: string | null
+          uploaded_by: string | null
+        }
+        Insert: {
+          convention_id: string
+          created_at?: string | null
+          file_name: string
+          file_path: string
+          file_size: number
+          file_type: string
+          id?: string
+          mime_type: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Update: {
+          convention_id?: string
+          created_at?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          mime_type?: string
+          updated_at?: string | null
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "convention_documents_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "conventions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conventions: {
         Row: {
           bailleur_id: string
@@ -5030,6 +5077,16 @@ export type Database = {
           _user_roles: string[]
         }
         Returns: string
+      }
+      log_document_action: {
+        Args: {
+          _action: string
+          _convention_id: string
+          _document_id: string
+          _file_name: string
+          _user_id?: string
+        }
+        Returns: undefined
       }
       process_admin_override_decision: {
         Args: {
