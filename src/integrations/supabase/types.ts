@@ -1181,6 +1181,210 @@ export type Database = {
           },
         ]
       }
+      budget_transfer_history: {
+        Row: {
+          action: string
+          comment: string | null
+          from_status: string
+          id: string
+          performed_at: string | null
+          performed_by: string | null
+          snapshot: Json | null
+          to_status: string
+          transfer_id: string
+        }
+        Insert: {
+          action: string
+          comment?: string | null
+          from_status: string
+          id?: string
+          performed_at?: string | null
+          performed_by?: string | null
+          snapshot?: Json | null
+          to_status: string
+          transfer_id: string
+        }
+        Update: {
+          action?: string
+          comment?: string | null
+          from_status?: string
+          id?: string
+          performed_at?: string | null
+          performed_by?: string | null
+          snapshot?: Json | null
+          to_status?: string
+          transfer_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_transfer_history_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transfer_history_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transfer_history_transfer_id_fkey"
+            columns: ["transfer_id"]
+            isOneToOne: false
+            referencedRelation: "budget_transfers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      budget_transfers: {
+        Row: {
+          admin_comment: string | null
+          admin_validated_at: string | null
+          admin_validated_by: string | null
+          amount: number
+          amount_local: number | null
+          code: string
+          created_at: string | null
+          description: string | null
+          destination_budget_line_id: string
+          director_comment: string | null
+          director_validated_at: string | null
+          director_validated_by: string | null
+          executed_at: string | null
+          id: string
+          reason: string
+          rejected_at: string | null
+          rejected_by: string | null
+          rejection_reason: string | null
+          requested_by: string | null
+          source_budget_line_id: string
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          admin_comment?: string | null
+          admin_validated_at?: string | null
+          admin_validated_by?: string | null
+          amount: number
+          amount_local?: number | null
+          code: string
+          created_at?: string | null
+          description?: string | null
+          destination_budget_line_id: string
+          director_comment?: string | null
+          director_validated_at?: string | null
+          director_validated_by?: string | null
+          executed_at?: string | null
+          id?: string
+          reason: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          requested_by?: string | null
+          source_budget_line_id: string
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          admin_comment?: string | null
+          admin_validated_at?: string | null
+          admin_validated_by?: string | null
+          amount?: number
+          amount_local?: number | null
+          code?: string
+          created_at?: string | null
+          description?: string | null
+          destination_budget_line_id?: string
+          director_comment?: string | null
+          director_validated_at?: string | null
+          director_validated_by?: string | null
+          executed_at?: string | null
+          id?: string
+          reason?: string
+          rejected_at?: string | null
+          rejected_by?: string | null
+          rejection_reason?: string | null
+          requested_by?: string | null
+          source_budget_line_id?: string
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_transfers_admin_validated_by_fkey"
+            columns: ["admin_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transfers_admin_validated_by_fkey"
+            columns: ["admin_validated_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transfers_destination_budget_line_id_fkey"
+            columns: ["destination_budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transfers_director_validated_by_fkey"
+            columns: ["director_validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transfers_director_validated_by_fkey"
+            columns: ["director_validated_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transfers_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transfers_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transfers_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transfers_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "budget_transfers_source_budget_line_id_fkey"
+            columns: ["source_budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       budget_validation_history: {
         Row: {
           action: string
@@ -4716,6 +4920,16 @@ export type Database = {
         Args: { _amount: number }
         Returns: boolean
       }
+      create_budget_transfer: {
+        Args: {
+          _amount: number
+          _description?: string
+          _destination_budget_line_id: string
+          _reason: string
+          _source_budget_line_id: string
+        }
+        Returns: Json
+      }
       create_notification: {
         Args: {
           _direct_link?: string
@@ -4842,6 +5056,14 @@ export type Database = {
         Returns: Json
       }
       reset_failed_login: { Args: { _user_id: string }; Returns: undefined }
+      validate_budget_transfer_admin: {
+        Args: { _comment?: string; _decision: string; _transfer_id: string }
+        Returns: Json
+      }
+      validate_budget_transfer_director: {
+        Args: { _comment?: string; _decision: string; _transfer_id: string }
+        Returns: Json
+      }
       validate_budget_transition: {
         Args: {
           _budget_id: string

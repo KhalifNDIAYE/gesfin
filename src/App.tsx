@@ -67,6 +67,7 @@ import BudgetDashboardPage from "./pages/budget/BudgetDashboardPage";
 import BudgetComparisonPage from "./pages/budget/BudgetComparisonPage";
 import BudgetAlertsPage from "./pages/budget/BudgetAlertsPage";
 import BudgetRisksDashboardPage from "./pages/budget/BudgetRisksDashboardPage";
+import BudgetTransfersPage from "./pages/budget/BudgetTransfersPage";
 
 // Bailleurs & Conventions pages
 import BailleursPage from "./pages/bailleurs/BailleursPage";
@@ -153,6 +154,7 @@ const App = () => (
             <Route path="/budget/comparaison" element={<ProtectedRoute requiredModule="comptabilite"><BudgetComparisonPage /></ProtectedRoute>} />
             <Route path="/budget/alertes" element={<ProtectedRoute requiredModule="comptabilite"><BudgetAlertsPage /></ProtectedRoute>} />
             <Route path="/budget/risques" element={<ProtectedRoute requiredModule="comptabilite"><BudgetRisksDashboardPage /></ProtectedRoute>} />
+            <Route path="/budget/transferts" element={<ProtectedRoute requiredModule="comptabilite"><BudgetTransfersPage /></ProtectedRoute>} />
             
             {/* Bailleurs */}
             <Route path="/bailleurs" element={<ProtectedRoute requiredModule="bailleurs"><BailleursPage /></ProtectedRoute>} />
