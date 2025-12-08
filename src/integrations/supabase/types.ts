@@ -1145,7 +1145,10 @@ export type Database = {
           end_date: string | null
           exchange_rate: number | null
           fiscal_year_id: string
+          frozen_at: string | null
+          frozen_reason: string | null
           id: string
+          is_frozen: boolean | null
           name: string
           rejected_at: string | null
           rejected_by: string | null
@@ -1173,7 +1176,10 @@ export type Database = {
           end_date?: string | null
           exchange_rate?: number | null
           fiscal_year_id: string
+          frozen_at?: string | null
+          frozen_reason?: string | null
           id?: string
+          is_frozen?: boolean | null
           name: string
           rejected_at?: string | null
           rejected_by?: string | null
@@ -1201,7 +1207,10 @@ export type Database = {
           end_date?: string | null
           exchange_rate?: number | null
           fiscal_year_id?: string
+          frozen_at?: string | null
+          frozen_reason?: string | null
           id?: string
+          is_frozen?: boolean | null
           name?: string
           rejected_at?: string | null
           rejected_by?: string | null
@@ -4051,6 +4060,10 @@ export type Database = {
         Args: { _amount: number; _budget_line_id: string }
         Returns: boolean
       }
+      check_expense_allowed: {
+        Args: { p_budget_id?: string; p_fiscal_year_id: string }
+        Returns: Json
+      }
       check_expense_fraud_rules: {
         Args: { _entry_id: string; _intended_action: string; _user_id: string }
         Returns: Json
@@ -4119,6 +4132,7 @@ export type Database = {
       increment_failed_login: { Args: { _email: string }; Returns: undefined }
       is_account_locked: { Args: { _email: string }; Returns: boolean }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_budget_frozen: { Args: { p_budget_id: string }; Returns: Json }
       is_expense_validated: { Args: { _expense_id: string }; Returns: boolean }
       log_audit_event: {
         Args: {
