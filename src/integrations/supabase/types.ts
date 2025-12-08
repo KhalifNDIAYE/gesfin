@@ -2488,6 +2488,131 @@ export type Database = {
         }
         Relationships: []
       }
+      exceptional_overrides_log: {
+        Row: {
+          admin_comment: string | null
+          admin_decided_at: string | null
+          admin_decided_by: string | null
+          admin_decision: string | null
+          budget_available: number
+          budget_id: string | null
+          budget_line_id: string | null
+          created_at: string | null
+          director_comment: string | null
+          director_decided_at: string | null
+          director_decided_by: string | null
+          director_decision: string | null
+          final_status: string | null
+          id: string
+          journal_entry_id: string
+          override_amount: number
+          override_percentage: number
+          override_reason: string
+          project_id: string | null
+          requested_amount: number
+          requested_at: string | null
+          requested_by: string | null
+        }
+        Insert: {
+          admin_comment?: string | null
+          admin_decided_at?: string | null
+          admin_decided_by?: string | null
+          admin_decision?: string | null
+          budget_available: number
+          budget_id?: string | null
+          budget_line_id?: string | null
+          created_at?: string | null
+          director_comment?: string | null
+          director_decided_at?: string | null
+          director_decided_by?: string | null
+          director_decision?: string | null
+          final_status?: string | null
+          id?: string
+          journal_entry_id: string
+          override_amount: number
+          override_percentage: number
+          override_reason: string
+          project_id?: string | null
+          requested_amount: number
+          requested_at?: string | null
+          requested_by?: string | null
+        }
+        Update: {
+          admin_comment?: string | null
+          admin_decided_at?: string | null
+          admin_decided_by?: string | null
+          admin_decision?: string | null
+          budget_available?: number
+          budget_id?: string | null
+          budget_line_id?: string | null
+          created_at?: string | null
+          director_comment?: string | null
+          director_decided_at?: string | null
+          director_decided_by?: string | null
+          director_decision?: string | null
+          final_status?: string | null
+          id?: string
+          journal_entry_id?: string
+          override_amount?: number
+          override_percentage?: number
+          override_reason?: string
+          project_id?: string | null
+          requested_amount?: number
+          requested_at?: string | null
+          requested_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exceptional_overrides_log_admin_decided_by_fkey"
+            columns: ["admin_decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exceptional_overrides_log_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exceptional_overrides_log_budget_line_id_fkey"
+            columns: ["budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exceptional_overrides_log_director_decided_by_fkey"
+            columns: ["director_decided_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exceptional_overrides_log_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exceptional_overrides_log_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exceptional_overrides_log_requested_by_fkey"
+            columns: ["requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_categories: {
         Row: {
           code: string
@@ -2760,6 +2885,9 @@ export type Database = {
       }
       journal_entries: {
         Row: {
+          admin_override_approved: boolean | null
+          admin_override_approved_at: string | null
+          admin_override_approved_by: string | null
           attachment_url: string | null
           budget_line_id: string | null
           created_at: string | null
@@ -2770,6 +2898,9 @@ export type Database = {
           description: string
           dg_validated_at: string | null
           dg_validated_by: string | null
+          director_override_approved: boolean | null
+          director_override_approved_at: string | null
+          director_override_approved_by: string | null
           dt_validated_at: string | null
           dt_validated_by: string | null
           entry_date: string
@@ -2779,7 +2910,13 @@ export type Database = {
           expense_workflow_status: string | null
           fiscal_year_id: string
           id: string
+          is_exceptional_override: boolean | null
           journal_id: string
+          override_amount: number | null
+          override_reason: string | null
+          override_requested_at: string | null
+          override_requested_by: string | null
+          override_status: string | null
           paid_at: string | null
           paid_by: string | null
           project_id: string | null
@@ -2795,6 +2932,9 @@ export type Database = {
           validated_by: string | null
         }
         Insert: {
+          admin_override_approved?: boolean | null
+          admin_override_approved_at?: string | null
+          admin_override_approved_by?: string | null
           attachment_url?: string | null
           budget_line_id?: string | null
           created_at?: string | null
@@ -2805,6 +2945,9 @@ export type Database = {
           description: string
           dg_validated_at?: string | null
           dg_validated_by?: string | null
+          director_override_approved?: boolean | null
+          director_override_approved_at?: string | null
+          director_override_approved_by?: string | null
           dt_validated_at?: string | null
           dt_validated_by?: string | null
           entry_date: string
@@ -2814,7 +2957,13 @@ export type Database = {
           expense_workflow_status?: string | null
           fiscal_year_id: string
           id?: string
+          is_exceptional_override?: boolean | null
           journal_id: string
+          override_amount?: number | null
+          override_reason?: string | null
+          override_requested_at?: string | null
+          override_requested_by?: string | null
+          override_status?: string | null
           paid_at?: string | null
           paid_by?: string | null
           project_id?: string | null
@@ -2830,6 +2979,9 @@ export type Database = {
           validated_by?: string | null
         }
         Update: {
+          admin_override_approved?: boolean | null
+          admin_override_approved_at?: string | null
+          admin_override_approved_by?: string | null
           attachment_url?: string | null
           budget_line_id?: string | null
           created_at?: string | null
@@ -2840,6 +2992,9 @@ export type Database = {
           description?: string
           dg_validated_at?: string | null
           dg_validated_by?: string | null
+          director_override_approved?: boolean | null
+          director_override_approved_at?: string | null
+          director_override_approved_by?: string | null
           dt_validated_at?: string | null
           dt_validated_by?: string | null
           entry_date?: string
@@ -2849,7 +3004,13 @@ export type Database = {
           expense_workflow_status?: string | null
           fiscal_year_id?: string
           id?: string
+          is_exceptional_override?: boolean | null
           journal_id?: string
+          override_amount?: number | null
+          override_reason?: string | null
+          override_requested_at?: string | null
+          override_requested_by?: string | null
+          override_status?: string | null
           paid_at?: string | null
           paid_by?: string | null
           project_id?: string | null
@@ -2865,6 +3026,13 @@ export type Database = {
           validated_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "journal_entries_admin_override_approved_by_fkey"
+            columns: ["admin_override_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "journal_entries_budget_line_id_fkey"
             columns: ["budget_line_id"]
@@ -2901,6 +3069,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "journal_entries_director_override_approved_by_fkey"
+            columns: ["director_override_approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "journal_entries_dt_validated_by_fkey"
             columns: ["dt_validated_by"]
             isOneToOne: false
@@ -2919,6 +3094,13 @@ export type Database = {
             columns: ["journal_id"]
             isOneToOne: false
             referencedRelation: "journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_override_requested_by_fkey"
+            columns: ["override_requested_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -4168,6 +4350,34 @@ export type Database = {
           _user_roles: string[]
         }
         Returns: string
+      }
+      process_admin_override_decision: {
+        Args: {
+          _comment: string
+          _decision: string
+          _override_log_id: string
+          _user_id: string
+        }
+        Returns: Json
+      }
+      process_director_override_decision: {
+        Args: {
+          _comment: string
+          _decision: string
+          _override_log_id: string
+          _user_id: string
+        }
+        Returns: Json
+      }
+      request_exceptional_override: {
+        Args: {
+          _budget_line_id: string
+          _entry_id: string
+          _override_reason: string
+          _requested_amount: number
+          _user_id: string
+        }
+        Returns: Json
       }
       reset_failed_login: { Args: { _user_id: string }; Returns: undefined }
       validate_budget_transition: {

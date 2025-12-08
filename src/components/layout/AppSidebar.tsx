@@ -116,6 +116,7 @@ const comptabiliteGroup: NavGroup = {
     { title: "À-nouveaux", href: "/comptabilite/a-nouveaux", icon: RefreshCw, module: "comptabilite" },
     { title: "Clôtures", href: "/comptabilite/clotures", icon: Lock, module: "comptabilite" },
     { title: "Éditions", href: "/comptabilite/editions", icon: Printer, module: "comptabilite" },
+    { title: "Dépassements", href: "/comptabilite/depassements", icon: AlertTriangle, module: "comptabilite" },
   ],
 };
 
