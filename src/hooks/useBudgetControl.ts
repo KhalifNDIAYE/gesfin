@@ -1,17 +1,22 @@
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { checkAndTriggerBudgetAlerts, isBudgetLineBlocked } from './useBudgetAlerts';
 
 export interface BudgetControlResult {
   isAvailable: boolean;
   isBudgeted: boolean;
+  isBlocked: boolean; // 100% consumption blocking
   remainingBudget: number;
   forecastAmount: number;
   committedAmount: number;
   realizedAmount: number;
+  consumptionPercentage: number;
   requestedAmount: number;
   message: string | null;
-  blockReason: 'insufficient' | 'not_budgeted' | 'missing_line' | 'missing_project' | 'missing_fiscal_year' | null;
+  blockReason: 'insufficient' | 'not_budgeted' | 'missing_line' | 'missing_project' | 'missing_fiscal_year' | 'blocked_100' | null;
 }
+
+export { checkAndTriggerBudgetAlerts, isBudgetLineBlocked };
 
 export interface BudgetLine {
   id: string;
@@ -86,10 +91,12 @@ export async function checkBudgetControl(
     return {
       isAvailable: false,
       isBudgeted: false,
+      isBlocked: true,
       remainingBudget: 0,
       forecastAmount: 0,
       committedAmount: 0,
       realizedAmount: 0,
+      consumptionPercentage: 0,
       requestedAmount,
       message: "Ligne budgétaire introuvable",
       blockReason: 'missing_line',
@@ -107,10 +114,12 @@ export async function checkBudgetControl(
     return {
       isAvailable: false,
       isBudgeted: false,
+      isBlocked: true,
       remainingBudget: 0,
       forecastAmount,
       committedAmount,
       realizedAmount,
+      consumptionPercentage: 0,
       requestedAmount,
       message: "Impossible de créer une dépense sur une ligne non budgétisée (budget prévisionnel = 0)",
       blockReason: 'not_budgeted',
@@ -118,21 +127,35 @@ export async function checkBudgetControl(
   }
   
   // Budget restant = Budget validé - (Engagé + Réalisé)
-  const remainingBudget = forecastAmount - (committedAmount + realizedAmount);
-  const isAvailable = remainingBudget >= requestedAmount;
+  const consumedAmount = committedAmount + realizedAmount;
+  const consumptionPercentage = forecastAmount > 0 ? (consumedAmount / forecastAmount) * 100 : 0;
+  const remainingBudget = forecastAmount - consumedAmount;
+  const isBlocked = consumptionPercentage >= 100;
+  const isAvailable = !isBlocked && remainingBudget >= requestedAmount;
+
+  let message: string | null = null;
+  let blockReason: BudgetControlResult['blockReason'] = null;
+
+  if (isBlocked) {
+    message = `Budget épuisé (${consumptionPercentage.toFixed(1)}% consommé). Blocage total activé.`;
+    blockReason = 'blocked_100';
+  } else if (!isAvailable) {
+    message = `Budget insuffisant pour cette ligne. Disponible: ${remainingBudget.toLocaleString()} XOF, Demandé: ${requestedAmount.toLocaleString()} XOF`;
+    blockReason = 'insufficient';
+  }
 
   return {
     isAvailable,
     isBudgeted: true,
+    isBlocked,
     remainingBudget,
     forecastAmount,
     committedAmount,
     realizedAmount,
+    consumptionPercentage,
     requestedAmount,
-    message: isAvailable 
-      ? null 
-      : `Budget insuffisant pour cette ligne. Disponible: ${remainingBudget.toLocaleString()} XOF, Demandé: ${requestedAmount.toLocaleString()} XOF`,
-    blockReason: isAvailable ? null : 'insufficient',
+    message,
+    blockReason,
   };
 }
 
@@ -157,6 +180,7 @@ export async function logBudgetControlBlock(
       missing_line: 'Ligne budgétaire manquante',
       missing_project: 'Projet manquant',
       missing_fiscal_year: 'Exercice fiscal manquant',
+      blocked_100: 'Budget épuisé (100% consommé) - Blocage total',
     };
 
     await supabase.rpc('log_audit_event', {
@@ -200,10 +224,12 @@ export async function validateExpenseWithBudgetControl(
     const result: BudgetControlResult = {
       isAvailable: false,
       isBudgeted: false,
+      isBlocked: true,
       remainingBudget: 0,
       forecastAmount: 0,
       committedAmount: 0,
       realizedAmount: 0,
+      consumptionPercentage: 0,
       requestedAmount: params.requestedAmount,
       message: linksValidation.message,
       blockReason: linksValidation.blockReason,
