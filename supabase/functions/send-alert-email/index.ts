@@ -46,7 +46,9 @@ const severityColors = {
 };
 
 const alertTypeLabels: Record<string, string> = {
-  budget_overrun: 'Dépassement de budget',
+  budget_overrun: 'Blocage budgétaire (100%)',
+  budget_warning_80: 'Alerte préventive budget (80%)',
+  budget_warning_90: 'Alerte critique budget (90%)',
   project_late: 'Projet en retard',
   convention_expired: 'Convention expirée',
   blocked_action_critical: 'Action bloquée critique',
