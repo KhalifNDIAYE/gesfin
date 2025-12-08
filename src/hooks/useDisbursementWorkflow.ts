@@ -2,6 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from '@/hooks/use-toast';
+import { 
+  validateDisbursementBeforePayment, 
+  logDisbursementBlock, 
+  showDisbursementBlockToast 
+} from './useDisbursementControl';
 
 export type DisbursementWorkflowStatus = 
   | 'brouillon'
@@ -111,6 +116,44 @@ export const useDisbursementWorkflowTransition = () => {
       newStatus: DisbursementWorkflowStatus;
       comment?: string;
     }) => {
+      // Si on passe au statut "paye", vérifier les conditions préalables
+      if (newStatus === 'paye') {
+        // Récupérer les informations du décaissement
+        const { data: disbursement, error: fetchError } = await supabase
+          .from('direct_payments')
+          .select('id, code, amount, related_expense_id, convention_id')
+          .eq('id', disbursementId)
+          .single();
+
+        if (fetchError || !disbursement) {
+          throw new Error('Décaissement introuvable');
+        }
+
+        // Valider les conditions avant paiement
+        const controlResult = await validateDisbursementBeforePayment({
+          disbursementId,
+          amount: Number(disbursement.amount || 0),
+          relatedExpenseId: disbursement.related_expense_id,
+          conventionId: disbursement.convention_id,
+        });
+
+        if (!controlResult.canProceed) {
+          // Logger le blocage dans l'audit
+          await logDisbursementBlock(
+            user?.id,
+            disbursementId,
+            disbursement.code,
+            Number(disbursement.amount || 0),
+            controlResult.blockReasons
+          );
+
+          // Afficher les raisons de blocage
+          showDisbursementBlockToast(controlResult.blockReasons);
+
+          throw new Error('Conditions de paiement non remplies');
+        }
+      }
+
       const { data, error } = await supabase.rpc('validate_disbursement_transition', {
         _disbursement_id: disbursementId,
         _new_status: newStatus,
