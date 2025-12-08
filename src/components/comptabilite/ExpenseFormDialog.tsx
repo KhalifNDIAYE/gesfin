@@ -40,6 +40,7 @@ import {
   validateExpenseWithBudgetControl, 
   checkBudgetControl, 
   isBudgetLineBudgeted,
+  checkAndTriggerBudgetAlerts,
   type BudgetControlResult 
 } from "@/hooks/useBudgetControl";
 import { supabase } from "@/integrations/supabase/client";
@@ -296,6 +297,22 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
 
       if (error) throw error;
 
+      // Trigger budget alerts after successful expense creation
+      if (data.budget_line_id) {
+        // Get user name for alert
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user?.id)
+          .single();
+        
+        await checkAndTriggerBudgetAlerts(
+          data.budget_line_id,
+          user?.id,
+          profile?.full_name || user?.email
+        );
+      }
+
       toast({ 
         title: shouldSubmit ? "Dépense soumise" : "Dépense enregistrée",
         description: shouldSubmit 
@@ -370,6 +387,19 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
                         Cette ligne budgétaire n'a pas de budget prévisionnel alloué.
                         Veuillez sélectionner une ligne avec un budget disponible.
                       </div>
+                    ) : budgetControlResult.blockReason === 'blocked_100' ? (
+                      <div className="mt-2 text-sm font-normal space-y-1">
+                        <div className="text-destructive font-semibold">🚫 BLOCAGE TOTAL - Budget épuisé</div>
+                        <div>Budget validé: {budgetControlResult.forecastAmount.toLocaleString()} XOF</div>
+                        <div>Engagé: {budgetControlResult.committedAmount.toLocaleString()} XOF</div>
+                        <div>Réalisé: {budgetControlResult.realizedAmount.toLocaleString()} XOF</div>
+                        <div className="font-semibold">
+                          Consommation: {budgetControlResult.consumptionPercentage.toFixed(1)}%
+                        </div>
+                        <div className="mt-2 text-xs italic">
+                          Une alerte a été envoyée à l'Administrateur et au DG.
+                        </div>
+                      </div>
                     ) : budgetControlResult.blockReason === 'insufficient' && (
                       <div className="mt-2 text-sm font-normal">
                         <div>Budget validé: {budgetControlResult.forecastAmount.toLocaleString()} XOF</div>
@@ -378,18 +408,38 @@ export function ExpenseFormDialog({ open, onOpenChange }: ExpenseFormDialogProps
                         <div className="font-semibold text-destructive">
                           Restant: {budgetControlResult.remainingBudget.toLocaleString()} XOF
                         </div>
+                        {budgetControlResult.consumptionPercentage >= 90 && (
+                          <div className="mt-2 text-xs italic text-amber-600">
+                            ⚠️ Alerte critique: {budgetControlResult.consumptionPercentage.toFixed(1)}% du budget consommé
+                          </div>
+                        )}
                       </div>
                     )}
                   </AlertDescription>
                 </Alert>
               )}
 
-              {/* Budget Available Info */}
+              {/* Budget Available Info with consumption warning */}
               {budgetControlResult && budgetControlResult.isAvailable && (
-                <Alert className="border-green-500 bg-green-50 dark:bg-green-950">
-                  <AlertCircle className="h-4 w-4 text-green-600" />
-                  <AlertDescription className="text-green-700 dark:text-green-300">
-                    Budget disponible: {budgetControlResult.remainingBudget.toLocaleString()} XOF
+                <Alert className={`border ${
+                  budgetControlResult.consumptionPercentage >= 80 
+                    ? 'border-amber-500 bg-amber-50 dark:bg-amber-950' 
+                    : 'border-green-500 bg-green-50 dark:bg-green-950'
+                }`}>
+                  <AlertCircle className={`h-4 w-4 ${
+                    budgetControlResult.consumptionPercentage >= 80 ? 'text-amber-600' : 'text-green-600'
+                  }`} />
+                  <AlertDescription className={
+                    budgetControlResult.consumptionPercentage >= 80 
+                      ? 'text-amber-700 dark:text-amber-300' 
+                      : 'text-green-700 dark:text-green-300'
+                  }>
+                    <div>Budget disponible: {budgetControlResult.remainingBudget.toLocaleString()} XOF</div>
+                    {budgetControlResult.consumptionPercentage >= 80 && (
+                      <div className="text-sm mt-1">
+                        ⚠️ Attention: {budgetControlResult.consumptionPercentage.toFixed(1)}% du budget déjà consommé
+                      </div>
+                    )}
                   </AlertDescription>
                 </Alert>
               )}
