@@ -4279,6 +4279,48 @@ export type Database = {
           },
         ]
       }
+      project_conventions: {
+        Row: {
+          convention_id: string
+          created_at: string | null
+          id: string
+          notes: string | null
+          project_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          convention_id: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          project_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          convention_id?: string
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          project_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_conventions_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "conventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_conventions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_documents: {
         Row: {
           created_at: string | null
