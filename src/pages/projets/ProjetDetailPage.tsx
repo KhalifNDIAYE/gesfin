@@ -18,13 +18,15 @@ import {
   TrendingUp,
   Loader2,
   FileSignature,
-  Eye
+  BarChart3
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProjectConventionsTab } from "@/components/projets/ProjectConventionsTab";
 import { ProjectDocumentsTab } from "@/components/projets/ProjectDocumentsTab";
 import { ProjectBudgetsTab } from "@/components/projets/ProjectBudgetsTab";
 import { ProjectHistoryTab } from "@/components/projets/ProjectHistoryTab";
+import { ProjectBailleursTab } from "@/components/projets/ProjectBailleursTab";
+import { ProjectKPIsDashboard } from "@/components/projets/ProjectKPIsDashboard";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: "Brouillon", className: "bg-muted text-muted-foreground" },
@@ -171,8 +173,9 @@ export default function ProjetDetailPage() {
 
         {/* Tabs */}
         <Tabs defaultValue="general" className="space-y-4">
-          <TabsList>
+          <TabsList className="flex-wrap">
             <TabsTrigger value="general">Informations générales</TabsTrigger>
+            <TabsTrigger value="kpis">KPIs</TabsTrigger>
             <TabsTrigger value="bailleurs">Bailleurs</TabsTrigger>
             <TabsTrigger value="conventions">Conventions</TabsTrigger>
             <TabsTrigger value="budgets">Budgets</TabsTrigger>
@@ -294,70 +297,12 @@ export default function ProjetDetailPage() {
             </div>
           </TabsContent>
 
+          <TabsContent value="kpis" className="space-y-4">
+            <ProjectKPIsDashboard projectId={id!} />
+          </TabsContent>
+
           <TabsContent value="bailleurs" className="space-y-4">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle className="text-lg">Bailleurs du projet</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {project.project_bailleurs && project.project_bailleurs.length > 0 ? (
-                  <div className="space-y-4">
-                    {project.project_bailleurs.map((pb) => (
-                      <div key={pb.id} className="p-4 rounded-lg border">
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-primary/10">
-                              <Building2 className="h-5 w-5 text-primary" />
-                            </div>
-                            <div>
-                              <span className="font-medium">
-                                {pb.bailleur?.name || "Bailleur"}
-                              </span>
-                              {pb.bailleur?.short_name && (
-                                <p className="text-sm text-muted-foreground">{pb.bailleur.short_name}</p>
-                              )}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Badge variant="outline">
-                              {pb.execution_rate.toFixed(1)}% exécuté
-                            </Badge>
-                            <Button size="sm" variant="ghost">
-                              <Eye className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="grid grid-cols-3 gap-4 text-sm">
-                          <div>
-                            <p className="text-muted-foreground">Engagé</p>
-                            <p className="font-medium">
-                              {(pb.committed_amount / 1000000).toLocaleString('fr-FR')} M
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Décaissé</p>
-                            <p className="font-medium text-success">
-                              {(pb.disbursed_amount / 1000000).toLocaleString('fr-FR')} M
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Restant</p>
-                            <p className="font-medium text-warning">
-                              {(pb.remaining_amount / 1000000).toLocaleString('fr-FR')} M
-                            </p>
-                          </div>
-                        </div>
-                        <Progress value={pb.execution_rate} className="h-2 mt-3" />
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-center text-muted-foreground py-8">
-                    Aucun bailleur associé à ce projet
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+            <ProjectBailleursTab projectId={id!} />
           </TabsContent>
 
           <TabsContent value="conventions" className="space-y-4">
