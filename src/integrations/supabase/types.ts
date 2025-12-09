@@ -688,6 +688,13 @@ export type Database = {
             foreignKeyName: "assets_convention_id_fkey"
             columns: ["convention_id"]
             isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["convention_id"]
+          },
+          {
+            foreignKeyName: "assets_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
             referencedRelation: "conventions"
             referencedColumns: ["id"]
           },
@@ -2139,6 +2146,13 @@ export type Database = {
             foreignKeyName: "contracts_convention_id_fkey"
             columns: ["convention_id"]
             isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["convention_id"]
+          },
+          {
+            foreignKeyName: "contracts_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
             referencedRelation: "conventions"
             referencedColumns: ["id"]
           },
@@ -2211,6 +2225,13 @@ export type Database = {
             foreignKeyName: "convention_categories_convention_id_fkey"
             columns: ["convention_id"]
             isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["convention_id"]
+          },
+          {
+            foreignKeyName: "convention_categories_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
             referencedRelation: "conventions"
             referencedColumns: ["id"]
           },
@@ -2261,6 +2282,13 @@ export type Database = {
           uploaded_by?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "convention_documents_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["convention_id"]
+          },
           {
             foreignKeyName: "convention_documents_convention_id_fkey"
             columns: ["convention_id"]
@@ -2351,8 +2379,22 @@ export type Database = {
             foreignKeyName: "conventions_bailleur_id_fkey"
             columns: ["bailleur_id"]
             isOneToOne: false
+            referencedRelation: "bailleur_stats"
+            referencedColumns: ["bailleur_id"]
+          },
+          {
+            foreignKeyName: "conventions_bailleur_id_fkey"
+            columns: ["bailleur_id"]
+            isOneToOne: false
             referencedRelation: "bailleurs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conventions_bailleur_id_fkey"
+            columns: ["bailleur_id"]
+            isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["bailleur_id"]
           },
           {
             foreignKeyName: "conventions_created_by_fkey"
@@ -2604,6 +2646,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_names"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "direct_payments_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["convention_id"]
           },
           {
             foreignKeyName: "direct_payments_convention_id_fkey"
@@ -3378,6 +3427,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_names"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "financial_reports_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["convention_id"]
           },
           {
             foreignKeyName: "financial_reports_convention_id_fkey"
@@ -4199,8 +4255,29 @@ export type Database = {
             foreignKeyName: "project_bailleurs_bailleur_id_fkey"
             columns: ["bailleur_id"]
             isOneToOne: false
+            referencedRelation: "bailleur_stats"
+            referencedColumns: ["bailleur_id"]
+          },
+          {
+            foreignKeyName: "project_bailleurs_bailleur_id_fkey"
+            columns: ["bailleur_id"]
+            isOneToOne: false
             referencedRelation: "bailleurs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_bailleurs_bailleur_id_fkey"
+            columns: ["bailleur_id"]
+            isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["bailleur_id"]
+          },
+          {
+            foreignKeyName: "project_bailleurs_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["convention_id"]
           },
           {
             foreignKeyName: "project_bailleurs_convention_id_fkey"
@@ -4305,6 +4382,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "project_conventions_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["convention_id"]
+          },
           {
             foreignKeyName: "project_conventions_convention_id_fkey"
             columns: ["convention_id"]
@@ -4564,6 +4648,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_names"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "replenishments_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["convention_id"]
           },
           {
             foreignKeyName: "replenishments_convention_id_fkey"
@@ -4975,6 +5066,39 @@ export type Database = {
       }
     }
     Views: {
+      bailleur_stats: {
+        Row: {
+          bailleur_code: string | null
+          bailleur_id: string | null
+          bailleur_name: string | null
+          convention_count: number | null
+          global_execution_rate: number | null
+          is_active: boolean | null
+          project_count: number | null
+          short_name: string | null
+          total_committed: number | null
+          total_disbursed: number | null
+          total_remaining: number | null
+        }
+        Relationships: []
+      }
+      convention_project_stats: {
+        Row: {
+          bailleur_id: string | null
+          bailleur_name: string | null
+          convention_code: string | null
+          convention_id: string | null
+          convention_name: string | null
+          disbursed_amount: number | null
+          execution_rate: number | null
+          linked_projects_count: number | null
+          project_names: string[] | null
+          remaining_amount: number | null
+          status: string | null
+          total_amount: number | null
+        }
+        Relationships: []
+      }
       user_names: {
         Row: {
           full_name: string | null
@@ -5067,6 +5191,7 @@ export type Database = {
         Args: { _fiscal_year_id: string; _journal_code: string }
         Returns: string
       }
+      get_project_kpis: { Args: { _project_id: string }; Returns: Json }
       has_permission: {
         Args: {
           _module: Database["public"]["Enums"]["module_name"]
@@ -5133,6 +5258,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_sync_action: {
+        Args: {
+          _action: string
+          _details: string
+          _new_values?: Json
+          _old_values?: Json
+          _project_id: string
+        }
+        Returns: undefined
+      }
       process_admin_override_decision: {
         Args: {
           _comment: string
@@ -5151,6 +5286,10 @@ export type Database = {
         }
         Returns: Json
       }
+      recalculate_project_kpis: {
+        Args: { _project_id: string }
+        Returns: undefined
+      }
       request_exceptional_override: {
         Args: {
           _budget_line_id: string
@@ -5162,6 +5301,10 @@ export type Database = {
         Returns: Json
       }
       reset_failed_login: { Args: { _user_id: string }; Returns: undefined }
+      sync_project_bailleurs_from_conventions: {
+        Args: { _project_id: string }
+        Returns: undefined
+      }
       validate_budget_transfer_admin: {
         Args: { _comment?: string; _decision: string; _transfer_id: string }
         Returns: Json
