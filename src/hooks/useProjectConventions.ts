@@ -69,8 +69,14 @@ export const useAddProjectConvention = () => {
       return data;
     },
     onSuccess: (_, variables) => {
+      // Invalider toutes les queries liées pour refléter la synchronisation automatique
       queryClient.invalidateQueries({ queryKey: ['project-conventions', variables.projectId] });
-      toast.success('Convention ajoutée au projet');
+      queryClient.invalidateQueries({ queryKey: ['project-derived-bailleurs', variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['project-kpis', variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['available-conventions', variables.projectId] });
+      toast.success('Convention ajoutée au projet - Synchronisation effectuée');
     },
     onError: (error: Error) => {
       if (error.message.includes('duplicate')) {
@@ -95,8 +101,14 @@ export const useRemoveProjectConvention = () => {
       if (error) throw error;
     },
     onSuccess: (_, variables) => {
+      // Invalider toutes les queries liées pour refléter la synchronisation automatique
       queryClient.invalidateQueries({ queryKey: ['project-conventions', variables.projectId] });
-      toast.success('Convention retirée du projet');
+      queryClient.invalidateQueries({ queryKey: ['project-derived-bailleurs', variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['project-kpis', variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['project', variables.projectId] });
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      queryClient.invalidateQueries({ queryKey: ['available-conventions', variables.projectId] });
+      toast.success('Convention retirée - Bailleurs et KPIs synchronisés');
     },
     onError: (error: Error) => {
       toast.error(`Erreur: ${error.message}`);
