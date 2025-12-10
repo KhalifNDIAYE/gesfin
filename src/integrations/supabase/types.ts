@@ -4474,6 +4474,9 @@ export type Database = {
           end_date: string | null
           exchange_rate: number | null
           id: string
+          latitude: number | null
+          location_name: string | null
+          longitude: number | null
           name: string
           notes: string | null
           responsible_id: string | null
@@ -4494,6 +4497,9 @@ export type Database = {
           end_date?: string | null
           exchange_rate?: number | null
           id?: string
+          latitude?: number | null
+          location_name?: string | null
+          longitude?: number | null
           name: string
           notes?: string | null
           responsible_id?: string | null
@@ -4514,6 +4520,9 @@ export type Database = {
           end_date?: string | null
           exchange_rate?: number | null
           id?: string
+          latitude?: number | null
+          location_name?: string | null
+          longitude?: number | null
           name?: string
           notes?: string | null
           responsible_id?: string | null

@@ -21,6 +21,9 @@ export interface Project {
   created_by: string | null;
   created_at: string;
   updated_at: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  location_name?: string | null;
   // Joined data
   responsible?: { id: string; full_name: string; email: string } | null;
   currency?: { id: string; code: string; symbol: string } | null;
