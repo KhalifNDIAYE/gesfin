@@ -150,7 +150,7 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const { code, ...restValues } = values;
-    const formData: Omit<ProjectFormData, 'code'> & { code?: string } = {
+    const formData: any = {
       name: restValues.name,
       status: restValues.status,
       description: restValues.description,
@@ -161,6 +161,9 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
       currency_id: restValues.currency_id || undefined,
       responsible_id: restValues.responsible_id || undefined,
       site_id: restValues.site_id || undefined,
+      latitude: restValues.latitude || null,
+      longitude: restValues.longitude || null,
+      location_name: restValues.location_name || null,
     };
 
     if (project) {
@@ -388,6 +391,75 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
                   </FormItem>
                 )}
               />
+            </div>
+
+            {/* Geolocation Section */}
+            <div className="space-y-3 rounded-lg border border-border p-4 bg-muted/30">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <MapPin className="h-4 w-4 text-primary" />
+                Géolocalisation
+              </div>
+              
+              <FormField
+                control={form.control}
+                name="location_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nom du lieu</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Ex: Dakar, Région de Thiès..." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="latitude"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Latitude</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="any"
+                          placeholder="Ex: 14.6928" 
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="longitude"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Longitude</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="any"
+                          placeholder="Ex: -17.4467" 
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Astuce: Vous pouvez aussi positionner le projet directement sur la carte dans la vue "Carte des projets"
+              </p>
             </div>
 
             <FormField
