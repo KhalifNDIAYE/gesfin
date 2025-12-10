@@ -4,7 +4,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PermissionButton } from "@/components/auth/PermissionButton";
 import { useModulePermissions } from "@/components/auth/PermissionButton";
-import { Plus, Search, Filter, Loader2 } from "lucide-react";
+import { Plus, Search, Filter, Loader2, Map } from "lucide-react";
+import { Link } from "react-router-dom";
 import { useProjects, Project } from "@/hooks/useProjects";
 import { ProjectCard } from "@/components/projets/ProjectCard";
 import { ProjectDialog } from "@/components/projets/ProjectDialog";
@@ -83,6 +84,12 @@ export default function ProjetsPage() {
             </Button>
           </div>
           <div className="flex gap-2">
+            <Link to="/projets/carte">
+              <Button variant="outline">
+                <Map className="h-4 w-4 mr-2" />
+                Carte
+              </Button>
+            </Link>
             <TableExportButtons
               data={filteredProjects.map(p => ({
                 ...p,

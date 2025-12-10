@@ -29,7 +29,7 @@ import {
 import { useProjects, Project, ProjectFormData } from "@/hooks/useProjects";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Lock } from "lucide-react";
+import { Lock, MapPin } from "lucide-react";
 
 const formSchema = z.object({
   code: z.string().optional(),
@@ -43,6 +43,9 @@ const formSchema = z.object({
   responsible_id: z.string().optional(),
   site_id: z.string().optional(),
   notes: z.string().optional(),
+  latitude: z.coerce.number().optional(),
+  longitude: z.coerce.number().optional(),
+  location_name: z.string().optional(),
 });
 
 interface ProjectDialogProps {
@@ -101,6 +104,9 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
       responsible_id: "",
       site_id: "",
       notes: "",
+      latitude: undefined,
+      longitude: undefined,
+      location_name: "",
     },
   });
 
@@ -118,6 +124,9 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
         responsible_id: project.responsible_id || "",
         site_id: project.site_id || "",
         notes: project.notes || "",
+        latitude: project.latitude ?? undefined,
+        longitude: project.longitude ?? undefined,
+        location_name: project.location_name || "",
       });
     } else {
       form.reset({
@@ -132,6 +141,9 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
         responsible_id: "",
         site_id: "",
         notes: "",
+        latitude: undefined,
+        longitude: undefined,
+        location_name: "",
       });
     }
   }, [project, form]);

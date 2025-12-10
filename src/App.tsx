@@ -11,6 +11,7 @@ import Auth from "./pages/Auth";
 import AccessDenied from "./pages/AccessDenied";
 import ProjetsPage from "./pages/projets/ProjetsPage";
 import ProjetDetailPage from "./pages/projets/ProjetDetailPage";
+import ProjectsMapPage from "./pages/projets/ProjectsMapPage";
 import Comptabilite from "./pages/Comptabilite";
 // Old static pages removed - using dynamic pages from bailleurs/ and conventions/ folders
 import Immobilisations from "./pages/Immobilisations";
@@ -117,6 +118,7 @@ const App = () => (
             
             {/* Projets */}
             <Route path="/projets" element={<ProtectedRoute requiredModule="projets"><ProjetsPage /></ProtectedRoute>} />
+            <Route path="/projets/carte" element={<ProtectedRoute requiredModule="projets"><ProjectsMapPage /></ProtectedRoute>} />
             <Route path="/projets/:id" element={<ProtectedRoute requiredModule="projets"><ProjetDetailPage /></ProtectedRoute>} />
             
             {/* Comptabilité Générale */}
