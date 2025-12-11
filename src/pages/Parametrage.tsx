@@ -30,6 +30,7 @@ import { InterfaceTab } from "@/components/parametrage/InterfaceTab";
 import { SystemeTab } from "@/components/parametrage/SystemeTab";
 import { ExpenseCategoriesTab } from "@/components/parametrage/ExpenseCategoriesTab";
 import { BudgetAlertsTab } from "@/components/parametrage/BudgetAlertsTab";
+import { RegionsTab } from "@/components/parametrage/RegionsTab";
 
 const tabs = [
   { value: "organisation", label: "Organisation", icon: Building2 },
@@ -37,6 +38,7 @@ const tabs = [
   { value: "monnaies", label: "Monnaies", icon: Coins },
   { value: "pays", label: "Pays", icon: Globe },
   { value: "sites", label: "Sites", icon: MapPin },
+  { value: "regions", label: "Régions", icon: Globe },
   { value: "emplacements", label: "Emplacements", icon: MapPin },
   { value: "unites-oeuvre", label: "Unités d'œuvre", icon: Ruler },
   { value: "plans", label: "Plans", icon: FileText },
@@ -91,6 +93,10 @@ const Parametrage = () => {
 
           <TabsContent value="sites">
             <SitesTab />
+          </TabsContent>
+
+          <TabsContent value="regions">
+            <RegionsTab />
           </TabsContent>
 
           <TabsContent value="emplacements">

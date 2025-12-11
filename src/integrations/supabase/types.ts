@@ -4479,6 +4479,7 @@ export type Database = {
           longitude: number | null
           name: string
           notes: string | null
+          region_id: string | null
           responsible_id: string | null
           site_id: string | null
           start_date: string | null
@@ -4502,6 +4503,7 @@ export type Database = {
           longitude?: number | null
           name: string
           notes?: string | null
+          region_id?: string | null
           responsible_id?: string | null
           site_id?: string | null
           start_date?: string | null
@@ -4525,6 +4527,7 @@ export type Database = {
           longitude?: number | null
           name?: string
           notes?: string | null
+          region_id?: string | null
           responsible_id?: string | null
           site_id?: string | null
           start_date?: string | null
@@ -4556,6 +4559,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "projects_region_id_fkey"
+            columns: ["region_id"]
+            isOneToOne: false
+            referencedRelation: "regions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "projects_responsible_id_fkey"
             columns: ["responsible_id"]
             isOneToOne: false
@@ -4581,6 +4591,50 @@ export type Database = {
             columns: ["tracking_axis_id"]
             isOneToOne: false
             referencedRelation: "tracking_axes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      regions: {
+        Row: {
+          code: string
+          country_id: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          country_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          country_id?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "regions_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
             referencedColumns: ["id"]
           },
         ]
