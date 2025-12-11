@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -30,6 +30,7 @@ import { useProjects, Project, ProjectFormData } from "@/hooks/useProjects";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Lock, MapPin } from "lucide-react";
+import { useRegionsByCountry } from "@/hooks/useRegions";
 
 const formSchema = z.object({
   code: z.string().optional(),
@@ -42,10 +43,8 @@ const formSchema = z.object({
   currency_id: z.string().optional(),
   responsible_id: z.string().optional(),
   site_id: z.string().optional(),
+  region_id: z.string().optional(),
   notes: z.string().optional(),
-  latitude: z.coerce.number().optional(),
-  longitude: z.coerce.number().optional(),
-  location_name: z.string().optional(),
 });
 
 interface ProjectDialogProps {
@@ -65,6 +64,7 @@ const statusOptions = [
 
 export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProps) {
   const { createProject, updateProject } = useProjects();
+  const [selectedCountryId, setSelectedCountryId] = useState<string | undefined>(undefined);
 
   const { data: currencies = [] } = useQuery({
     queryKey: ["currencies"],
@@ -83,12 +83,18 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
   });
 
   const { data: sites = [] } = useQuery({
-    queryKey: ["sites"],
+    queryKey: ["sites-with-country"],
     queryFn: async () => {
-      const { data } = await supabase.from("sites").select("*").eq("is_active", true).order("name");
+      const { data } = await supabase
+        .from("sites")
+        .select("id, name, country_id")
+        .eq("is_active", true)
+        .order("name");
       return data || [];
     },
   });
+
+  const { data: regions = [] } = useRegionsByCountry(selectedCountryId);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -103,12 +109,24 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
       currency_id: "",
       responsible_id: "",
       site_id: "",
+      region_id: "",
       notes: "",
-      latitude: undefined,
-      longitude: undefined,
-      location_name: "",
     },
   });
+
+  const watchedSiteId = form.watch("site_id");
+
+  // Update country_id when site changes
+  useEffect(() => {
+    if (watchedSiteId) {
+      const selectedSite = sites.find(s => s.id === watchedSiteId);
+      setSelectedCountryId(selectedSite?.country_id || undefined);
+      // Reset region when site changes
+      form.setValue("region_id", "");
+    } else {
+      setSelectedCountryId(undefined);
+    }
+  }, [watchedSiteId, sites, form]);
 
   useEffect(() => {
     if (project) {
@@ -123,11 +141,14 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
         currency_id: project.currency_id || "",
         responsible_id: project.responsible_id || "",
         site_id: project.site_id || "",
+        region_id: (project as any).region_id || "",
         notes: project.notes || "",
-        latitude: project.latitude ?? undefined,
-        longitude: project.longitude ?? undefined,
-        location_name: project.location_name || "",
       });
+      // Set country based on site
+      const site = sites.find(s => s.id === project.site_id);
+      if (site?.country_id) {
+        setSelectedCountryId(site.country_id);
+      }
     } else {
       form.reset({
         code: "",
@@ -140,16 +161,19 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
         currency_id: "",
         responsible_id: "",
         site_id: "",
+        region_id: "",
         notes: "",
-        latitude: undefined,
-        longitude: undefined,
-        location_name: "",
       });
+      setSelectedCountryId(undefined);
     }
-  }, [project, form]);
+  }, [project, form, sites]);
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     const { code, ...restValues } = values;
+    
+    // Get latitude/longitude from selected region
+    const selectedRegion = regions.find(r => r.id === restValues.region_id);
+    
     const formData: any = {
       name: restValues.name,
       status: restValues.status,
@@ -161,9 +185,11 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
       currency_id: restValues.currency_id || undefined,
       responsible_id: restValues.responsible_id || undefined,
       site_id: restValues.site_id || undefined,
-      latitude: restValues.latitude || null,
-      longitude: restValues.longitude || null,
-      location_name: restValues.location_name || null,
+      region_id: restValues.region_id || undefined,
+      // Auto-populate from region
+      latitude: selectedRegion?.latitude || null,
+      longitude: selectedRegion?.longitude || null,
+      location_name: selectedRegion?.name || null,
     };
 
     if (project) {
@@ -372,11 +398,11 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
                 name="site_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Site</FormLabel>
+                    <FormLabel>Site (Pays)</FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner" />
+                          <SelectValue placeholder="Sélectionner un site" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -402,63 +428,41 @@ export function ProjectDialog({ open, onOpenChange, project }: ProjectDialogProp
               
               <FormField
                 control={form.control}
-                name="location_name"
+                name="region_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Nom du lieu</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Ex: Dakar, Région de Thiès..." {...field} />
-                    </FormControl>
+                    <FormLabel>Région</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      value={field.value}
+                      disabled={!selectedCountryId || regions.length === 0}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={
+                            !selectedCountryId 
+                              ? "Sélectionnez d'abord un site" 
+                              : regions.length === 0 
+                                ? "Aucune région disponible" 
+                                : "Sélectionner une région"
+                          } />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {regions.map((region) => (
+                          <SelectItem key={region.id} value={region.id}>
+                            {region.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <div className="grid grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="latitude"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Latitude</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="any"
-                          placeholder="Ex: 14.6928" 
-                          {...field}
-                          value={field.value ?? ''}
-                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="longitude"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Longitude</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="any"
-                          placeholder="Ex: -17.4467" 
-                          {...field}
-                          value={field.value ?? ''}
-                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
+              
               <p className="text-xs text-muted-foreground">
-                Astuce: Vous pouvez aussi positionner le projet directement sur la carte dans la vue "Carte des projets"
+                La latitude et longitude seront automatiquement définies à partir de la région sélectionnée.
               </p>
             </div>
 

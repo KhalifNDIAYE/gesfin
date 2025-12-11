@@ -16,8 +16,10 @@ export interface ProjectMapData {
   longitude: number | null;
   location_name: string | null;
   site_id: string | null;
+  region_id: string | null;
   responsible?: { id: string; full_name: string } | null;
-  site?: { id: string; name: string; region?: string; department?: string } | null;
+  site?: { id: string; name: string; country_id?: string } | null;
+  region?: { id: string; name: string; latitude: number | null; longitude: number | null } | null;
   currency?: { code: string; symbol: string } | null;
   project_bailleurs?: Array<{
     bailleur: { id: string; name: string; short_name: string; code: string } | null;
@@ -46,9 +48,10 @@ export const useProjectsForMap = (filters?: MapFilters) => {
         .from('projects')
         .select(`
           id, code, name, description, status, start_date, end_date,
-          total_budget, consumed_budget, latitude, longitude, location_name, site_id,
+          total_budget, consumed_budget, latitude, longitude, location_name, site_id, region_id,
           responsible:profiles!projects_responsible_id_fkey(id, full_name),
-          site:sites(id, name),
+          site:sites(id, name, country_id),
+          region:regions(id, name, latitude, longitude),
           currency:currencies(code, symbol),
           project_bailleurs(
             committed_amount, disbursed_amount,

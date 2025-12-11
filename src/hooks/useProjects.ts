@@ -16,6 +16,7 @@ export interface Project {
   exchange_rate: number;
   responsible_id: string | null;
   site_id: string | null;
+  region_id: string | null;
   tracking_axis_id: string | null;
   notes: string | null;
   created_by: string | null;
@@ -27,7 +28,8 @@ export interface Project {
   // Joined data
   responsible?: { id: string; full_name: string; email: string } | null;
   currency?: { id: string; code: string; symbol: string } | null;
-  site?: { id: string; name: string } | null;
+  site?: { id: string; name: string; country_id?: string } | null;
+  region?: { id: string; name: string; latitude: number | null; longitude: number | null } | null;
   project_bailleurs?: ProjectBailleur[];
   project_conventions?: ProjectConventionLink[];
 }
@@ -62,8 +64,12 @@ export interface ProjectFormData {
   currency_id?: string;
   responsible_id?: string;
   site_id?: string;
+  region_id?: string;
   tracking_axis_id?: string;
   notes?: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  location_name?: string | null;
 }
 
 export const useProjects = () => {
@@ -78,7 +84,8 @@ export const useProjects = () => {
           *,
           responsible:profiles!projects_responsible_id_fkey(id, full_name, email),
           currency:currencies(id, code, symbol),
-          site:sites(id, name),
+          site:sites(id, name, country_id),
+          region:regions(id, name, latitude, longitude),
           project_bailleurs(
             id, bailleur_id, committed_amount, disbursed_amount, remaining_amount, execution_rate,
             bailleur:bailleurs(id, name, short_name, code)
@@ -179,7 +186,8 @@ export const useProject = (id: string | undefined) => {
           *,
           responsible:profiles!projects_responsible_id_fkey(id, full_name, email),
           currency:currencies(id, code, symbol),
-          site:sites(id, name),
+          site:sites(id, name, country_id),
+          region:regions(id, name, latitude, longitude),
           project_bailleurs(
             id, bailleur_id, committed_amount, disbursed_amount, remaining_amount, execution_rate, notes,
             bailleur:bailleurs(id, name, short_name, code)
