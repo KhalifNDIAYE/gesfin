@@ -2463,6 +2463,8 @@ export type Database = {
       countries: {
         Row: {
           code: string
+          code_iso2: string | null
+          code_iso3: string | null
           created_at: string | null
           id: string
           name: string
@@ -2470,6 +2472,8 @@ export type Database = {
         }
         Insert: {
           code: string
+          code_iso2?: string | null
+          code_iso3?: string | null
           created_at?: string | null
           id?: string
           name: string
@@ -2477,6 +2481,8 @@ export type Database = {
         }
         Update: {
           code?: string
+          code_iso2?: string | null
+          code_iso3?: string | null
           created_at?: string | null
           id?: string
           name?: string

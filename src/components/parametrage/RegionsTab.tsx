@@ -7,14 +7,19 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Pencil, Trash2, MapPin } from 'lucide-react';
+import { Plus, Pencil, Trash2, MapPin, Globe, Loader2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function RegionsTab() {
+  const queryClient = useQueryClient();
   const { regions, isLoading, createRegion, updateRegion, deleteRegion } = useRegions();
   const { data: countries = [] } = useCountries();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingRegion, setEditingRegion] = useState<Region | null>(null);
+  const [isImporting, setIsImporting] = useState(false);
   const [formData, setFormData] = useState<RegionFormData>({
     code: '',
     name: '',
@@ -64,6 +69,27 @@ export function RegionsTab() {
     }
   };
 
+  const handleImportWorld = async () => {
+    setIsImporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('import-world-regions');
+      if (error) throw error;
+      
+      if (data?.success) {
+        toast.success(`Import terminé: ${data.summary.countries.total} pays, ${data.summary.regions.total} régions`);
+        queryClient.invalidateQueries({ queryKey: ['regions'] });
+        queryClient.invalidateQueries({ queryKey: ['countries'] });
+      } else {
+        throw new Error(data?.error || 'Erreur inconnue');
+      }
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Erreur lors de l\'import';
+      toast.error(message);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   if (isLoading) {
     return <div className="p-4">Chargement...</div>;
   }
@@ -72,10 +98,16 @@ export function RegionsTab() {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <h3 className="text-lg font-medium">Gestion des Régions</h3>
-        <Button onClick={() => handleOpenDialog()}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvelle région
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleImportWorld} disabled={isImporting}>
+            {isImporting ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Globe className="h-4 w-4 mr-2" />}
+            Importer le monde
+          </Button>
+          <Button onClick={() => handleOpenDialog()}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nouvelle région
+          </Button>
+        </div>
       </div>
 
       <Table>
