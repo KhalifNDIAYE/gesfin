@@ -5,3 +5,6 @@ verify_jwt = true
 
 [functions.send-alert-email]
 verify_jwt = true
+
+[functions.import-world-regions]
+verify_jwt = false
