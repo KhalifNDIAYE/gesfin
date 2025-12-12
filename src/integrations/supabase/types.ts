@@ -5205,6 +5205,15 @@ export type Database = {
         Args: { _entry_id: string; _intended_action: string; _user_id: string }
         Returns: Json
       }
+      check_separation_of_duties: {
+        Args: {
+          _action_type: string
+          _created_by: string
+          _submitted_by: string
+          _user_id: string
+        }
+        Returns: Json
+      }
       check_treasury_availability: {
         Args: { _amount: number }
         Returns: boolean
@@ -5317,6 +5326,17 @@ export type Database = {
         }
         Returns: string
       }
+      log_critical_action: {
+        Args: {
+          _action: string
+          _details?: Json
+          _module: string
+          _resource_id: string
+          _resource_type: string
+          _user_id: string
+        }
+        Returns: string
+      }
       log_document_action: {
         Args: {
           _action: string
@@ -5336,6 +5356,18 @@ export type Database = {
           _project_id: string
         }
         Returns: undefined
+      }
+      log_validation_action: {
+        Args: {
+          _comment?: string
+          _entity_id: string
+          _entity_type: string
+          _from_status: string
+          _to_status: string
+          _user_id: string
+          _validation_type: string
+        }
+        Returns: string
       }
       process_admin_override_decision: {
         Args: {
