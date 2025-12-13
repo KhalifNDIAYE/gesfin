@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { PermissionButton } from "@/components/auth/PermissionButton";
 import { useModulePermissions } from "@/components/auth/PermissionButton";
-import { Plus, Search, Filter, Loader2, Map } from "lucide-react";
+import { Plus, Search, Filter, Loader2, Map, RotateCcw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useProjects, Project } from "@/hooks/useProjects";
 import { ProjectCard } from "@/components/projets/ProjectCard";
@@ -19,24 +19,82 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { TableExportButtons, ExportColumn } from "@/components/export/TableExportButtons";
 import { formatCurrency } from "@/lib/utils";
+
+const statusOptions = [
+  { value: "all", label: "Tous les statuts" },
+  { value: "draft", label: "Planifié" },
+  { value: "active", label: "En cours" },
+  { value: "pending", label: "En retard" },
+  { value: "suspended", label: "Bloqué" },
+  { value: "completed", label: "Terminé" },
+  { value: "closed", label: "Clôturé" },
+];
 
 export default function ProjetsPage() {
   const { projects, isLoading, deleteProject } = useProjects();
   const { canCreate, canUpdate, canDelete } = useModulePermissions("projets");
   
   const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [bailleurFilter, setBailleurFilter] = useState("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
-  const filteredProjects = projects.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.code.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Extract unique bailleurs from projects
+  const bailleurs = useMemo(() => {
+    const bailleurMap: Record<string, { id: string; name: string; code: string }> = {};
+    projects.forEach((project) => {
+      project.project_bailleurs?.forEach((pb) => {
+        if (pb.bailleur && !bailleurMap[pb.bailleur.id]) {
+          bailleurMap[pb.bailleur.id] = {
+            id: pb.bailleur.id,
+            name: pb.bailleur.name,
+            code: pb.bailleur.code,
+          };
+        }
+      });
+    });
+    return Object.values(bailleurMap).sort((a, b) => a.name.localeCompare(b.name));
+  }, [projects]);
+
+  // Filter projects based on search, status and bailleur
+  const filteredProjects = useMemo(() => {
+    return projects.filter((p) => {
+      // Search filter
+      const matchesSearch =
+        p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        p.code.toLowerCase().includes(searchTerm.toLowerCase());
+
+      // Status filter
+      const matchesStatus = statusFilter === "all" || p.status === statusFilter;
+
+      // Bailleur filter - check if project has the selected bailleur
+      const matchesBailleur =
+        bailleurFilter === "all" ||
+        p.project_bailleurs?.some((pb) => pb.bailleur?.id === bailleurFilter);
+
+      return matchesSearch && matchesStatus && matchesBailleur;
+    });
+  }, [projects, searchTerm, statusFilter, bailleurFilter]);
+
+  const hasActiveFilters = statusFilter !== "all" || bailleurFilter !== "all" || searchTerm !== "";
+
+  const resetFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setBailleurFilter("all");
+  };
 
   const handleEdit = (project: Project) => {
     setSelectedProject(project);
@@ -79,9 +137,6 @@ export default function ProjetsPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline" size="icon">
-              <Filter className="h-4 w-4" />
-            </Button>
           </div>
           <div className="flex gap-2">
             <Link to="/projets/carte">
@@ -121,6 +176,57 @@ export default function ProjetsPage() {
           </div>
         </div>
 
+        {/* Filters Section */}
+        <div className="flex flex-wrap items-center gap-3 p-4 bg-muted/50 rounded-lg border">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium">Filtres :</span>
+          </div>
+          
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px] bg-background">
+              <SelectValue placeholder="Statut" />
+            </SelectTrigger>
+            <SelectContent>
+              {statusOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={bailleurFilter} onValueChange={setBailleurFilter}>
+            <SelectTrigger className="w-[200px] bg-background">
+              <SelectValue placeholder="Bailleur" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les bailleurs</SelectItem>
+              {bailleurs.map((bailleur) => (
+                <SelectItem key={bailleur.id} value={bailleur.id}>
+                  {bailleur.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          {hasActiveFilters && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={resetFilters}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              <RotateCcw className="h-4 w-4 mr-1" />
+              Réinitialiser
+            </Button>
+          )}
+
+          <span className="ml-auto text-sm text-muted-foreground">
+            {filteredProjects.length} projet{filteredProjects.length !== 1 ? "s" : ""} trouvé{filteredProjects.length !== 1 ? "s" : ""}
+          </span>
+        </div>
+
         {/* Projects Grid */}
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -128,7 +234,7 @@ export default function ProjetsPage() {
           </div>
         ) : filteredProjects.length === 0 ? (
           <div className="text-center py-12 text-muted-foreground">
-            {searchTerm ? "Aucun projet trouvé" : "Aucun projet créé"}
+            {hasActiveFilters ? "Aucun projet ne correspond aux filtres" : searchTerm ? "Aucun projet trouvé" : "Aucun projet créé"}
           </div>
         ) : (
           <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
