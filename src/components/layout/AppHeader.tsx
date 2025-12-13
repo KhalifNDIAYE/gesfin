@@ -59,11 +59,7 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
         {/* Search */}
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Rechercher..."
-            className="w-64 pl-9"
-          />
+          <Input type="search" placeholder="Rechercher..." className="w-64 pl-9" />
         </div>
 
         {/* Notifications Center */}
@@ -87,12 +83,8 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
                 </Avatar>
                 {/* Desktop: show name and role */}
                 <div className="hidden md:flex flex-col items-start">
-                  <span className="text-sm font-medium text-foreground">
-                    {profile?.full_name || "Utilisateur"}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {primaryRole}
-                  </span>
+                  <span className="text-sm font-medium text-foreground">{profile?.full_name || "Utilisateur"}</span>
+                  <span className="text-xs text-muted-foreground">{primaryRole}</span>
                 </div>
                 <ChevronDown className="hidden md:block h-4 w-4 text-muted-foreground" />
               </button>
@@ -107,9 +99,7 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
                   <p className="text-sm font-medium">{profile?.full_name || "Utilisateur"}</p>
                   <p className="text-xs text-muted-foreground">{profile?.email}</p>
                   {roles && roles.length > 0 && (
-                    <p className="text-xs text-primary font-medium mt-1">
-                      {roles.map(r => r.name).join(", ")}
-                    </p>
+                    <p className="text-xs text-primary font-medium mt-1">{roles.map((r) => r.name).join(", ")}</p>
                   )}
                 </div>
               </DropdownMenuLabel>
@@ -117,14 +107,6 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
               <DropdownMenuItem onClick={() => navigate("/profil")} className="cursor-pointer">
                 <User className="mr-2 h-4 w-4" />
                 Profil
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/parametres")} className="cursor-pointer">
-                <Settings className="mr-2 h-4 w-4" />
-                Paramètres du compte
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => navigate("/profil?tab=securite")} className="cursor-pointer">
-                <KeyRound className="mr-2 h-4 w-4" />
-                Changer mot de passe
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
