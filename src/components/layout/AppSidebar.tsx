@@ -15,10 +15,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  LogOut,
-  User,
-  HelpCircle,
-  ChevronUp,
   Wallet,
   CreditCard,
   Receipt,
@@ -46,19 +42,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { useAuth } from "@/contexts/AuthContext";
 import { usePermissions } from "@/hooks/usePermissions";
 import { useSidebarCounts, useSidebarAlerts } from "@/hooks/useSidebarCounts";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { toast } from "sonner";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { ModuleName } from "@/types/database";
 
@@ -272,8 +257,7 @@ export function AppSidebar() {
 
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, roles, signOut } = useAuth();
-  const { canAccess, isAdmin } = usePermissions();
+  const { canAccess } = usePermissions();
   const { data: sidebarCounts } = useSidebarCounts();
   const { data: sidebarAlerts } = useSidebarAlerts();
 
@@ -323,30 +307,6 @@ export function AppSidebar() {
   const handleGroupToggle = (groupKey: GroupKey) => {
     setOpenGroup(current => current === groupKey ? null : groupKey);
   };
-
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      toast.success("Déconnexion réussie");
-      navigate("/auth");
-    } catch (error) {
-      toast.error("Erreur lors de la déconnexion");
-    }
-  };
-
-  const getInitials = (name: string | null, email: string) => {
-    if (name) {
-      return name
-        .split(" ")
-        .map((n) => n[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-    }
-    return email.slice(0, 2).toUpperCase();
-  };
-
-  const primaryRole = roles.length > 0 ? roles[0].name : "Utilisateur";
 
   // Check if a group is active based on current route
   const isGroupActive = (groupKey: GroupKey): boolean => {
@@ -606,72 +566,6 @@ export function AppSidebar() {
           )}
         </nav>
 
-        <Separator className="bg-sidebar-border" />
-
-        {/* User Section */}
-        <div className="p-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-lg bg-sidebar-accent p-3 transition-colors hover:bg-sidebar-accent/80 focus:outline-none",
-                  collapsed && "justify-center",
-                )}
-              >
-                <Avatar className="h-9 w-9 shrink-0">
-                  <AvatarImage src={profile?.avatar_url || undefined} alt={profile?.full_name || "User"} />
-                  <AvatarFallback className="bg-sidebar-primary/20 text-sm font-semibold text-sidebar-primary">
-                    {profile ? getInitials(profile.full_name, profile.email) : <User className="h-4 w-4" />}
-                  </AvatarFallback>
-                </Avatar>
-                {!collapsed && (
-                  <>
-                    <div className="flex-1 overflow-hidden text-left">
-                      <p className="truncate text-sm font-medium text-sidebar-foreground">
-                        {profile?.full_name || "Utilisateur"}
-                      </p>
-                      <p className="truncate text-xs text-sidebar-primary/80">{primaryRole?.toUpperCase()}</p>
-                    </div>
-                    <ChevronUp className="h-4 w-4 text-sidebar-foreground/60" />
-                  </>
-                )}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              side="top"
-              align="start"
-              className="w-56 bg-popover border border-border shadow-lg z-50"
-              sideOffset={8}
-            >
-              <DropdownMenuLabel className="font-normal">
-                <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium">{profile?.full_name || "Utilisateur"}</p>
-                  <p className="text-xs text-muted-foreground">{profile?.email}</p>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/profil")} className="cursor-pointer">
-                <User className="mr-2 h-4 w-4" />
-                Mon profil
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => window.open("https://docs.lovable.dev/", "_blank")}
-                className="cursor-pointer"
-              >
-                <HelpCircle className="mr-2 h-4 w-4" />
-                Aide
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleSignOut}
-                className="cursor-pointer text-destructive focus:text-destructive focus:bg-destructive/10"
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Déconnexion
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
 
         {/* Collapse Toggle */}
         <div className="border-t border-sidebar-border p-3">
