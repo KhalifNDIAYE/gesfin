@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -41,6 +41,7 @@ import {
   TrendingUp,
   Database,
   AlertTriangle,
+  Cog,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,16 @@ import type { ModuleName } from "@/types/database";
 
 type AlertKey = "projetsEnRetard" | "projetsBudgetDepasse" | "conventionsExpirees" | "budgetsEnDepassement";
 
+// Types for dropdown groups
+type GroupKey = 
+  | "comptabilite" 
+  | "analytique" 
+  | "budget" 
+  | "immobilisations" 
+  | "rapports" 
+  | "decaissements" 
+  | "administration";
+
 interface NavItem {
   title: string;
   href: string;
@@ -79,6 +90,7 @@ interface NavGroup {
   module?: ModuleName;
   alertKey?: AlertKey;
   alertHref?: string;
+  groupKey: GroupKey;
 }
 
 const mainNavItems: NavItem[] = [
@@ -100,6 +112,7 @@ const comptabiliteGroup: NavGroup = {
   title: "Comptabilité Générale",
   icon: Calculator,
   module: "comptabilite",
+  groupKey: "comptabilite",
   items: [
     { title: "Journal", href: "/comptabilite", icon: BookOpen, module: "comptabilite" },
     { title: "Dépenses", href: "/comptabilite/depenses", icon: Wallet, module: "comptabilite" },
@@ -124,6 +137,7 @@ const analytiqueGroup: NavGroup = {
   title: "Comptabilité Analytique",
   icon: PieChart,
   module: "comptabilite",
+  groupKey: "analytique",
   items: [
     { title: "Par Activité", href: "/comptabilite/analytique/activite", icon: Activity, module: "comptabilite" },
     { title: "Par Composante", href: "/comptabilite/analytique/composante", icon: Layers, module: "comptabilite" },
@@ -157,6 +171,7 @@ const budgetGroup: NavGroup = {
   module: "comptabilite",
   alertKey: "budgetsEnDepassement",
   alertHref: "/budget/alertes",
+  groupKey: "budget",
   items: [
     { title: "Budgets", href: "/budget", icon: FileText, module: "comptabilite" },
     { title: "Tableau de Bord", href: "/budget/dashboard", icon: BarChart3, module: "comptabilite" },
@@ -170,6 +185,7 @@ const immobilisationsGroup: NavGroup = {
   title: "Immobilisations",
   icon: Package,
   module: "immobilisations",
+  groupKey: "immobilisations",
   items: [
     { title: "Registre", href: "/immobilisations", icon: Package, module: "immobilisations" },
     { title: "Mouvements", href: "/immobilisations/mouvements", icon: ArrowDownUp, module: "immobilisations" },
@@ -183,6 +199,7 @@ const rapportsGroup: NavGroup = {
   title: "Rapports",
   icon: BarChart3,
   module: "rapports",
+  groupKey: "rapports",
   items: [
     { title: "Vue d'ensemble", href: "/rapports", icon: FileText, module: "rapports" },
     { title: "Risques & Alertes", href: "/rapports/risques-alertes", icon: AlertTriangle, module: "rapports" },
@@ -200,12 +217,26 @@ const decaissementsGroup: NavGroup = {
   title: "Décaissements",
   icon: ArrowDownUp,
   module: "decaissements",
+  groupKey: "decaissements",
   items: [
     { title: "Vue d'ensemble", href: "/decaissements", icon: ArrowDownUp, module: "decaissements" },
     { title: "Par Projet", href: "/decaissements/projet", icon: FolderKanban, module: "decaissements" },
     { title: "Par Bailleur", href: "/decaissements/bailleur", icon: Building2, module: "decaissements" },
     { title: "Par Budget", href: "/decaissements/budget", icon: Wallet, module: "decaissements" },
     { title: "Monitoring", href: "/decaissements/monitoring", icon: Activity, module: "decaissements" },
+  ],
+};
+
+// Administration group with its sub-items
+const administrationGroup: NavGroup = {
+  title: "Administration",
+  icon: Cog,
+  groupKey: "administration",
+  items: [
+    { title: "Utilisateurs", href: "/utilisateurs", icon: Users, module: "utilisateurs" },
+    { title: "Sécurité", href: "/securite", icon: Shield, module: "securite" },
+    { title: "Utilitaires", href: "/utilitaires", icon: Database, module: "parametres" },
+    { title: "Paramètres", href: "/parametres", icon: Settings, module: "parametres" },
   ],
 };
 
@@ -222,61 +253,76 @@ const otherNavItems: NavItem[] = [
   { title: "Marchés", href: "/marches", icon: ArrowDownUp, badgeKey: "marches", module: "marches" },
 ];
 
-const adminNavItems: NavItem[] = [
-  { title: "Utilisateurs", href: "/utilisateurs", icon: Users, module: "utilisateurs" },
-  { title: "Sécurité", href: "/securite", icon: Shield, module: "securite" },
-  { title: "Utilitaires", href: "/utilitaires", icon: Database, module: "parametres" },
-  { title: "Paramètres", href: "/parametres", icon: Settings, module: "parametres" },
-];
-
 export function AppSidebar() {
-  const getStoredState = (key: string, defaultValue: boolean) => {
+  const getStoredState = (key: string, defaultValue: string | null) => {
     const stored = localStorage.getItem(`sidebar_${key}`);
-    return stored !== null ? JSON.parse(stored) : defaultValue;
+    return stored !== null ? stored : defaultValue;
   };
 
-  const [collapsed, setCollapsed] = useState(() => getStoredState("collapsed", false));
-  const [comptaOpen, setComptaOpen] = useState(() => getStoredState("comptaOpen", false));
-  const [analytiqueOpen, setAnalytiqueOpen] = useState(() => getStoredState("analytiqueOpen", false));
-  const [budgetOpen, setBudgetOpen] = useState(() => getStoredState("budgetOpen", false));
-  const [immoOpen, setImmoOpen] = useState(() => getStoredState("immoOpen", false));
-  const [rapportsOpen, setRapportsOpen] = useState(() => getStoredState("rapportsOpen", false));
-  const [decaissementsOpen, setDecaissementsOpen] = useState(() => getStoredState("decaissementsOpen", false));
+  const [collapsed, setCollapsed] = useState(() => {
+    const stored = localStorage.getItem("sidebar_collapsed");
+    return stored !== null ? JSON.parse(stored) : false;
+  });
+  
+  // Single state for exclusive dropdown opening
+  const [openGroup, setOpenGroup] = useState<GroupKey | null>(() => {
+    const stored = getStoredState("openGroup", null);
+    return stored as GroupKey | null;
+  });
+
   const location = useLocation();
-
-  useEffect(() => {
-    localStorage.setItem("sidebar_collapsed", JSON.stringify(collapsed));
-  }, [collapsed]);
-
-  useEffect(() => {
-    localStorage.setItem("sidebar_comptaOpen", JSON.stringify(comptaOpen));
-  }, [comptaOpen]);
-
-  useEffect(() => {
-    localStorage.setItem("sidebar_analytiqueOpen", JSON.stringify(analytiqueOpen));
-  }, [analytiqueOpen]);
-
-  useEffect(() => {
-    localStorage.setItem("sidebar_budgetOpen", JSON.stringify(budgetOpen));
-  }, [budgetOpen]);
-
-  useEffect(() => {
-    localStorage.setItem("sidebar_immoOpen", JSON.stringify(immoOpen));
-  }, [immoOpen]);
-
-  useEffect(() => {
-    localStorage.setItem("sidebar_rapportsOpen", JSON.stringify(rapportsOpen));
-  }, [rapportsOpen]);
-
-  useEffect(() => {
-    localStorage.setItem("sidebar_decaissementsOpen", JSON.stringify(decaissementsOpen));
-  }, [decaissementsOpen]);
-
   const navigate = useNavigate();
   const { profile, roles, signOut } = useAuth();
   const { canAccess, isAdmin } = usePermissions();
   const { data: sidebarCounts } = useSidebarCounts();
   const { data: sidebarAlerts } = useSidebarAlerts();
+
+  // Persist collapsed state
+  useEffect(() => {
+    localStorage.setItem("sidebar_collapsed", JSON.stringify(collapsed));
+  }, [collapsed]);
+
+  // Persist open group state
+  useEffect(() => {
+    if (openGroup) {
+      localStorage.setItem("sidebar_openGroup", openGroup);
+    } else {
+      localStorage.removeItem("sidebar_openGroup");
+    }
+  }, [openGroup]);
+
+  // Determine which group should be open based on current route
+  const getActiveGroup = useCallback((): GroupKey | null => {
+    const path = location.pathname;
+    
+    if (path.includes("/comptabilite/analytique")) return "analytique";
+    if (path.startsWith("/comptabilite")) return "comptabilite";
+    if (path.startsWith("/budget")) return "budget";
+    if (path.startsWith("/immobilisations")) return "immobilisations";
+    if (path.startsWith("/rapports")) return "rapports";
+    if (path.startsWith("/decaissements")) return "decaissements";
+    if (
+      path.startsWith("/utilisateurs") || 
+      path.startsWith("/securite") || 
+      path.startsWith("/utilitaires") || 
+      path.startsWith("/parametres")
+    ) return "administration";
+    
+    return null;
+  }, [location.pathname]);
+
+  // Auto-open the group containing the current route
+  useEffect(() => {
+    const activeGroup = getActiveGroup();
+    if (activeGroup && openGroup !== activeGroup) {
+      setOpenGroup(activeGroup);
+    }
+  }, [location.pathname, getActiveGroup]);
+
+  // Toggle group with exclusive behavior
+  const handleGroupToggle = (groupKey: GroupKey) => {
+    setOpenGroup(current => current === groupKey ? null : groupKey);
+  };
 
   const handleSignOut = async () => {
     try {
@@ -302,12 +348,10 @@ export function AppSidebar() {
 
   const primaryRole = roles.length > 0 ? roles[0].name : "Utilisateur";
 
-  const isComptaActive = location.pathname.startsWith("/comptabilite") && !location.pathname.includes("/analytique");
-  const isAnalytiqueActive = location.pathname.includes("/comptabilite/analytique");
-  const isBudgetActive = location.pathname.startsWith("/budget");
-  const isImmoActive = location.pathname.startsWith("/immobilisations");
-  const isRapportsActive = location.pathname.startsWith("/rapports");
-  const isDecaissementsActive = location.pathname.startsWith("/decaissements");
+  // Check if a group is active based on current route
+  const isGroupActive = (groupKey: GroupKey): boolean => {
+    return getActiveGroup() === groupKey;
+  };
 
   // Filter navigation items based on permissions
   const filterNavItems = (items: NavItem[]) => {
@@ -315,13 +359,27 @@ export function AppSidebar() {
   };
 
   const canShowGroup = (group: NavGroup) => {
-    if (!group.module) return true;
+    if (!group.module) {
+      // For administration group, check if user has access to at least one sub-item
+      if (group.groupKey === "administration") {
+        return group.items.some(item => item.module && canAccess(item.module, "read"));
+      }
+      return true;
+    }
     return canAccess(group.module, "read");
+  };
+
+  // Get filtered administration items based on user permissions
+  const getFilteredAdminItems = () => {
+    return administrationGroup.items.filter(item => 
+      item.module && canAccess(item.module, "read")
+    );
   };
 
   const filteredMainNavItems = filterNavItems(mainNavItems);
   const filteredOtherNavItems = filterNavItems(otherNavItems);
-  const filteredAdminNavItems = isAdmin ? adminNavItems : [];
+  const filteredAdminItems = getFilteredAdminItems();
+  const showAdministration = filteredAdminItems.length > 0;
 
   const NavItemComponent = ({ item }: { item: NavItem }) => {
     const isActive = location.pathname === item.href;
@@ -399,6 +457,74 @@ export function AppSidebar() {
     );
   };
 
+  // Render a collapsible navigation group
+  const renderNavGroup = (group: NavGroup, displayTitle: string) => {
+    const isOpen = openGroup === group.groupKey;
+    const isActive = isGroupActive(group.groupKey);
+    const Icon = group.icon;
+    const items = group.groupKey === "administration" ? filteredAdminItems : group.items;
+
+    if (collapsed) {
+      // In collapsed mode, show only icon linking to first item
+      const firstHref = items[0]?.href || "#";
+      return (
+        <Link 
+          key={group.groupKey}
+          to={firstHref} 
+          className={cn("sidebar-nav-item group relative", isActive && "active")}
+        >
+          <Icon className="h-5 w-5 shrink-0" />
+          {group.alertKey && sidebarAlerts?.[group.alertKey] !== undefined && sidebarAlerts[group.alertKey] > 0 && (
+            <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-destructive" />
+          )}
+        </Link>
+      );
+    }
+
+    return (
+      <Collapsible 
+        key={group.groupKey}
+        open={isOpen} 
+        onOpenChange={() => handleGroupToggle(group.groupKey)}
+      >
+        <CollapsibleTrigger asChild>
+          <button className={cn("sidebar-nav-item group w-full justify-between", isActive && "active")}>
+            <div className="flex items-center gap-3">
+              <Icon className="h-5 w-5 shrink-0" />
+              <span className="flex-1 text-left">{displayTitle}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              {group.alertKey && sidebarAlerts?.[group.alertKey] !== undefined && sidebarAlerts[group.alertKey] > 0 && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (group.alertHref) navigate(group.alertHref);
+                  }}
+                  className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-semibold text-destructive-foreground hover:bg-destructive/80 transition-colors"
+                  title={`${sidebarAlerts[group.alertKey]} alerte(s)`}
+                >
+                  {sidebarAlerts[group.alertKey]}
+                </button>
+              )}
+              <ChevronDown
+                className={cn(
+                  "h-4 w-4 transition-transform duration-200",
+                  isOpen && "rotate-180"
+                )}
+              />
+            </div>
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="pl-4 pt-1 space-y-0.5 animate-accordion-down data-[state=closed]:animate-accordion-up">
+          {items.map((item) => (
+            <SubNavItem key={item.href} item={item} />
+          ))}
+        </CollapsibleContent>
+      </Collapsible>
+    );
+  };
+
   return (
     <aside
       className={cn(
@@ -444,198 +570,29 @@ export function AppSidebar() {
           ))}
 
           {/* Comptabilité Générale Group */}
-          {canShowGroup(comptabiliteGroup) &&
-            (collapsed ? (
-              <Link to="/comptabilite" className={cn("sidebar-nav-item group", isComptaActive && "active")}>
-                <Calculator className="h-5 w-5 shrink-0" />
-              </Link>
-            ) : (
-              <Collapsible open={comptaOpen} onOpenChange={setComptaOpen}>
-                <CollapsibleTrigger asChild>
-                  <button className={cn("sidebar-nav-item group w-full justify-between", isComptaActive && "active")}>
-                    <div className="flex items-center gap-3">
-                      <Calculator className="h-5 w-5 shrink-0" />
-                      <span className="flex-1 text-left">Comptabilité</span>
-                    </div>
-                    <ChevronDown
-                      className={cn("h-4 w-4 transition-transform duration-200", comptaOpen && "rotate-180")}
-                    />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
-                  {comptabiliteGroup.items.map((item) => (
-                    <SubNavItem key={item.href} item={item} />
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
+          {canShowGroup(comptabiliteGroup) && renderNavGroup(comptabiliteGroup, "Comptabilité")}
 
           {/* Comptabilité Analytique Group */}
-          {canShowGroup(analytiqueGroup) &&
-            (collapsed ? (
-              <Link
-                to="/comptabilite/analytique/synthese"
-                className={cn("sidebar-nav-item group", isAnalytiqueActive && "active")}
-              >
-                <PieChart className="h-5 w-5 shrink-0" />
-              </Link>
-            ) : (
-              <Collapsible open={analytiqueOpen} onOpenChange={setAnalytiqueOpen}>
-                <CollapsibleTrigger asChild>
-                  <button
-                    className={cn("sidebar-nav-item group w-full justify-between", isAnalytiqueActive && "active")}
-                  >
-                    <div className="flex items-center gap-3">
-                      <PieChart className="h-5 w-5 shrink-0" />
-                      <span className="flex-1 text-left">Analytique</span>
-                    </div>
-                    <ChevronDown
-                      className={cn("h-4 w-4 transition-transform duration-200", analytiqueOpen && "rotate-180")}
-                    />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
-                  {analytiqueGroup.items.map((item) => (
-                    <SubNavItem key={item.href} item={item} />
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
+          {canShowGroup(analytiqueGroup) && renderNavGroup(analytiqueGroup, "Analytique")}
 
           {/* Suivi Budgétaire Group */}
-          {canShowGroup(budgetGroup) &&
-            (collapsed ? (
-              <Link to="/budget" className={cn("sidebar-nav-item group relative", isBudgetActive && "active")}>
-                <Wallet className="h-5 w-5 shrink-0" />
-                {sidebarAlerts?.budgetsEnDepassement !== undefined && sidebarAlerts.budgetsEnDepassement > 0 && (
-                  <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-destructive" />
-                )}
-              </Link>
-            ) : (
-              <Collapsible open={budgetOpen} onOpenChange={setBudgetOpen}>
-                <CollapsibleTrigger asChild>
-                  <button className={cn("sidebar-nav-item group w-full justify-between", isBudgetActive && "active")}>
-                    <div className="flex items-center gap-3">
-                      <Wallet className="h-5 w-5 shrink-0" />
-                      <span className="flex-1 text-left">Budgétaire</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      {sidebarAlerts?.budgetsEnDepassement !== undefined && sidebarAlerts.budgetsEnDepassement > 0 && (
-                        <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            navigate("/budget/alertes");
-                          }}
-                          className="flex h-5 min-w-5 items-center justify-center rounded-full bg-destructive px-1.5 text-xs font-semibold text-destructive-foreground hover:bg-destructive/80 transition-colors"
-                          title={`${sidebarAlerts.budgetsEnDepassement} dépassement(s) budgétaire(s)`}
-                        >
-                          {sidebarAlerts.budgetsEnDepassement}
-                        </button>
-                      )}
-                      <ChevronDown
-                        className={cn("h-4 w-4 transition-transform duration-200", budgetOpen && "rotate-180")}
-                      />
-                    </div>
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
-                  {budgetGroup.items.map((item) => (
-                    <SubNavItem key={item.href} item={item} />
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
+          {canShowGroup(budgetGroup) && renderNavGroup(budgetGroup, "Budgétaire")}
 
           {/* Immobilisations Group */}
-          {canShowGroup(immobilisationsGroup) &&
-            (collapsed ? (
-              <Link to="/immobilisations" className={cn("sidebar-nav-item group", isImmoActive && "active")}>
-                <Package className="h-5 w-5 shrink-0" />
-              </Link>
-            ) : (
-              <Collapsible open={immoOpen} onOpenChange={setImmoOpen}>
-                <CollapsibleTrigger asChild>
-                  <button className={cn("sidebar-nav-item group w-full justify-between", isImmoActive && "active")}>
-                    <div className="flex items-center gap-3">
-                      <Package className="h-5 w-5 shrink-0" />
-                      <span className="flex-1 text-left">Immobilisations</span>
-                    </div>
-                    <ChevronDown
-                      className={cn("h-4 w-4 transition-transform duration-200", immoOpen && "rotate-180")}
-                    />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
-                  {immobilisationsGroup.items.map((item) => (
-                    <SubNavItem key={item.href} item={item} />
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
+          {canShowGroup(immobilisationsGroup) && renderNavGroup(immobilisationsGroup, "Immobilisations")}
 
           {filteredOtherNavItems.map((item) => (
             <NavItemComponent key={item.href} item={item} />
           ))}
 
           {/* Décaissements Group */}
-          {canShowGroup(decaissementsGroup) &&
-            (collapsed ? (
-              <Link to="/decaissements" className={cn("sidebar-nav-item group", isDecaissementsActive && "active")}>
-                <ArrowDownUp className="h-5 w-5 shrink-0" />
-              </Link>
-            ) : (
-              <Collapsible open={decaissementsOpen} onOpenChange={setDecaissementsOpen}>
-                <CollapsibleTrigger asChild>
-                  <button
-                    className={cn("sidebar-nav-item group w-full justify-between", isDecaissementsActive && "active")}
-                  >
-                    <div className="flex items-center gap-3">
-                      <ArrowDownUp className="h-5 w-5 shrink-0" />
-                      <span className="flex-1 text-left">Décaissements</span>
-                    </div>
-                    <ChevronDown
-                      className={cn("h-4 w-4 transition-transform duration-200", decaissementsOpen && "rotate-180")}
-                    />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
-                  {decaissementsGroup.items.map((item) => (
-                    <SubNavItem key={item.href} item={item} />
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
+          {canShowGroup(decaissementsGroup) && renderNavGroup(decaissementsGroup, "Décaissements")}
 
           {/* Rapports Group */}
-          {canShowGroup(rapportsGroup) &&
-            (collapsed ? (
-              <Link to="/rapports" className={cn("sidebar-nav-item group", isRapportsActive && "active")}>
-                <BarChart3 className="h-5 w-5 shrink-0" />
-              </Link>
-            ) : (
-              <Collapsible open={rapportsOpen} onOpenChange={setRapportsOpen}>
-                <CollapsibleTrigger asChild>
-                  <button className={cn("sidebar-nav-item group w-full justify-between", isRapportsActive && "active")}>
-                    <div className="flex items-center gap-3">
-                      <BarChart3 className="h-5 w-5 shrink-0" />
-                      <span className="flex-1 text-left">Rapports</span>
-                    </div>
-                    <ChevronDown
-                      className={cn("h-4 w-4 transition-transform duration-200", rapportsOpen && "rotate-180")}
-                    />
-                  </button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="pl-4 pt-1 space-y-0.5">
-                  {rapportsGroup.items.map((item) => (
-                    <SubNavItem key={item.href} item={item} />
-                  ))}
-                </CollapsibleContent>
-              </Collapsible>
-            ))}
+          {canShowGroup(rapportsGroup) && renderNavGroup(rapportsGroup, "Rapports")}
 
-          {/* Administration Section - ONLY FOR ADMINS */}
-          {isAdmin && filteredAdminNavItems.length > 0 && (
+          {/* Administration Dropdown - shown only if user has at least one admin permission */}
+          {showAdministration && (
             <>
               <div className="mb-2 mt-6">
                 {!collapsed && (
@@ -644,9 +601,7 @@ export function AppSidebar() {
                   </span>
                 )}
               </div>
-              {filteredAdminNavItems.map((item) => (
-                <NavItemComponent key={item.href} item={item} />
-              ))}
+              {renderNavGroup(administrationGroup, "Administration")}
             </>
           )}
         </nav>
