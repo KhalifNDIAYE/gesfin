@@ -1,10 +1,28 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+// Dynamic CORS origin - allow app domain in production, or localhost for development
+const getAllowedOrigin = (requestOrigin: string | null): string => {
+  const allowedPatterns = [
+    /^https:\/\/.*\.lovable\.app$/,
+    /^https:\/\/.*\.lovableproject\.com$/,
+    /^http:\/\/localhost:\d+$/,
+    /^http:\/\/127\.0\.0\.1:\d+$/,
+  ];
+  
+  if (requestOrigin && allowedPatterns.some(pattern => pattern.test(requestOrigin))) {
+    return requestOrigin;
+  }
+  
+  // Default to the Supabase project URL
+  return Deno.env.get('SUPABASE_URL') || 'https://swdswiyxdopxwkiwrdva.supabase.co';
 };
+
+const getCorsHeaders = (requestOrigin: string | null) => ({
+  'Access-Control-Allow-Origin': getAllowedOrigin(requestOrigin),
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Credentials': 'true',
+});
 
 // Comprehensive list of countries with ISO codes
 const COUNTRIES_DATA = [
