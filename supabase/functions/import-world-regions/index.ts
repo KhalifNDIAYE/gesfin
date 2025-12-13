@@ -692,6 +692,9 @@ const REGIONS_DATA: Record<string, Array<{ name: string; code?: string; latitude
 };
 
 serve(async (req) => {
+  const origin = req.headers.get('Origin');
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -845,6 +848,8 @@ serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error: unknown) {
+    const origin = req.headers.get('Origin');
+    const corsHeaders = getCorsHeaders(origin);
     const errorMessage = error instanceof Error ? error.message : String(error);
     console.error("Import error:", error);
     return new Response(
