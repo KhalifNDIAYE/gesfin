@@ -700,10 +700,53 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+  // =====================================================
+  // SECURITY: Authentication and Admin Authorization Check
+  // =====================================================
+  const authHeader = req.headers.get('Authorization');
+  if (!authHeader) {
+    console.error("Unauthorized: No authorization header");
+    return new Response(
+      JSON.stringify({ success: false, error: 'Unauthorized - No authorization header' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Create a user-scoped client to verify the user
+  const userClient = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+
+  // Get the authenticated user
+  const { data: { user }, error: userError } = await userClient.auth.getUser();
+  if (userError || !user) {
+    console.error("Unauthorized: Invalid or expired token", userError);
+    return new Response(
+      JSON.stringify({ success: false, error: 'Unauthorized - Invalid or expired token' }),
+      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  // Check if user is admin using the is_admin database function
+  const { data: isAdmin, error: adminError } = await userClient.rpc('is_admin', { _user_id: user.id });
+  if (adminError || !isAdmin) {
+    console.error(`Forbidden: User ${user.email} is not admin`, adminError);
+    return new Response(
+      JSON.stringify({ success: false, error: 'Forbidden - Admin access required' }),
+      { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+
+  console.log(`Admin ${user.email} initiated world regions import`);
+  // =====================================================
+
   try {
     console.log("Starting world regions import...");
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    // Use service role key for data operations
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
