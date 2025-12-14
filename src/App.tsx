@@ -50,6 +50,7 @@ import ANouveauxPage from "./pages/comptabilite/ANouveauxPage";
 import CloturesPage from "./pages/comptabilite/CloturesPage";
 import EditionsPage from "./pages/comptabilite/EditionsPage";
 import DepassementsPage from "./pages/comptabilite/DepassementsPage";
+import JournalPage from "./pages/comptabilite/JournalPage";
 
 // Comptabilité Analytique sub-pages
 import AffectationActivitePage from "./pages/comptabilite/analytique/AffectationActivitePage";
@@ -123,6 +124,7 @@ const App = () => (
             
             {/* Comptabilité Générale */}
             <Route path="/comptabilite" element={<ProtectedRoute requiredModule="comptabilite"><Comptabilite /></ProtectedRoute>} />
+            <Route path="/comptabilite/journal" element={<ProtectedRoute requiredModule="comptabilite"><JournalPage /></ProtectedRoute>} />
             <Route path="/comptabilite/depenses" element={<ProtectedRoute requiredModule="comptabilite"><DepensesPage /></ProtectedRoute>} />
             <Route path="/comptabilite/financements" element={<ProtectedRoute requiredModule="comptabilite"><FinancementsPage /></ProtectedRoute>} />
             <Route path="/comptabilite/decaissements" element={<ProtectedRoute requiredModule="comptabilite"><DecaissementsComptaPage /></ProtectedRoute>} />
