@@ -111,7 +111,7 @@ export default function CloturesPage() {
                 <div className="grid grid-cols-4 md:grid-cols-6 gap-2 pt-4">
                   {MONTHS.map((month) => (
                     <div key={month.value} className="flex flex-col items-center p-3 rounded-lg border bg-card">
-                      <span className="text-xs font-medium">{month.label.slice(0, 8)}</span>
+                      <span className="text-xs font-medium">{month.label.slice(0, 9)}</span>
                       <Badge variant="secondary" className="mt-1">
                         Ouvert
                       </Badge>
