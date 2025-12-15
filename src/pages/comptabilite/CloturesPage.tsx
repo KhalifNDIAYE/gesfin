@@ -5,21 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Lock, Unlock, Calendar, CheckCircle, AlertTriangle, FileText } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -34,18 +21,18 @@ import {
 import { useFiscalYears } from "@/hooks/useParametrage";
 
 const MONTHS = [
-  { value: '01', label: 'Janvier' },
-  { value: '02', label: 'Février' },
-  { value: '03', label: 'Mars' },
-  { value: '04', label: 'Avril' },
-  { value: '05', label: 'Mai' },
-  { value: '06', label: 'Juin' },
-  { value: '07', label: 'Juillet' },
-  { value: '08', label: 'Août' },
-  { value: '09', label: 'Septembre' },
-  { value: '10', label: 'Octobre' },
-  { value: '11', label: 'Novembre' },
-  { value: '12', label: 'Décembre' },
+  { value: "01", label: "Janvier" },
+  { value: "02", label: "Février" },
+  { value: "03", label: "Mars" },
+  { value: "04", label: "Avril" },
+  { value: "05", label: "Mai" },
+  { value: "06", label: "Juin" },
+  { value: "07", label: "Juillet" },
+  { value: "08", label: "Août" },
+  { value: "09", label: "Septembre" },
+  { value: "10", label: "Octobre" },
+  { value: "11", label: "Novembre" },
+  { value: "12", label: "Décembre" },
 ];
 
 export default function CloturesPage() {
@@ -53,7 +40,7 @@ export default function CloturesPage() {
   const [selectedMonth, setSelectedMonth] = useState<string>("");
 
   const { data: fiscalYears } = useFiscalYears();
-  const currentFiscalYear = fiscalYears?.find(fy => fy.is_current);
+  const currentFiscalYear = fiscalYears?.find((fy) => fy.is_current);
 
   const handleCloseMonth = () => {
     // TODO: Implement month closing logic
@@ -64,10 +51,7 @@ export default function CloturesPage() {
   };
 
   return (
-    <AppLayout 
-      title="Clôtures Comptables" 
-      subtitle="Clôture mensuelle et annuelle des exercices"
-    >
+    <AppLayout title="Clôtures Comptables" subtitle="Clôture mensuelle et annuelle des exercices">
       <div className="space-y-6">
         <Tabs defaultValue="mensuelle" className="space-y-4">
           <TabsList>
@@ -82,9 +66,7 @@ export default function CloturesPage() {
                   <Calendar className="h-5 w-5" />
                   <div>
                     <CardTitle>Clôture Mensuelle</CardTitle>
-                    <CardDescription>
-                      Verrouillage des écritures d'un mois
-                    </CardDescription>
+                    <CardDescription>Verrouillage des écritures d'un mois</CardDescription>
                   </div>
                 </div>
               </CardHeader>
@@ -110,10 +92,7 @@ export default function CloturesPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Mois à clôturer</label>
-                    <Select
-                      value={selectedMonth}
-                      onValueChange={setSelectedMonth}
-                    >
+                    <Select value={selectedMonth} onValueChange={setSelectedMonth}>
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner le mois" />
                       </SelectTrigger>
@@ -131,11 +110,8 @@ export default function CloturesPage() {
                 {/* Monthly Status Grid */}
                 <div className="grid grid-cols-4 md:grid-cols-6 gap-2 pt-4">
                   {MONTHS.map((month) => (
-                    <div
-                      key={month.value}
-                      className="flex flex-col items-center p-3 rounded-lg border bg-card"
-                    >
-                      <span className="text-xs font-medium">{month.label.slice(0, 3)}</span>
+                    <div key={month.value} className="flex flex-col items-center p-3 rounded-lg border bg-card">
+                      <span className="text-xs font-medium">{month.label.slice(0, 8)}</span>
                       <Badge variant="secondary" className="mt-1">
                         Ouvert
                       </Badge>
@@ -146,10 +122,7 @@ export default function CloturesPage() {
                 <div className="flex gap-2 pt-4">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="gradient" 
-                        disabled={!selectedMonth}
-                      >
+                      <Button variant="gradient" disabled={!selectedMonth}>
                         <Lock className="h-4 w-4" />
                         Clôturer le mois
                       </Button>
@@ -158,15 +131,13 @@ export default function CloturesPage() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>Confirmer la clôture mensuelle</AlertDialogTitle>
                         <AlertDialogDescription>
-                          Cette action va verrouiller toutes les écritures du mois sélectionné.
-                          Aucune modification ne sera possible après la clôture.
+                          Cette action va verrouiller toutes les écritures du mois sélectionné. Aucune modification ne
+                          sera possible après la clôture.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleCloseMonth}>
-                          Confirmer la clôture
-                        </AlertDialogAction>
+                        <AlertDialogAction onClick={handleCloseMonth}>Confirmer la clôture</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
@@ -182,28 +153,25 @@ export default function CloturesPage() {
                   <Lock className="h-5 w-5" />
                   <div>
                     <CardTitle>Clôture Annuelle</CardTitle>
-                    <CardDescription>
-                      Clôture définitive de l'exercice
-                    </CardDescription>
+                    <CardDescription>Clôture définitive de l'exercice</CardDescription>
                   </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Exercice à clôturer</label>
-                  <Select
-                    value={selectedFiscalYear || ""}
-                    onValueChange={setSelectedFiscalYear}
-                  >
+                  <Select value={selectedFiscalYear || ""} onValueChange={setSelectedFiscalYear}>
                     <SelectTrigger className="w-[300px]">
                       <SelectValue placeholder="Sélectionner l'exercice" />
                     </SelectTrigger>
                     <SelectContent>
-                      {fiscalYears?.filter(fy => fy.is_open).map((fy) => (
-                        <SelectItem key={fy.id} value={fy.id}>
-                          {fy.name}
-                        </SelectItem>
-                      ))}
+                      {fiscalYears
+                        ?.filter((fy) => fy.is_open)
+                        .map((fy) => (
+                          <SelectItem key={fy.id} value={fy.id}>
+                            {fy.name}
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -234,10 +202,7 @@ export default function CloturesPage() {
                 <div className="flex gap-2">
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button 
-                        variant="gradient" 
-                        disabled={!selectedFiscalYear}
-                      >
+                      <Button variant="gradient" disabled={!selectedFiscalYear}>
                         <Lock className="h-4 w-4" />
                         Clôturer l'exercice
                       </Button>
@@ -247,15 +212,13 @@ export default function CloturesPage() {
                         <AlertDialogTitle>Confirmer la clôture annuelle</AlertDialogTitle>
                         <AlertDialogDescription>
                           <strong className="text-destructive">Attention !</strong> Cette action est irréversible.
-                          L'exercice sera définitivement clôturé et aucune modification ne sera possible.
-                          Assurez-vous d'avoir généré tous les états nécessaires.
+                          L'exercice sera définitivement clôturé et aucune modification ne sera possible. Assurez-vous
+                          d'avoir généré tous les états nécessaires.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel>Annuler</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleCloseYear}>
-                          Confirmer la clôture définitive
-                        </AlertDialogAction>
+                        <AlertDialogAction onClick={handleCloseYear}>Confirmer la clôture définitive</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>
