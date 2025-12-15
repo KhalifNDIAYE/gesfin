@@ -216,12 +216,12 @@ const Comptabilite = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={selectedJournal} onValueChange={setSelectedJournal}>
+                    <Select value={selectedJournal || "all"} onValueChange={(v) => setSelectedJournal(v === "all" ? "" : v)}>
                       <SelectTrigger className="w-[140px]">
                         <SelectValue placeholder="Journal" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tous</SelectItem>
+                        <SelectItem value="all">Tous</SelectItem>
                         {journals?.map((j) => (
                           <SelectItem key={j.id} value={j.id}>
                             {j.code}
@@ -229,12 +229,12 @@ const Comptabilite = () => {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Select value={selectedEntryTypeFilter} onValueChange={setSelectedEntryTypeFilter}>
+                    <Select value={selectedEntryTypeFilter || "all"} onValueChange={(v) => setSelectedEntryTypeFilter(v === "all" ? "" : v)}>
                       <SelectTrigger className="w-[140px]">
                         <SelectValue placeholder="Type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tous types</SelectItem>
+                        <SelectItem value="all">Tous types</SelectItem>
                         <SelectItem value="depense">Dépense</SelectItem>
                         <SelectItem value="financement">Financement</SelectItem>
                         <SelectItem value="decaissement">Décaissement</SelectItem>
