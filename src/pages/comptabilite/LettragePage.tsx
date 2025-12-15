@@ -152,14 +152,14 @@ export default function LettragePage() {
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Tiers</label>
                     <Select
-                      value={selectedThirdParty}
-                      onValueChange={setSelectedThirdParty}
+                      value={selectedThirdParty || "all"}
+                      onValueChange={(v) => setSelectedThirdParty(v === "all" ? "" : v)}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Tous les tiers" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tous les tiers</SelectItem>
+                        <SelectItem value="all">Tous les tiers</SelectItem>
                         {thirdParties?.map((tp) => (
                           <SelectItem key={tp.id} value={tp.id}>
                             {tp.code} - {tp.name}

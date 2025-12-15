@@ -89,14 +89,14 @@ export default function EcheancesPage() {
             </TabsList>
             <div className="flex items-center gap-2">
               <Select
-                value={statusFilter}
-                onValueChange={setStatusFilter}
+                value={statusFilter || "all"}
+                onValueChange={(v) => setStatusFilter(v === "all" ? "" : v)}
               >
                 <SelectTrigger className="w-[160px]">
                   <SelectValue placeholder="Statut" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Tous</SelectItem>
+                  <SelectItem value="all">Tous</SelectItem>
                   <SelectItem value="echue">Échues</SelectItem>
                   <SelectItem value="a_venir">À venir</SelectItem>
                   <SelectItem value="reglee">Réglées</SelectItem>

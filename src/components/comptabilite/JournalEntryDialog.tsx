@@ -337,14 +337,14 @@ export function JournalEntryDialog({ open, onOpenChange, entryType = 'autre' }: 
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Tiers</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value}>
+                        <Select onValueChange={(v) => field.onChange(v === "none" ? "" : v)} value={field.value || "none"}>
                           <FormControl>
                             <SelectTrigger>
                               <SelectValue placeholder="Aucun" />
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="">Aucun</SelectItem>
+                            <SelectItem value="none">Aucun</SelectItem>
                             {thirdParties?.filter(tp => tp.is_active).map((tp) => (
                               <SelectItem key={tp.id} value={tp.id}>
                                 {tp.code} - {tp.name}
@@ -402,10 +402,11 @@ export function JournalEntryDialog({ open, onOpenChange, entryType = 'autre' }: 
                           <FormLabel>Projet</FormLabel>
                           <Select 
                             onValueChange={(value) => {
-                              field.onChange(value);
-                              setSelectedProjectId(value);
+                              const actualValue = value === "none" ? "" : value;
+                              field.onChange(actualValue);
+                              setSelectedProjectId(actualValue);
                             }} 
-                            value={field.value}
+                            value={field.value || "none"}
                           >
                             <FormControl>
                               <SelectTrigger>
@@ -413,7 +414,7 @@ export function JournalEntryDialog({ open, onOpenChange, entryType = 'autre' }: 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Aucun</SelectItem>
+                              <SelectItem value="none">Aucun</SelectItem>
                               {projects?.filter(p => p.status === 'active').map((project) => (
                                 <SelectItem key={project.id} value={project.id}>
                                   {project.code} - {project.name}
@@ -432,14 +433,14 @@ export function JournalEntryDialog({ open, onOpenChange, entryType = 'autre' }: 
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Ligne budgétaire</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
+                          <Select onValueChange={(v) => field.onChange(v === "none" ? "" : v)} value={field.value || "none"}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Sélectionner une ligne" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Aucune</SelectItem>
+                              <SelectItem value="none">Aucune</SelectItem>
                               {availableBudgetLines.map((line) => (
                                 <SelectItem key={line.id} value={line.id}>
                                   Ligne {line.line_number} - {line.description || 'Sans description'}
@@ -558,12 +559,12 @@ export function JournalEntryDialog({ open, onOpenChange, entryType = 'autre' }: 
                                 control={form.control}
                                 name={`lines.${index}.tracking_axis_id`}
                                 render={({ field }) => (
-                                  <Select onValueChange={field.onChange} value={field.value}>
+                                  <Select onValueChange={(v) => field.onChange(v === "none" ? "" : v)} value={field.value || "none"}>
                                     <SelectTrigger className="h-8 text-xs">
                                       <SelectValue placeholder="Axe" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                      <SelectItem value="">Aucun</SelectItem>
+                                      <SelectItem value="none">Aucun</SelectItem>
                                       {trackingAxes?.filter(a => a.is_active).map((axis) => (
                                         <SelectItem key={axis.id} value={axis.id}>
                                           {axis.code}
