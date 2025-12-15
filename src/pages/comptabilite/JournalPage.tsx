@@ -372,12 +372,12 @@ export default function JournalPage() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Journal</label>
-                    <Select value={selectedJournal} onValueChange={setSelectedJournal}>
+                    <Select value={selectedJournal || "all"} onValueChange={(v) => setSelectedJournal(v === "all" ? "" : v)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Tous les journaux" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tous</SelectItem>
+                        <SelectItem value="all">Tous</SelectItem>
                         {journals?.map((j) => (
                           <SelectItem key={j.id} value={j.id}>
                             {j.code} - {j.name}
@@ -389,12 +389,12 @@ export default function JournalPage() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Type d'écriture</label>
-                    <Select value={selectedEntryTypeFilter} onValueChange={setSelectedEntryTypeFilter}>
+                    <Select value={selectedEntryTypeFilter || "all"} onValueChange={(v) => setSelectedEntryTypeFilter(v === "all" ? "" : v)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Tous les types" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tous</SelectItem>
+                        <SelectItem value="all">Tous</SelectItem>
                         <SelectItem value="depense">Dépense</SelectItem>
                         <SelectItem value="financement">Financement</SelectItem>
                         <SelectItem value="decaissement">Décaissement</SelectItem>
@@ -406,12 +406,12 @@ export default function JournalPage() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Statut</label>
-                    <Select value={selectedStatusFilter} onValueChange={setSelectedStatusFilter}>
+                    <Select value={selectedStatusFilter || "all"} onValueChange={(v) => setSelectedStatusFilter(v === "all" ? "" : v)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Tous les statuts" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tous</SelectItem>
+                        <SelectItem value="all">Tous</SelectItem>
                         <SelectItem value="brouillon">Brouillon</SelectItem>
                         <SelectItem value="valide">Validé</SelectItem>
                         <SelectItem value="cloture">Clôturé</SelectItem>
@@ -421,12 +421,12 @@ export default function JournalPage() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-medium">Projet</label>
-                    <Select value={selectedProject} onValueChange={setSelectedProject}>
+                    <Select value={selectedProject || "all"} onValueChange={(v) => setSelectedProject(v === "all" ? "" : v)}>
                       <SelectTrigger>
                         <SelectValue placeholder="Tous les projets" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">Tous</SelectItem>
+                        <SelectItem value="all">Tous</SelectItem>
                         {projects?.map((p) => (
                           <SelectItem key={p.id} value={p.id}>
                             {p.code} - {p.name}

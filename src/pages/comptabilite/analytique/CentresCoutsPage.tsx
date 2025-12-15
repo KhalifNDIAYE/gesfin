@@ -269,12 +269,12 @@ export default function CentresCoutsPage() {
             </div>
             <div>
               <Label>Centre parent</Label>
-              <Select value={formData.parent_id} onValueChange={(v) => setFormData({...formData, parent_id: v})}>
+              <Select value={formData.parent_id || "none"} onValueChange={(v) => setFormData({...formData, parent_id: v === "none" ? "" : v})}>
                 <SelectTrigger>
                   <SelectValue placeholder="Aucun (centre racine)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Aucun (centre racine)</SelectItem>
+                  <SelectItem value="none">Aucun (centre racine)</SelectItem>
                   {costCenters?.filter(cc => cc.id !== editingId).map((cc) => (
                     <SelectItem key={cc.id} value={cc.id}>
                       {cc.code} - {cc.name}
