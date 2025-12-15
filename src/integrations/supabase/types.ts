@@ -1642,6 +1642,89 @@ export type Database = {
           },
         ]
       }
+      compliance_controls: {
+        Row: {
+          code: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          evidence_description: string | null
+          evidence_document_path: string | null
+          id: string
+          last_verification_date: string | null
+          name: string
+          next_verification_date: string | null
+          notes: string | null
+          responsible_id: string | null
+          standard: Database["public"]["Enums"]["compliance_standard"]
+          status: Database["public"]["Enums"]["compliance_status"]
+          updated_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          evidence_description?: string | null
+          evidence_document_path?: string | null
+          id?: string
+          last_verification_date?: string | null
+          name: string
+          next_verification_date?: string | null
+          notes?: string | null
+          responsible_id?: string | null
+          standard: Database["public"]["Enums"]["compliance_standard"]
+          status?: Database["public"]["Enums"]["compliance_status"]
+          updated_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          evidence_description?: string | null
+          evidence_document_path?: string | null
+          id?: string
+          last_verification_date?: string | null
+          name?: string
+          next_verification_date?: string | null
+          notes?: string | null
+          responsible_id?: string | null
+          standard?: Database["public"]["Enums"]["compliance_standard"]
+          status?: Database["public"]["Enums"]["compliance_status"]
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_controls_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_controls_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_controls_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_controls_responsible_id_fkey"
+            columns: ["responsible_id"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_decomptes: {
         Row: {
           amount: number
@@ -4748,6 +4831,95 @@ export type Database = {
           },
         ]
       }
+      rgpd_registry: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          cross_border_transfers: boolean | null
+          data_categories: string[]
+          data_controller_id: string | null
+          data_subjects: string | null
+          id: string
+          is_active: boolean | null
+          legal_basis: string
+          notes: string | null
+          purpose: string
+          retention_period: string
+          security_measures: string | null
+          subprocessors: string[] | null
+          transfer_details: string | null
+          treatment_name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          cross_border_transfers?: boolean | null
+          data_categories: string[]
+          data_controller_id?: string | null
+          data_subjects?: string | null
+          id?: string
+          is_active?: boolean | null
+          legal_basis: string
+          notes?: string | null
+          purpose: string
+          retention_period: string
+          security_measures?: string | null
+          subprocessors?: string[] | null
+          transfer_details?: string | null
+          treatment_name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          cross_border_transfers?: boolean | null
+          data_categories?: string[]
+          data_controller_id?: string | null
+          data_subjects?: string | null
+          id?: string
+          is_active?: boolean | null
+          legal_basis?: string
+          notes?: string | null
+          purpose?: string
+          retention_period?: string
+          security_measures?: string | null
+          subprocessors?: string[] | null
+          transfer_details?: string | null
+          treatment_name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rgpd_registry_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rgpd_registry_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rgpd_registry_data_controller_id_fkey"
+            columns: ["data_controller_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rgpd_registry_data_controller_id_fkey"
+            columns: ["data_controller_id"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       role_permissions: {
         Row: {
           granted_at: string | null
@@ -4827,6 +4999,69 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: []
+      }
+      security_alerts: {
+        Row: {
+          alert_type: string
+          created_at: string | null
+          description: string
+          email_sent: boolean | null
+          id: string
+          is_resolved: boolean | null
+          notification_sent: boolean | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          severity: string
+          source: string | null
+          title: string
+        }
+        Insert: {
+          alert_type: string
+          created_at?: string | null
+          description: string
+          email_sent?: boolean | null
+          id?: string
+          is_resolved?: boolean | null
+          notification_sent?: boolean | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source?: string | null
+          title: string
+        }
+        Update: {
+          alert_type?: string
+          created_at?: string | null
+          description?: string
+          email_sent?: boolean | null
+          id?: string
+          is_resolved?: boolean | null
+          notification_sent?: boolean | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          severity?: string
+          source?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alerts_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       security_blocked_actions: {
         Row: {
@@ -4923,6 +5158,396 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_incident_history: {
+        Row: {
+          action: string
+          comment: string | null
+          from_status: Database["public"]["Enums"]["incident_status"] | null
+          id: string
+          incident_id: string
+          performed_at: string | null
+          performed_by: string | null
+          to_status: Database["public"]["Enums"]["incident_status"] | null
+        }
+        Insert: {
+          action: string
+          comment?: string | null
+          from_status?: Database["public"]["Enums"]["incident_status"] | null
+          id?: string
+          incident_id: string
+          performed_at?: string | null
+          performed_by?: string | null
+          to_status?: Database["public"]["Enums"]["incident_status"] | null
+        }
+        Update: {
+          action?: string
+          comment?: string | null
+          from_status?: Database["public"]["Enums"]["incident_status"] | null
+          id?: string
+          incident_id?: string
+          performed_at?: string | null
+          performed_by?: string | null
+          to_status?: Database["public"]["Enums"]["incident_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_incident_history_incident_id_fkey"
+            columns: ["incident_id"]
+            isOneToOne: false
+            referencedRelation: "security_incidents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_incident_history_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_incident_history_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_incidents: {
+        Row: {
+          affected_systems: string[] | null
+          affected_users_count: number | null
+          assigned_to: string | null
+          closed_at: string | null
+          closed_by: string | null
+          code: string
+          corrective_actions: string | null
+          created_at: string | null
+          description: string
+          detection_date: string
+          id: string
+          impact: string | null
+          notes: string | null
+          notifications_sent: boolean | null
+          preventive_actions: string | null
+          reported_by: string | null
+          resolution_date: string | null
+          root_cause: string | null
+          severity: Database["public"]["Enums"]["incident_severity"]
+          status: Database["public"]["Enums"]["incident_status"]
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          affected_systems?: string[] | null
+          affected_users_count?: number | null
+          assigned_to?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          code: string
+          corrective_actions?: string | null
+          created_at?: string | null
+          description: string
+          detection_date?: string
+          id?: string
+          impact?: string | null
+          notes?: string | null
+          notifications_sent?: boolean | null
+          preventive_actions?: string | null
+          reported_by?: string | null
+          resolution_date?: string | null
+          root_cause?: string | null
+          severity: Database["public"]["Enums"]["incident_severity"]
+          status?: Database["public"]["Enums"]["incident_status"]
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          affected_systems?: string[] | null
+          affected_users_count?: number | null
+          assigned_to?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          code?: string
+          corrective_actions?: string | null
+          created_at?: string | null
+          description?: string
+          detection_date?: string
+          id?: string
+          impact?: string | null
+          notes?: string | null
+          notifications_sent?: boolean | null
+          preventive_actions?: string | null
+          reported_by?: string | null
+          resolution_date?: string | null
+          root_cause?: string | null
+          severity?: Database["public"]["Enums"]["incident_severity"]
+          status?: Database["public"]["Enums"]["incident_status"]
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_incidents_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_incidents_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_incidents_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_incidents_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_incidents_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_incidents_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_metrics: {
+        Row: {
+          active_users_count: number | null
+          blocked_actions_count: number | null
+          compliance_score: number | null
+          created_at: string | null
+          failed_login_attempts: number | null
+          id: string
+          metric_date: string
+          security_incidents_count: number | null
+        }
+        Insert: {
+          active_users_count?: number | null
+          blocked_actions_count?: number | null
+          compliance_score?: number | null
+          created_at?: string | null
+          failed_login_attempts?: number | null
+          id?: string
+          metric_date: string
+          security_incidents_count?: number | null
+        }
+        Update: {
+          active_users_count?: number | null
+          blocked_actions_count?: number | null
+          compliance_score?: number | null
+          created_at?: string | null
+          failed_login_attempts?: number | null
+          id?: string
+          metric_date?: string
+          security_incidents_count?: number | null
+        }
+        Relationships: []
+      }
+      security_policies: {
+        Row: {
+          approved_at: string | null
+          approved_by: string | null
+          code: string
+          content: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          effective_date: string
+          expiry_date: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          policy_type: Database["public"]["Enums"]["security_policy_type"]
+          requires_acknowledgment: boolean | null
+          updated_at: string | null
+          version: string
+        }
+        Insert: {
+          approved_at?: string | null
+          approved_by?: string | null
+          code: string
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          effective_date: string
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          policy_type: Database["public"]["Enums"]["security_policy_type"]
+          requires_acknowledgment?: boolean | null
+          updated_at?: string | null
+          version?: string
+        }
+        Update: {
+          approved_at?: string | null
+          approved_by?: string | null
+          code?: string
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          effective_date?: string
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          policy_type?: Database["public"]["Enums"]["security_policy_type"]
+          requires_acknowledgment?: boolean | null
+          updated_at?: string | null
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_policies_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_policies_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_policies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_policies_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_policy_acknowledgments: {
+        Row: {
+          acknowledged_at: string | null
+          id: string
+          ip_address: string | null
+          policy_id: string
+          user_id: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          id?: string
+          ip_address?: string | null
+          policy_id: string
+          user_id: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          id?: string
+          ip_address?: string | null
+          policy_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_policy_acknowledgments_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "security_policies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_policy_acknowledgments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_policy_acknowledgments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_policy_versions: {
+        Row: {
+          changes_summary: string | null
+          content: string
+          created_at: string | null
+          created_by: string | null
+          id: string
+          policy_id: string
+          version: string
+        }
+        Insert: {
+          changes_summary?: string | null
+          content: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          policy_id: string
+          version: string
+        }
+        Update: {
+          changes_summary?: string | null
+          content?: string
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          policy_id?: string
+          version?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_policy_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_policy_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_policy_versions_policy_id_fkey"
+            columns: ["policy_id"]
+            isOneToOne: false
+            referencedRelation: "security_policies"
             referencedColumns: ["id"]
           },
         ]
@@ -5443,6 +6068,12 @@ export type Database = {
       }
     }
     Enums: {
+      compliance_standard: "SOC2" | "HIPAA" | "RGPD" | "FedRAMP" | "ISO27001"
+      compliance_status:
+        | "conforme"
+        | "non_conforme"
+        | "a_ameliorer"
+        | "en_cours"
       entry_status: "brouillon" | "valide" | "cloture"
       entry_type:
         | "depense"
@@ -5459,6 +6090,8 @@ export type Database = {
         | "validee"
         | "rejetee"
         | "payee"
+      incident_severity: "mineur" | "majeur" | "critique"
+      incident_status: "ouvert" | "en_cours" | "clos"
       journal_type:
         | "achats"
         | "ventes"
@@ -5492,6 +6125,11 @@ export type Database = {
         | "analytique"
         | "financier"
         | "geographique"
+      security_policy_type:
+        | "mot_de_passe"
+        | "acces"
+        | "sauvegarde"
+        | "conservation_donnees"
       third_party_type:
         | "fournisseur"
         | "client"
@@ -5625,6 +6263,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      compliance_standard: ["SOC2", "HIPAA", "RGPD", "FedRAMP", "ISO27001"],
+      compliance_status: [
+        "conforme",
+        "non_conforme",
+        "a_ameliorer",
+        "en_cours",
+      ],
       entry_status: ["brouillon", "valide", "cloture"],
       entry_type: [
         "depense",
@@ -5643,6 +6288,8 @@ export const Constants = {
         "rejetee",
         "payee",
       ],
+      incident_severity: ["mineur", "majeur", "critique"],
+      incident_status: ["ouvert", "en_cours", "clos"],
       journal_type: [
         "achats",
         "ventes",
@@ -5679,6 +6326,12 @@ export const Constants = {
         "analytique",
         "financier",
         "geographique",
+      ],
+      security_policy_type: [
+        "mot_de_passe",
+        "acces",
+        "sauvegarde",
+        "conservation_donnees",
       ],
       third_party_type: [
         "fournisseur",
