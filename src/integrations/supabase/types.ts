@@ -5000,6 +5000,504 @@ export type Database = {
         }
         Relationships: []
       }
+      security_alert_auto_actions: {
+        Row: {
+          action_type: Database["public"]["Enums"]["alert_action_type"]
+          alert_id: string
+          created_at: string | null
+          error_message: string | null
+          executed_at: string | null
+          id: string
+          result: Json | null
+          reverted_at: string | null
+          reverted_by: string | null
+          rule_id: string | null
+          status: string | null
+          target_resource_id: string | null
+          target_resource_type: string | null
+          target_user_id: string | null
+        }
+        Insert: {
+          action_type: Database["public"]["Enums"]["alert_action_type"]
+          alert_id: string
+          created_at?: string | null
+          error_message?: string | null
+          executed_at?: string | null
+          id?: string
+          result?: Json | null
+          reverted_at?: string | null
+          reverted_by?: string | null
+          rule_id?: string | null
+          status?: string | null
+          target_resource_id?: string | null
+          target_resource_type?: string | null
+          target_user_id?: string | null
+        }
+        Update: {
+          action_type?: Database["public"]["Enums"]["alert_action_type"]
+          alert_id?: string
+          created_at?: string | null
+          error_message?: string | null
+          executed_at?: string | null
+          id?: string
+          result?: Json | null
+          reverted_at?: string | null
+          reverted_by?: string | null
+          rule_id?: string | null
+          status?: string | null
+          target_resource_id?: string | null
+          target_resource_type?: string | null
+          target_user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_alert_auto_actions_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "security_alert_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_auto_actions_reverted_by_fkey"
+            columns: ["reverted_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_auto_actions_reverted_by_fkey"
+            columns: ["reverted_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_auto_actions_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "security_alert_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_auto_actions_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_auto_actions_target_user_id_fkey"
+            columns: ["target_user_id"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_alert_events: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          actions_taken: string[] | null
+          assigned_to: string | null
+          category: Database["public"]["Enums"]["alert_category"]
+          correlation_id: string | null
+          country_code: string | null
+          created_at: string | null
+          description: string
+          escalated_at: string | null
+          escalated_to: string | null
+          event_data: Json | null
+          event_type: string
+          evidence: Json | null
+          id: string
+          ip_address: string | null
+          location: string | null
+          resolution_notes: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          risk_score: number | null
+          rule_id: string | null
+          severity: Database["public"]["Enums"]["alert_severity_level"]
+          source_module: string | null
+          status: Database["public"]["Enums"]["alert_status"] | null
+          title: string
+          triggered_conditions: Json | null
+          updated_at: string | null
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          actions_taken?: string[] | null
+          assigned_to?: string | null
+          category: Database["public"]["Enums"]["alert_category"]
+          correlation_id?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          description: string
+          escalated_at?: string | null
+          escalated_to?: string | null
+          event_data?: Json | null
+          event_type: string
+          evidence?: Json | null
+          id?: string
+          ip_address?: string | null
+          location?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          risk_score?: number | null
+          rule_id?: string | null
+          severity: Database["public"]["Enums"]["alert_severity_level"]
+          source_module?: string | null
+          status?: Database["public"]["Enums"]["alert_status"] | null
+          title: string
+          triggered_conditions?: Json | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          actions_taken?: string[] | null
+          assigned_to?: string | null
+          category?: Database["public"]["Enums"]["alert_category"]
+          correlation_id?: string | null
+          country_code?: string | null
+          created_at?: string | null
+          description?: string
+          escalated_at?: string | null
+          escalated_to?: string | null
+          event_data?: Json | null
+          event_type?: string
+          evidence?: Json | null
+          id?: string
+          ip_address?: string | null
+          location?: string | null
+          resolution_notes?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          risk_score?: number | null
+          rule_id?: string | null
+          severity?: Database["public"]["Enums"]["alert_severity_level"]
+          source_module?: string | null
+          status?: Database["public"]["Enums"]["alert_status"] | null
+          title?: string
+          triggered_conditions?: Json | null
+          updated_at?: string | null
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_alert_events_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_events_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_events_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_events_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_events_escalated_to_fkey"
+            columns: ["escalated_to"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_events_escalated_to_fkey"
+            columns: ["escalated_to"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_events_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_events_resolved_by_fkey"
+            columns: ["resolved_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_events_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "security_alert_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_events_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_alert_history: {
+        Row: {
+          action: string
+          alert_id: string
+          comment: string | null
+          from_status: Database["public"]["Enums"]["alert_status"] | null
+          id: string
+          metadata: Json | null
+          performed_at: string | null
+          performed_by: string | null
+          to_status: Database["public"]["Enums"]["alert_status"] | null
+        }
+        Insert: {
+          action: string
+          alert_id: string
+          comment?: string | null
+          from_status?: Database["public"]["Enums"]["alert_status"] | null
+          id?: string
+          metadata?: Json | null
+          performed_at?: string | null
+          performed_by?: string | null
+          to_status?: Database["public"]["Enums"]["alert_status"] | null
+        }
+        Update: {
+          action?: string
+          alert_id?: string
+          comment?: string | null
+          from_status?: Database["public"]["Enums"]["alert_status"] | null
+          id?: string
+          metadata?: Json | null
+          performed_at?: string | null
+          performed_by?: string | null
+          to_status?: Database["public"]["Enums"]["alert_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_alert_history_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "security_alert_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_history_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_history_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_alert_notifications: {
+        Row: {
+          alert_id: string
+          channel: string
+          created_at: string | null
+          error_message: string | null
+          id: string
+          recipient_email: string | null
+          recipient_id: string | null
+          response_data: Json | null
+          sent_at: string | null
+          status: string | null
+          webhook_url: string | null
+        }
+        Insert: {
+          alert_id: string
+          channel: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          recipient_email?: string | null
+          recipient_id?: string | null
+          response_data?: Json | null
+          sent_at?: string | null
+          status?: string | null
+          webhook_url?: string | null
+        }
+        Update: {
+          alert_id?: string
+          channel?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          recipient_email?: string | null
+          recipient_id?: string | null
+          response_data?: Json | null
+          sent_at?: string | null
+          status?: string | null
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_alert_notifications_alert_id_fkey"
+            columns: ["alert_id"]
+            isOneToOne: false
+            referencedRelation: "security_alert_events"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_notifications_recipient_id_fkey"
+            columns: ["recipient_id"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_alert_rules: {
+        Row: {
+          auto_action_config: Json | null
+          auto_actions:
+            | Database["public"]["Enums"]["alert_action_type"][]
+            | null
+          blacklist_ips: string[] | null
+          blacklist_users: string[] | null
+          category: Database["public"]["Enums"]["alert_category"]
+          code: string
+          conditions: Json | null
+          cooldown_minutes: number | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          event_type: string
+          id: string
+          is_enabled: boolean | null
+          name: string
+          notify_channels: string[] | null
+          notify_roles: string[] | null
+          risk_score: number | null
+          severity: Database["public"]["Enums"]["alert_severity_level"]
+          threshold_count: number | null
+          threshold_window_minutes: number | null
+          updated_at: string | null
+          whitelist_ips: string[] | null
+          whitelist_users: string[] | null
+        }
+        Insert: {
+          auto_action_config?: Json | null
+          auto_actions?:
+            | Database["public"]["Enums"]["alert_action_type"][]
+            | null
+          blacklist_ips?: string[] | null
+          blacklist_users?: string[] | null
+          category: Database["public"]["Enums"]["alert_category"]
+          code: string
+          conditions?: Json | null
+          cooldown_minutes?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          event_type: string
+          id?: string
+          is_enabled?: boolean | null
+          name: string
+          notify_channels?: string[] | null
+          notify_roles?: string[] | null
+          risk_score?: number | null
+          severity?: Database["public"]["Enums"]["alert_severity_level"]
+          threshold_count?: number | null
+          threshold_window_minutes?: number | null
+          updated_at?: string | null
+          whitelist_ips?: string[] | null
+          whitelist_users?: string[] | null
+        }
+        Update: {
+          auto_action_config?: Json | null
+          auto_actions?:
+            | Database["public"]["Enums"]["alert_action_type"][]
+            | null
+          blacklist_ips?: string[] | null
+          blacklist_users?: string[] | null
+          category?: Database["public"]["Enums"]["alert_category"]
+          code?: string
+          conditions?: Json | null
+          cooldown_minutes?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          event_type?: string
+          id?: string
+          is_enabled?: boolean | null
+          name?: string
+          notify_channels?: string[] | null
+          notify_roles?: string[] | null
+          risk_score?: number | null
+          severity?: Database["public"]["Enums"]["alert_severity_level"]
+          threshold_count?: number | null
+          threshold_window_minutes?: number | null
+          updated_at?: string | null
+          whitelist_ips?: string[] | null
+          whitelist_users?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_alert_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_alert_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       security_alerts: {
         Row: {
           alert_type: string
@@ -5155,6 +5653,109 @@ export type Database = {
           },
           {
             foreignKeyName: "security_blocked_actions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_engine_config: {
+        Row: {
+          description: string | null
+          id: string
+          key: string
+          updated_at: string | null
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_engine_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_engine_config_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      security_event_counters: {
+        Row: {
+          counter: number | null
+          event_type: string
+          id: string
+          ip_address: string | null
+          last_event_at: string | null
+          metadata: Json | null
+          rule_id: string
+          user_id: string | null
+          window_end: string | null
+          window_start: string | null
+        }
+        Insert: {
+          counter?: number | null
+          event_type: string
+          id?: string
+          ip_address?: string | null
+          last_event_at?: string | null
+          metadata?: Json | null
+          rule_id: string
+          user_id?: string | null
+          window_end?: string | null
+          window_start?: string | null
+        }
+        Update: {
+          counter?: number | null
+          event_type?: string
+          id?: string
+          ip_address?: string | null
+          last_event_at?: string | null
+          metadata?: Json | null
+          rule_id?: string
+          user_id?: string | null
+          window_end?: string | null
+          window_start?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "security_event_counters_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "security_alert_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_event_counters_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "security_event_counters_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "user_names"
@@ -5886,6 +6487,18 @@ export type Database = {
         }
         Returns: undefined
       }
+      create_security_alert: {
+        Args: {
+          p_event_data?: Json
+          p_evidence?: Json
+          p_ip_address?: string
+          p_rule_code: string
+          p_user_agent?: string
+          p_user_email?: string
+          p_user_id?: string
+        }
+        Returns: string
+      }
       generate_entity_code: {
         Args: { _code_column?: string; _prefix: string; _table_name: string }
         Returns: string
@@ -6031,6 +6644,15 @@ export type Database = {
         Args: { _project_id: string }
         Returns: undefined
       }
+      update_alert_status: {
+        Args: {
+          p_alert_id: string
+          p_comment?: string
+          p_new_status: Database["public"]["Enums"]["alert_status"]
+          p_user_id?: string
+        }
+        Returns: boolean
+      }
       validate_budget_transfer_admin: {
         Args: { _comment?: string; _decision: string; _transfer_id: string }
         Returns: Json
@@ -6068,6 +6690,30 @@ export type Database = {
       }
     }
     Enums: {
+      alert_action_type:
+        | "block_account"
+        | "force_logout"
+        | "reset_password"
+        | "disable_access"
+        | "send_notification"
+        | "send_email"
+        | "send_webhook"
+        | "escalate"
+        | "log_only"
+      alert_category:
+        | "authentication"
+        | "authorization"
+        | "data_access"
+        | "system"
+        | "compliance"
+      alert_severity_level: "info" | "low" | "medium" | "high" | "critical"
+      alert_status:
+        | "new"
+        | "acknowledged"
+        | "in_progress"
+        | "resolved"
+        | "ignored"
+        | "escalated"
       compliance_standard: "SOC2" | "HIPAA" | "RGPD" | "FedRAMP" | "ISO27001"
       compliance_status:
         | "conforme"
@@ -6263,6 +6909,33 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      alert_action_type: [
+        "block_account",
+        "force_logout",
+        "reset_password",
+        "disable_access",
+        "send_notification",
+        "send_email",
+        "send_webhook",
+        "escalate",
+        "log_only",
+      ],
+      alert_category: [
+        "authentication",
+        "authorization",
+        "data_access",
+        "system",
+        "compliance",
+      ],
+      alert_severity_level: ["info", "low", "medium", "high", "critical"],
+      alert_status: [
+        "new",
+        "acknowledged",
+        "in_progress",
+        "resolved",
+        "ignored",
+        "escalated",
+      ],
       compliance_standard: ["SOC2", "HIPAA", "RGPD", "FedRAMP", "ISO27001"],
       compliance_status: [
         "conforme",
