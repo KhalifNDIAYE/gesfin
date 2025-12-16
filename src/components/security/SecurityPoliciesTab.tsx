@@ -110,12 +110,12 @@ export const SecurityPoliciesTab = () => {
   };
 
   const exportColumns = [
-    { header: "Code", accessor: "code" },
-    { header: "Nom", accessor: "name" },
-    { header: "Type", accessor: (row: any) => policyTypeConfig[row.policy_type as SecurityPolicyType].label },
-    { header: "Version", accessor: "version" },
-    { header: "Date d'effet", accessor: (row: any) => format(new Date(row.effective_date), "dd/MM/yyyy", { locale: fr }) },
-    { header: "Actif", accessor: (row: any) => row.is_active ? "Oui" : "Non" },
+    { key: "code", label: "Code" },
+    { key: "name", label: "Nom" },
+    { key: "policy_type", label: "Type", format: (value: any) => policyTypeConfig[value as SecurityPolicyType]?.label || value },
+    { key: "version", label: "Version" },
+    { key: "effective_date", label: "Date d'effet", format: (value: any) => format(new Date(value), "dd/MM/yyyy", { locale: fr }) },
+    { key: "is_active", label: "Actif", format: (value: any) => value ? "Oui" : "Non" },
   ];
 
   return (
