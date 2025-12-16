@@ -14,12 +14,14 @@ import {
 } from "lucide-react";
 import { useSecurityDashboardStats, useLoginStats } from "@/hooks/useSecurityCompliance";
 import { useBlockedActionsStats } from "@/hooks/useBlockedActions";
+import { useAlertEngineStats } from "@/hooks/useSecurityAlertEngine";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, Legend } from "recharts";
 
 export const SecurityDashboardTab = () => {
   const { data: stats, isLoading: statsLoading } = useSecurityDashboardStats();
   const { data: blockedStats } = useBlockedActionsStats();
   const { data: loginStats } = useLoginStats(7);
+  const { data: alertStats } = useAlertEngineStats();
 
   // Mock data for charts when no data
   const loginChartData = loginStats?.length ? loginStats : [

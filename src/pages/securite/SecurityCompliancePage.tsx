@@ -7,7 +7,8 @@ import { RGPDRegistryTab } from "@/components/security/RGPDRegistryTab";
 import { SecurityIncidentsTab } from "@/components/security/SecurityIncidentsTab";
 import { SecurityPoliciesTab } from "@/components/security/SecurityPoliciesTab";
 import { SecurityAuditLogTab } from "@/components/security/SecurityAuditLogTab";
-import { SecurityAlertsTab } from "@/components/security/SecurityAlertsTab";
+import { AdvancedSecurityAlertsTab } from "@/components/security/AdvancedSecurityAlertsTab";
+import { AlertRulesTab } from "@/components/security/AlertRulesTab";
 import { 
   LayoutDashboard, 
   ShieldCheck, 
@@ -15,7 +16,8 @@ import {
   AlertTriangle, 
   ScrollText, 
   History,
-  Bell
+  Bell,
+  Settings2
 } from "lucide-react";
 
 const SecurityCompliancePage = () => {
@@ -27,10 +29,18 @@ const SecurityCompliancePage = () => {
       subtitle="Pilotage de la sécurité et conformité réglementaire (SOC 2, HIPAA, RGPD, FedRAMP, ISO 27001)"
     >
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-flex">
+        <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-flex">
           <TabsTrigger value="dashboard" className="gap-2">
             <LayoutDashboard className="h-4 w-4" />
             <span className="hidden sm:inline">Dashboard</span>
+          </TabsTrigger>
+          <TabsTrigger value="alerts" className="gap-2">
+            <Bell className="h-4 w-4" />
+            <span className="hidden sm:inline">Alertes</span>
+          </TabsTrigger>
+          <TabsTrigger value="rules" className="gap-2">
+            <Settings2 className="h-4 w-4" />
+            <span className="hidden sm:inline">Règles</span>
           </TabsTrigger>
           <TabsTrigger value="compliance" className="gap-2">
             <ShieldCheck className="h-4 w-4" />
@@ -52,14 +62,18 @@ const SecurityCompliancePage = () => {
             <History className="h-4 w-4" />
             <span className="hidden sm:inline">Audit</span>
           </TabsTrigger>
-          <TabsTrigger value="alerts" className="gap-2">
-            <Bell className="h-4 w-4" />
-            <span className="hidden sm:inline">Alertes</span>
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="dashboard">
           <SecurityDashboardTab />
+        </TabsContent>
+
+        <TabsContent value="alerts">
+          <AdvancedSecurityAlertsTab />
+        </TabsContent>
+
+        <TabsContent value="rules">
+          <AlertRulesTab />
         </TabsContent>
 
         <TabsContent value="compliance">
@@ -80,10 +94,6 @@ const SecurityCompliancePage = () => {
 
         <TabsContent value="audit">
           <SecurityAuditLogTab />
-        </TabsContent>
-
-        <TabsContent value="alerts">
-          <SecurityAlertsTab />
         </TabsContent>
       </Tabs>
     </AppLayout>
