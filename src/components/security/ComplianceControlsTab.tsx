@@ -116,11 +116,11 @@ export const ComplianceControlsTab = () => {
   };
 
   const exportColumns = [
-    { header: "Code", accessor: "code" },
-    { header: "Nom", accessor: "name" },
-    { header: "Norme", accessor: (row: any) => standardLabels[row.standard as ComplianceStandard] },
-    { header: "Statut", accessor: (row: any) => statusConfig[row.status as ComplianceStatus].label },
-    { header: "Dernière vérification", accessor: (row: any) => row.last_verification_date ? format(new Date(row.last_verification_date), "dd/MM/yyyy", { locale: fr }) : "-" },
+    { key: "code", label: "Code" },
+    { key: "name", label: "Nom" },
+    { key: "standard", label: "Norme", format: (value: any) => standardLabels[value as ComplianceStandard] },
+    { key: "status", label: "Statut", format: (value: any) => statusConfig[value as ComplianceStatus]?.label || value },
+    { key: "last_verification_date", label: "Dernière vérification", format: (value: any) => value ? format(new Date(value), "dd/MM/yyyy", { locale: fr }) : "-" },
   ];
 
   return (

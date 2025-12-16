@@ -120,11 +120,11 @@ export const SecurityIncidentsTab = () => {
   };
 
   const exportColumns = [
-    { header: "Code", accessor: "code" },
-    { header: "Titre", accessor: "title" },
-    { header: "Sévérité", accessor: (row: any) => severityConfig[row.severity as IncidentSeverity].label },
-    { header: "Statut", accessor: (row: any) => statusConfig[row.status as IncidentStatus].label },
-    { header: "Date détection", accessor: (row: any) => format(new Date(row.detection_date), "dd/MM/yyyy HH:mm", { locale: fr }) },
+    { key: "code", label: "Code" },
+    { key: "title", label: "Titre" },
+    { key: "severity", label: "Sévérité", format: (value: any) => severityConfig[value as IncidentSeverity]?.label || value },
+    { key: "status", label: "Statut", format: (value: any) => statusConfig[value as IncidentStatus]?.label || value },
+    { key: "detection_date", label: "Date détection", format: (value: any) => format(new Date(value), "dd/MM/yyyy HH:mm", { locale: fr }) },
   ];
 
   return (

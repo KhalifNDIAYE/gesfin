@@ -87,7 +87,7 @@ export const SecurityAuditLogTab = () => {
   const filteredBlockedActions = blockedActions?.filter(action => {
     const matchesSearch = 
       action.user_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      action.attempted_action?.toLowerCase().includes(searchTerm.toLowerCase());
+      action.action_attempted?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesModule = moduleFilter === "all" || action.module === moduleFilter;
     return matchesSearch && matchesModule;
   }) || [];
@@ -96,21 +96,21 @@ export const SecurityAuditLogTab = () => {
   const uniqueActions = [...new Set(auditLogs?.map(log => log.action) || [])];
 
   const auditExportColumns = [
-    { header: "Date", accessor: (row: any) => format(new Date(row.created_at), "dd/MM/yyyy HH:mm:ss", { locale: fr }) },
-    { header: "Utilisateur", accessor: "user_email" },
-    { header: "Action", accessor: "action" },
-    { header: "Module", accessor: (row: any) => moduleLabels[row.module] || row.module || "-" },
-    { header: "Ressource", accessor: (row: any) => row.resource_type ? `${row.resource_type} (${row.resource_id})` : "-" },
-    { header: "IP", accessor: "ip_address" },
+    { key: "created_at", label: "Date", format: (value: any) => format(new Date(value), "dd/MM/yyyy HH:mm:ss", { locale: fr }) },
+    { key: "user_email", label: "Utilisateur" },
+    { key: "action", label: "Action" },
+    { key: "module", label: "Module", format: (value: any) => moduleLabels[value] || value || "-" },
+    { key: "resource_type", label: "Ressource", format: (value: any, row: any) => row?.resource_type ? `${row.resource_type} (${row.resource_id})` : "-" },
+    { key: "ip_address", label: "IP" },
   ];
 
   const blockedExportColumns = [
-    { header: "Date", accessor: (row: any) => format(new Date(row.created_at), "dd/MM/yyyy HH:mm:ss", { locale: fr }) },
-    { header: "Utilisateur", accessor: "user_email" },
-    { header: "Action tentée", accessor: "attempted_action" },
-    { header: "Module", accessor: (row: any) => moduleLabels[row.module] || row.module || "-" },
-    { header: "Sévérité", accessor: "severity" },
-    { header: "IP", accessor: "ip_address" },
+    { key: "created_at", label: "Date", format: (value: any) => format(new Date(value), "dd/MM/yyyy HH:mm:ss", { locale: fr }) },
+    { key: "user_email", label: "Utilisateur" },
+    { key: "action_attempted", label: "Action tentée" },
+    { key: "module", label: "Module", format: (value: any) => moduleLabels[value] || value || "-" },
+    { key: "severity", label: "Sévérité" },
+    { key: "ip_address", label: "IP" },
   ];
 
   return (
@@ -285,7 +285,7 @@ export const SecurityAuditLogTab = () => {
                             <Badge className="bg-destructive/10 text-destructive">
                               <span className="flex items-center gap-1">
                                 <ShieldAlert className="h-4 w-4" />
-                                {action.attempted_action}
+                                {action.action_attempted}
                               </span>
                             </Badge>
                           </TableCell>

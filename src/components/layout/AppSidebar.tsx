@@ -220,6 +220,7 @@ const administrationGroup: NavGroup = {
   items: [
     { title: "Utilisateurs", href: "/utilisateurs", icon: Users, module: "utilisateurs" },
     { title: "Sécurité", href: "/securite", icon: Shield, module: "securite" },
+    { title: "Sécurité & Conformité", href: "/securite/conformite", icon: Shield, module: "securite" },
     { title: "Utilitaires", href: "/utilitaires", icon: Database, module: "parametres" },
     { title: "Paramètres", href: "/parametres", icon: Settings, module: "parametres" },
   ],

@@ -65,11 +65,11 @@ export const SecurityAlertsTab = () => {
   };
 
   const exportColumns = [
-    { header: "Date", accessor: (row: any) => format(new Date(row.created_at), "dd/MM/yyyy HH:mm", { locale: fr }) },
-    { header: "Titre", accessor: "title" },
-    { header: "Type", accessor: "alert_type" },
-    { header: "Sévérité", accessor: (row: any) => severityConfig[row.severity]?.label || row.severity },
-    { header: "Statut", accessor: (row: any) => row.is_resolved ? "Résolu" : "Actif" },
+    { key: "created_at", label: "Date", format: (value: any) => format(new Date(value), "dd/MM/yyyy HH:mm", { locale: fr }) },
+    { key: "title", label: "Titre" },
+    { key: "alert_type", label: "Type" },
+    { key: "severity", label: "Sévérité", format: (value: any) => severityConfig[value]?.label || value },
+    { key: "is_resolved", label: "Statut", format: (value: any) => value ? "Résolu" : "Actif" },
   ];
 
   // Stats

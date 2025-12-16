@@ -118,12 +118,12 @@ export const RGPDRegistryTab = () => {
   ];
 
   const exportColumns = [
-    { header: "Traitement", accessor: "treatment_name" },
-    { header: "Finalité", accessor: "purpose" },
-    { header: "Base légale", accessor: "legal_basis" },
-    { header: "Conservation", accessor: "retention_period" },
-    { header: "Transfert hors UE", accessor: (row: any) => row.cross_border_transfers ? "Oui" : "Non" },
-    { header: "Actif", accessor: (row: any) => row.is_active ? "Oui" : "Non" },
+    { key: "treatment_name", label: "Traitement" },
+    { key: "purpose", label: "Finalité" },
+    { key: "legal_basis", label: "Base légale" },
+    { key: "retention_period", label: "Conservation" },
+    { key: "cross_border_transfers", label: "Transfert hors UE", format: (value: any) => value ? "Oui" : "Non" },
+    { key: "is_active", label: "Actif", format: (value: any) => value ? "Oui" : "Non" },
   ];
 
   return (

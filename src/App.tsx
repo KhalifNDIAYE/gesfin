@@ -96,6 +96,7 @@ import VueProjetPage from "./pages/dashboard/VueProjetPage";
 // Administration pages
 import UtilitairesPage from "./pages/administration/UtilitairesPage";
 import BlockedActionsPage from "./pages/administration/BlockedActionsPage";
+import SecurityCompliancePage from "./pages/securite/SecurityCompliancePage";
 
 const queryClient = new QueryClient();
 
@@ -201,6 +202,7 @@ const App = () => (
             <Route path="/utilisateurs" element={<ProtectedRoute adminOnly><Utilisateurs /></ProtectedRoute>} />
             <Route path="/securite" element={<ProtectedRoute adminOnly><Securite /></ProtectedRoute>} />
             <Route path="/securite/tentatives-bloquees" element={<ProtectedRoute adminOnly><BlockedActionsPage /></ProtectedRoute>} />
+            <Route path="/securite/conformite" element={<ProtectedRoute adminOnly><SecurityCompliancePage /></ProtectedRoute>} />
             <Route path="/parametres" element={<ProtectedRoute adminOnly><Parametres /></ProtectedRoute>} />
             <Route path="/utilitaires" element={<ProtectedRoute adminOnly><UtilitairesPage /></ProtectedRoute>} />
             
