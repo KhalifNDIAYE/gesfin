@@ -14,392 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      ai_correlated_alerts: {
-        Row: {
-          acknowledged_at: string | null
-          acknowledged_by: string | null
-          ai_reasoning: string | null
-          alert_code: string
-          auto_responses_applied: string[] | null
-          correlated_event_ids: string[] | null
-          correlated_events: Json | null
-          correlation_type: Database["public"]["Enums"]["correlation_type"]
-          created_at: string | null
-          description: string | null
-          detection_confidence: number | null
-          event_count: number | null
-          first_event_at: string | null
-          id: string
-          last_event_at: string | null
-          pattern_id: string | null
-          resolution_notes: string | null
-          resolved_at: string | null
-          resolved_by: string | null
-          risk_factors: Json | null
-          risk_level: Database["public"]["Enums"]["risk_level"]
-          risk_score: number
-          severity: string
-          status: string | null
-          time_span_minutes: number | null
-          title: string
-          updated_at: string | null
-          user_email: string | null
-          user_id: string | null
-        }
-        Insert: {
-          acknowledged_at?: string | null
-          acknowledged_by?: string | null
-          ai_reasoning?: string | null
-          alert_code: string
-          auto_responses_applied?: string[] | null
-          correlated_event_ids?: string[] | null
-          correlated_events?: Json | null
-          correlation_type: Database["public"]["Enums"]["correlation_type"]
-          created_at?: string | null
-          description?: string | null
-          detection_confidence?: number | null
-          event_count?: number | null
-          first_event_at?: string | null
-          id?: string
-          last_event_at?: string | null
-          pattern_id?: string | null
-          resolution_notes?: string | null
-          resolved_at?: string | null
-          resolved_by?: string | null
-          risk_factors?: Json | null
-          risk_level: Database["public"]["Enums"]["risk_level"]
-          risk_score: number
-          severity?: string
-          status?: string | null
-          time_span_minutes?: number | null
-          title: string
-          updated_at?: string | null
-          user_email?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          acknowledged_at?: string | null
-          acknowledged_by?: string | null
-          ai_reasoning?: string | null
-          alert_code?: string
-          auto_responses_applied?: string[] | null
-          correlated_event_ids?: string[] | null
-          correlated_events?: Json | null
-          correlation_type?: Database["public"]["Enums"]["correlation_type"]
-          created_at?: string | null
-          description?: string | null
-          detection_confidence?: number | null
-          event_count?: number | null
-          first_event_at?: string | null
-          id?: string
-          last_event_at?: string | null
-          pattern_id?: string | null
-          resolution_notes?: string | null
-          resolved_at?: string | null
-          resolved_by?: string | null
-          risk_factors?: Json | null
-          risk_level?: Database["public"]["Enums"]["risk_level"]
-          risk_score?: number
-          severity?: string
-          status?: string | null
-          time_span_minutes?: number | null
-          title?: string
-          updated_at?: string | null
-          user_email?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_correlated_alerts_acknowledged_by_fkey"
-            columns: ["acknowledged_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_correlated_alerts_acknowledged_by_fkey"
-            columns: ["acknowledged_by"]
-            isOneToOne: false
-            referencedRelation: "user_names"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_correlated_alerts_pattern_id_fkey"
-            columns: ["pattern_id"]
-            isOneToOne: false
-            referencedRelation: "ai_correlation_patterns"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_correlated_alerts_resolved_by_fkey"
-            columns: ["resolved_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_correlated_alerts_resolved_by_fkey"
-            columns: ["resolved_by"]
-            isOneToOne: false
-            referencedRelation: "user_names"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_correlated_alerts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_correlated_alerts_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_names"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ai_correlation_events: {
-        Row: {
-          correlated_alert_id: string | null
-          created_at: string | null
-          event_data: Json | null
-          event_id: string | null
-          event_source: string
-          event_timestamp: string
-          event_type: string
-          id: string
-          ip_address: string | null
-          risk_contribution: number | null
-          sequence_order: number | null
-          user_id: string | null
-        }
-        Insert: {
-          correlated_alert_id?: string | null
-          created_at?: string | null
-          event_data?: Json | null
-          event_id?: string | null
-          event_source: string
-          event_timestamp: string
-          event_type: string
-          id?: string
-          ip_address?: string | null
-          risk_contribution?: number | null
-          sequence_order?: number | null
-          user_id?: string | null
-        }
-        Update: {
-          correlated_alert_id?: string | null
-          created_at?: string | null
-          event_data?: Json | null
-          event_id?: string | null
-          event_source?: string
-          event_timestamp?: string
-          event_type?: string
-          id?: string
-          ip_address?: string | null
-          risk_contribution?: number | null
-          sequence_order?: number | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_correlation_events_correlated_alert_id_fkey"
-            columns: ["correlated_alert_id"]
-            isOneToOne: false
-            referencedRelation: "ai_correlated_alerts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ai_correlation_patterns: {
-        Row: {
-          code: string
-          correlation_type: Database["public"]["Enums"]["correlation_type"]
-          created_at: string | null
-          description: string | null
-          detection_logic: Json | null
-          event_types: string[]
-          id: string
-          is_ai_learned: boolean | null
-          is_enabled: boolean | null
-          min_events_threshold: number | null
-          name: string
-          risk_weight: number | null
-          time_window_minutes: number | null
-          updated_at: string | null
-        }
-        Insert: {
-          code: string
-          correlation_type: Database["public"]["Enums"]["correlation_type"]
-          created_at?: string | null
-          description?: string | null
-          detection_logic?: Json | null
-          event_types?: string[]
-          id?: string
-          is_ai_learned?: boolean | null
-          is_enabled?: boolean | null
-          min_events_threshold?: number | null
-          name: string
-          risk_weight?: number | null
-          time_window_minutes?: number | null
-          updated_at?: string | null
-        }
-        Update: {
-          code?: string
-          correlation_type?: Database["public"]["Enums"]["correlation_type"]
-          created_at?: string | null
-          description?: string | null
-          detection_logic?: Json | null
-          event_types?: string[]
-          id?: string
-          is_ai_learned?: boolean | null
-          is_enabled?: boolean | null
-          min_events_threshold?: number | null
-          name?: string
-          risk_weight?: number | null
-          time_window_minutes?: number | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
-      ai_decisions_audit: {
-        Row: {
-          ai_model: string | null
-          ai_response: Json | null
-          auto_response_executed: boolean | null
-          auto_response_result: Json | null
-          auto_response_type:
-            | Database["public"]["Enums"]["auto_response_type"]
-            | null
-          compliance_tags: string[] | null
-          confidence_score: number | null
-          created_at: string | null
-          decision_made: string
-          decision_reasoning: string | null
-          decision_type: Database["public"]["Enums"]["ai_decision_type"]
-          id: string
-          input_data: Json
-          is_explainable: boolean | null
-          processing_time_ms: number | null
-          related_alert_id: string | null
-          related_user_id: string | null
-        }
-        Insert: {
-          ai_model?: string | null
-          ai_response?: Json | null
-          auto_response_executed?: boolean | null
-          auto_response_result?: Json | null
-          auto_response_type?:
-            | Database["public"]["Enums"]["auto_response_type"]
-            | null
-          compliance_tags?: string[] | null
-          confidence_score?: number | null
-          created_at?: string | null
-          decision_made: string
-          decision_reasoning?: string | null
-          decision_type: Database["public"]["Enums"]["ai_decision_type"]
-          id?: string
-          input_data?: Json
-          is_explainable?: boolean | null
-          processing_time_ms?: number | null
-          related_alert_id?: string | null
-          related_user_id?: string | null
-        }
-        Update: {
-          ai_model?: string | null
-          ai_response?: Json | null
-          auto_response_executed?: boolean | null
-          auto_response_result?: Json | null
-          auto_response_type?:
-            | Database["public"]["Enums"]["auto_response_type"]
-            | null
-          compliance_tags?: string[] | null
-          confidence_score?: number | null
-          created_at?: string | null
-          decision_made?: string
-          decision_reasoning?: string | null
-          decision_type?: Database["public"]["Enums"]["ai_decision_type"]
-          id?: string
-          input_data?: Json
-          is_explainable?: boolean | null
-          processing_time_ms?: number | null
-          related_alert_id?: string | null
-          related_user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_decisions_audit_related_alert_id_fkey"
-            columns: ["related_alert_id"]
-            isOneToOne: false
-            referencedRelation: "ai_correlated_alerts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_decisions_audit_related_user_id_fkey"
-            columns: ["related_user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_decisions_audit_related_user_id_fkey"
-            columns: ["related_user_id"]
-            isOneToOne: false
-            referencedRelation: "user_names"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ai_engine_settings: {
-        Row: {
-          created_at: string | null
-          description: string | null
-          id: string
-          is_critical: boolean | null
-          setting_key: string
-          setting_value: Json
-          updated_at: string | null
-          updated_by: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_critical?: boolean | null
-          setting_key: string
-          setting_value: Json
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          is_critical?: boolean | null
-          setting_key?: string
-          setting_value?: Json
-          updated_at?: string | null
-          updated_by?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_engine_settings_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_engine_settings_updated_by_fkey"
-            columns: ["updated_by"]
-            isOneToOne: false
-            referencedRelation: "user_names"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       analytical_allocations: {
         Row: {
           activity_id: string | null
@@ -6655,111 +6269,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_behavioral_baselines: {
-        Row: {
-          baseline_data: Json
-          baseline_type: string
-          created_at: string | null
-          id: string
-          last_updated: string | null
-          sample_count: number | null
-          user_id: string | null
-        }
-        Insert: {
-          baseline_data?: Json
-          baseline_type: string
-          created_at?: string | null
-          id?: string
-          last_updated?: string | null
-          sample_count?: number | null
-          user_id?: string | null
-        }
-        Update: {
-          baseline_data?: Json
-          baseline_type?: string
-          created_at?: string | null
-          id?: string
-          last_updated?: string | null
-          sample_count?: number | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_behavioral_baselines_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_behavioral_baselines_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_names"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      user_risk_scores: {
-        Row: {
-          anomalies_detected: number | null
-          auto_responses_triggered: number | null
-          created_at: string | null
-          current_score: number | null
-          id: string
-          last_calculated_at: string | null
-          last_events: Json | null
-          risk_level: Database["public"]["Enums"]["risk_level"] | null
-          score_factors: Json | null
-          session_id: string | null
-          updated_at: string | null
-          user_id: string | null
-        }
-        Insert: {
-          anomalies_detected?: number | null
-          auto_responses_triggered?: number | null
-          created_at?: string | null
-          current_score?: number | null
-          id?: string
-          last_calculated_at?: string | null
-          last_events?: Json | null
-          risk_level?: Database["public"]["Enums"]["risk_level"] | null
-          score_factors?: Json | null
-          session_id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          anomalies_detected?: number | null
-          auto_responses_triggered?: number | null
-          created_at?: string | null
-          current_score?: number | null
-          id?: string
-          last_calculated_at?: string | null
-          last_events?: Json | null
-          risk_level?: Database["public"]["Enums"]["risk_level"] | null
-          score_factors?: Json | null
-          session_id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_risk_scores_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_risk_scores_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "user_names"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_roles: {
         Row: {
           assigned_at: string | null
@@ -6910,7 +6419,6 @@ export type Database = {
         Args: { _asset_id: string; _period_end: string }
         Returns: number
       }
-      calculate_user_risk_score: { Args: { p_user_id: string }; Returns: Json }
       check_budget_availability: {
         Args: { _amount: number; _budget_line_id: string }
         Returns: boolean
@@ -7182,12 +6690,6 @@ export type Database = {
       }
     }
     Enums: {
-      ai_decision_type:
-        | "alert_created"
-        | "risk_score_updated"
-        | "auto_response_triggered"
-        | "baseline_updated"
-        | "pattern_detected"
       alert_action_type:
         | "block_account"
         | "force_logout"
@@ -7212,23 +6714,12 @@ export type Database = {
         | "resolved"
         | "ignored"
         | "escalated"
-      auto_response_type:
-        | "account_lock"
-        | "force_logout"
-        | "mfa_required"
-        | "rssi_alert"
-        | "quarantine"
       compliance_standard: "SOC2" | "HIPAA" | "RGPD" | "FedRAMP" | "ISO27001"
       compliance_status:
         | "conforme"
         | "non_conforme"
         | "a_ameliorer"
         | "en_cours"
-      correlation_type:
-        | "temporal"
-        | "behavioral"
-        | "contextual"
-        | "data_sensitive"
       entry_status: "brouillon" | "valide" | "cloture"
       entry_type:
         | "depense"
@@ -7280,7 +6771,6 @@ export type Database = {
         | "analytique"
         | "financier"
         | "geographique"
-      risk_level: "low" | "medium" | "high" | "critical"
       security_policy_type:
         | "mot_de_passe"
         | "acces"
@@ -7419,13 +6909,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      ai_decision_type: [
-        "alert_created",
-        "risk_score_updated",
-        "auto_response_triggered",
-        "baseline_updated",
-        "pattern_detected",
-      ],
       alert_action_type: [
         "block_account",
         "force_logout",
@@ -7453,25 +6936,12 @@ export const Constants = {
         "ignored",
         "escalated",
       ],
-      auto_response_type: [
-        "account_lock",
-        "force_logout",
-        "mfa_required",
-        "rssi_alert",
-        "quarantine",
-      ],
       compliance_standard: ["SOC2", "HIPAA", "RGPD", "FedRAMP", "ISO27001"],
       compliance_status: [
         "conforme",
         "non_conforme",
         "a_ameliorer",
         "en_cours",
-      ],
-      correlation_type: [
-        "temporal",
-        "behavioral",
-        "contextual",
-        "data_sensitive",
       ],
       entry_status: ["brouillon", "valide", "cloture"],
       entry_type: [
@@ -7530,7 +7000,6 @@ export const Constants = {
         "financier",
         "geographique",
       ],
-      risk_level: ["low", "medium", "high", "critical"],
       security_policy_type: [
         "mot_de_passe",
         "acces",
