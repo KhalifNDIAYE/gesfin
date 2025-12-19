@@ -65,9 +65,6 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
         {/* Notifications Center */}
         <NotificationCenter />
 
-        {/* Notifications Center */}
-        <NotificationCenter />
-
         {/* Help */}
         <Button variant="ghost" size="icon" onClick={() => window.open("https://docs.lovable.dev/", "_blank")}>
           <HelpCircle className="h-5 w-5" />

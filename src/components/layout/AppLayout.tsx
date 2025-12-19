@@ -1,6 +1,7 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { AppHeader } from "./AppHeader";
+import { useNotificationSync } from "@/hooks/useNotificationSync";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -9,6 +10,9 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children, title, subtitle }: AppLayoutProps) {
+  // Initialize notification sync service to correlate business alerts with notifications
+  useNotificationSync();
+
   return (
     <div className="min-h-screen bg-background">
       <AppSidebar />
