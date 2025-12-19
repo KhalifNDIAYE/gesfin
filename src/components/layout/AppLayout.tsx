@@ -14,11 +14,11 @@ export function AppLayout({ children, title, subtitle }: AppLayoutProps) {
   useNotificationSync();
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background" data-layout="app" data-testid="app-layout">
       <AppSidebar />
       <div className="pl-64 transition-all duration-300">
         <AppHeader title={title} subtitle={subtitle} />
-        <main className="p-6">
+        <main className="p-6" data-component="main-content" data-testid="main-content">
           {children}
         </main>
       </div>

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { SessionTimeoutProvider } from "@/components/auth/SessionTimeoutProvider";
+import { LayoutRegressionAlert } from "@/components/layout/LayoutRegressionAlert";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AccessDenied from "./pages/AccessDenied";
@@ -106,6 +107,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <LayoutRegressionAlert />
         <AuthProvider>
           <SessionTimeoutProvider timeoutMinutes={30}>
           <Routes>
