@@ -492,6 +492,8 @@ export function AppSidebar() {
         "fixed left-0 top-0 z-40 h-screen bg-sidebar transition-all duration-300",
         collapsed ? "w-[72px]" : "w-64",
       )}
+      data-component="sidebar"
+      data-testid="app-sidebar"
     >
       <div className="flex h-full flex-col">
         {/* Logo */}

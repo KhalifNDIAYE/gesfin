@@ -49,7 +49,7 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
   const primaryRole = roles && roles.length > 0 ? roles[0].name : "Utilisateur";
 
   return (
-    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60" data-component="header" data-testid="app-header">
       <div className="flex flex-col">
         <h1 className="text-lg font-semibold text-foreground">{title}</h1>
         {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
