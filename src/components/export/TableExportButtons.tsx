@@ -19,6 +19,17 @@ interface TableExportButtonsProps {
   subtitle?: string;
 }
 
+// HTML escape function to prevent XSS attacks
+const escapeHtml = (str: string): string => {
+  if (typeof str !== 'string') return String(str ?? '');
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
 const formatValue = (value: any, column: ExportColumn, row?: any): string => {
   if (column.format) {
     return column.format(value, row);
@@ -31,6 +42,11 @@ const formatValue = (value: any, column: ExportColumn, row?: any): string => {
     return value.toLocaleDateString("fr-FR");
   }
   return String(value);
+};
+
+// Sanitized version of formatValue for HTML contexts
+const formatValueSafe = (value: any, column: ExportColumn, row?: any): string => {
+  return escapeHtml(formatValue(value, column, row));
 };
 
 const getNestedValue = (obj: any, path: string): any => {
@@ -236,6 +252,10 @@ export const printTable = (
       return;
     }
 
+    // Sanitize all user-controlled data to prevent XSS
+    const safeTitle = escapeHtml(title || "Export");
+    const safeSubtitle = subtitle ? escapeHtml(subtitle) : "";
+
     const tableRows = data
       .map(
         (row) => `
@@ -243,7 +263,7 @@ export const printTable = (
           ${columns
             .map((col) => {
               const value = getNestedValue(row, col.key);
-              return `<td>${formatValue(value, col, row)}</td>`;
+              return `<td>${formatValueSafe(value, col, row)}</td>`;
             })
             .join("")}
         </tr>
@@ -251,11 +271,13 @@ export const printTable = (
       )
       .join("");
 
+    const tableHeaders = columns.map((col) => `<th>${escapeHtml(col.label)}</th>`).join("");
+
     const html = `
       <!DOCTYPE html>
       <html>
       <head>
-        <title>${title || "Impression"}</title>
+        <title>${safeTitle}</title>
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -314,8 +336,8 @@ export const printTable = (
       </head>
       <body>
         <div class="header">
-          <h1>${title || "Export"}</h1>
-          ${subtitle ? `<p>${subtitle}</p>` : ""}
+          <h1>${safeTitle}</h1>
+          ${safeSubtitle ? `<p>${safeSubtitle}</p>` : ""}
         </div>
         <div class="meta">
           Imprimé le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR")} | ${data.length} enregistrement(s)
@@ -323,7 +345,7 @@ export const printTable = (
         <table>
           <thead>
             <tr>
-              ${columns.map((col) => `<th>${col.label}</th>`).join("")}
+              ${tableHeaders}
             </tr>
           </thead>
           <tbody>
@@ -337,7 +359,7 @@ export const printTable = (
           window.onload = function() {
             window.print();
           }
-        </script>
+        <\/script>
       </body>
       </html>
     `;
