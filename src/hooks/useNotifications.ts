@@ -74,6 +74,14 @@ export const useNotifications = (filters?: NotificationFilters) => {
   useEffect(() => {
     if (!user) return;
 
+    const invalidateAll = () => {
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      queryClient.invalidateQueries({ queryKey: ['unread-notifications-count'] });
+      queryClient.invalidateQueries({ queryKey: ['sidebar-alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['unified-alerts'] });
+      queryClient.invalidateQueries({ queryKey: ['existing-notification-keys'] });
+    };
+
     const channel = supabase
       .channel('notifications-realtime')
       .on(
@@ -85,8 +93,7 @@ export const useNotifications = (filters?: NotificationFilters) => {
           filter: `user_id=eq.${user.id}`,
         },
         (payload) => {
-          queryClient.invalidateQueries({ queryKey: ['notifications'] });
-          queryClient.invalidateQueries({ queryKey: ['unread-notifications-count'] });
+          invalidateAll();
           
           const notification = payload.new as Notification;
           const severityIcons = {
@@ -108,8 +115,18 @@ export const useNotifications = (filters?: NotificationFilters) => {
           table: 'notifications',
         },
         () => {
-          queryClient.invalidateQueries({ queryKey: ['notifications'] });
-          queryClient.invalidateQueries({ queryKey: ['unread-notifications-count'] });
+          invalidateAll();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'notifications',
+        },
+        () => {
+          invalidateAll();
         }
       )
       .subscribe();

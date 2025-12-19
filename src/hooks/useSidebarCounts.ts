@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface SidebarCounts {
   projets: number;
@@ -58,70 +59,49 @@ export const useSidebarCounts = () => {
 };
 
 export const useSidebarAlerts = () => {
+  const { user } = useAuth();
+
   return useQuery({
-    queryKey: ['sidebar-alerts'],
+    queryKey: ['sidebar-alerts', user?.id],
     queryFn: async (): Promise<SidebarAlerts> => {
-      const today = new Date().toISOString().split('T')[0];
+      // Get alerts from the unified notifications table
+      // This ensures badges and notification center are synchronized
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('type, related_entity_type, related_entity_id')
+        .eq('status', 'unread');
 
-      // Fetch all alert counts in parallel
-      const [
-        projetsEnRetardResult,
-        projetsBudgetDepasseResult,
-        conventionsExpireesResult,
-        budgetsEnDepassementResult,
-      ] = await Promise.all([
-        // Projects en retard: end_date < today AND status NOT IN ('completed', 'closed', 'cancelled')
-        supabase
-          .from('projects')
-          .select('id', { count: 'exact', head: true })
-          .lt('end_date', today)
-          .not('status', 'in', '("completed","closed","cancelled")'),
-        
-        // Projects with budget overrun: consumed_budget > total_budget
-        supabase
-          .from('projects')
-          .select('id, total_budget, consumed_budget')
-          .not('total_budget', 'is', null)
-          .not('consumed_budget', 'is', null),
-        
-        // Conventions expirées: closing_date < today AND status = 'active'
-        supabase
-          .from('conventions')
-          .select('id', { count: 'exact', head: true })
-          .lt('closing_date', today)
-          .eq('status', 'active'),
-        
-        // Budget lines en dépassement (where realized > forecast)
-        supabase
-          .from('budget_lines')
-          .select('id, forecast_amount, realized_amount')
-          .not('forecast_amount', 'is', null)
-          .gt('forecast_amount', 0),
-      ]);
+      if (error) throw error;
 
-      // Calculate budget overruns for projects (client-side filtering)
-      let projetsBudgetDepasse = 0;
-      if (projetsBudgetDepasseResult.data) {
-        projetsBudgetDepasse = projetsBudgetDepasseResult.data.filter(
-          (p) => p.consumed_budget !== null && p.total_budget !== null && p.consumed_budget > p.total_budget
-        ).length;
-      }
+      // Count unique entities per alert type to avoid counting duplicates
+      const projectsLate = new Set<string>();
+      const projectsBudgetOverrun = new Set<string>();
+      const conventionsExpired = new Set<string>();
+      const budgetLinesOverdrawn = new Set<string>();
 
-      // Calculate budget line overruns (client-side filtering)
-      let budgetsEnDepassement = 0;
-      if (budgetsEnDepassementResult.data) {
-        budgetsEnDepassement = budgetsEnDepassementResult.data.filter(
-          (b) => b.realized_amount !== null && b.forecast_amount !== null && b.realized_amount > b.forecast_amount
-        ).length;
-      }
+      data?.forEach(n => {
+        if (n.type === 'project_late' && n.related_entity_type === 'project' && n.related_entity_id) {
+          projectsLate.add(n.related_entity_id);
+        }
+        if (n.type === 'budget_overrun' && n.related_entity_type === 'project' && n.related_entity_id) {
+          projectsBudgetOverrun.add(n.related_entity_id);
+        }
+        if (n.type === 'convention_expired' && n.related_entity_type === 'convention' && n.related_entity_id) {
+          conventionsExpired.add(n.related_entity_id);
+        }
+        if (n.type === 'budget_overrun' && n.related_entity_type === 'budget_line' && n.related_entity_id) {
+          budgetLinesOverdrawn.add(n.related_entity_id);
+        }
+      });
 
       return {
-        projetsEnRetard: projetsEnRetardResult.count ?? 0,
-        projetsBudgetDepasse,
-        conventionsExpirees: conventionsExpireesResult.count ?? 0,
-        budgetsEnDepassement,
+        projetsEnRetard: projectsLate.size,
+        projetsBudgetDepasse: projectsBudgetOverrun.size,
+        conventionsExpirees: conventionsExpired.size,
+        budgetsEnDepassement: budgetLinesOverdrawn.size,
       };
     },
+    enabled: !!user,
     staleTime: 30000, // Cache for 30 seconds
     refetchOnWindowFocus: true,
   });
