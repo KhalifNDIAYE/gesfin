@@ -2028,6 +2028,236 @@ export type Database = {
           },
         ]
       }
+      cash_operations: {
+        Row: {
+          amount: number
+          amount_local: number | null
+          attachments: Json | null
+          bailleur_id: string | null
+          budget_id: string | null
+          budget_line_id: string | null
+          cash_account_id: string
+          code: string
+          convention_id: string | null
+          counterpart_account_id: string
+          created_at: string | null
+          created_by: string | null
+          currency_id: string | null
+          description: string
+          exchange_rate: number | null
+          fiscal_year_id: string
+          id: string
+          journal_entry_id: string | null
+          journal_id: string | null
+          operation_date: string
+          operation_type: string
+          payment_method: string
+          payment_method_other: string | null
+          project_id: string | null
+          status: string
+          third_party_id: string | null
+          updated_at: string | null
+          validated_at: string | null
+          validated_by: string | null
+        }
+        Insert: {
+          amount: number
+          amount_local?: number | null
+          attachments?: Json | null
+          bailleur_id?: string | null
+          budget_id?: string | null
+          budget_line_id?: string | null
+          cash_account_id: string
+          code: string
+          convention_id?: string | null
+          counterpart_account_id: string
+          created_at?: string | null
+          created_by?: string | null
+          currency_id?: string | null
+          description: string
+          exchange_rate?: number | null
+          fiscal_year_id: string
+          id?: string
+          journal_entry_id?: string | null
+          journal_id?: string | null
+          operation_date: string
+          operation_type: string
+          payment_method?: string
+          payment_method_other?: string | null
+          project_id?: string | null
+          status?: string
+          third_party_id?: string | null
+          updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Update: {
+          amount?: number
+          amount_local?: number | null
+          attachments?: Json | null
+          bailleur_id?: string | null
+          budget_id?: string | null
+          budget_line_id?: string | null
+          cash_account_id?: string
+          code?: string
+          convention_id?: string | null
+          counterpart_account_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          currency_id?: string | null
+          description?: string
+          exchange_rate?: number | null
+          fiscal_year_id?: string
+          id?: string
+          journal_entry_id?: string | null
+          journal_id?: string | null
+          operation_date?: string
+          operation_type?: string
+          payment_method?: string
+          payment_method_other?: string | null
+          project_id?: string | null
+          status?: string
+          third_party_id?: string | null
+          updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_operations_bailleur_id_fkey"
+            columns: ["bailleur_id"]
+            isOneToOne: false
+            referencedRelation: "bailleur_stats"
+            referencedColumns: ["bailleur_id"]
+          },
+          {
+            foreignKeyName: "cash_operations_bailleur_id_fkey"
+            columns: ["bailleur_id"]
+            isOneToOne: false
+            referencedRelation: "bailleurs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_bailleur_id_fkey"
+            columns: ["bailleur_id"]
+            isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["bailleur_id"]
+          },
+          {
+            foreignKeyName: "cash_operations_budget_id_fkey"
+            columns: ["budget_id"]
+            isOneToOne: false
+            referencedRelation: "budgets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_budget_line_id_fkey"
+            columns: ["budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_cash_account_id_fkey"
+            columns: ["cash_account_id"]
+            isOneToOne: false
+            referencedRelation: "plan_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["convention_id"]
+          },
+          {
+            foreignKeyName: "cash_operations_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "conventions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_counterpart_account_id_fkey"
+            columns: ["counterpart_account_id"]
+            isOneToOne: false
+            referencedRelation: "plan_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_currency_id_fkey"
+            columns: ["currency_id"]
+            isOneToOne: false
+            referencedRelation: "currencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_fiscal_year_id_fkey"
+            columns: ["fiscal_year_id"]
+            isOneToOne: false
+            referencedRelation: "fiscal_years"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_journal_id_fkey"
+            columns: ["journal_id"]
+            isOneToOne: false
+            referencedRelation: "journals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_third_party_id_fkey"
+            columns: ["third_party_id"]
+            isOneToOne: false
+            referencedRelation: "third_parties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_validated_by_fkey"
+            columns: ["validated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_operations_validated_by_fkey"
+            columns: ["validated_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       compliance_controls: {
         Row: {
           code: string
@@ -6991,6 +7221,7 @@ export type Database = {
         }
         Returns: string
       }
+      generate_cash_operation_code: { Args: never; Returns: string }
       generate_entity_code: {
         Args: { _code_column?: string; _prefix: string; _table_name: string }
         Returns: string
