@@ -108,7 +108,7 @@ export function CashOperationDialog({
   
   const { data: generatedCode, refetch: refetchCode } = useGenerateCashOperationCode();
   const { data: fiscalYears } = useFiscalYears();
-  const { data: accounts } = usePlanAccounts();
+  const { data: accounts } = usePlanAccounts('comptable');
   const { data: currencies } = useCurrencies();
   const { projects } = useProjects();
   const { data: bailleurs } = useBailleurs();
