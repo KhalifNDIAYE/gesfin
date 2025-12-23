@@ -226,13 +226,25 @@ export function CashOperationDialog({
 
   const onSubmit = async (values: FormValues, shouldValidate = false) => {
     try {
+      // Clean up "__none__" values to undefined
+      const cleanedValues = {
+        ...values,
+        third_party_id: values.third_party_id === "__none__" ? undefined : values.third_party_id,
+        project_id: values.project_id === "__none__" ? undefined : values.project_id,
+        bailleur_id: values.bailleur_id === "__none__" ? undefined : values.bailleur_id,
+        convention_id: values.convention_id === "__none__" ? undefined : values.convention_id,
+        budget_id: values.budget_id === "__none__" ? undefined : values.budget_id,
+        budget_line_id: values.budget_line_id === "__none__" ? undefined : values.budget_line_id,
+        currency_id: values.currency_id === "__none__" ? undefined : values.currency_id,
+      };
+
       if (isEditing && operation) {
-        await updateMutation.mutateAsync({ id: operation.id, ...values });
+        await updateMutation.mutateAsync({ id: operation.id, ...cleanedValues });
         if (shouldValidate) {
           await validateMutation.mutateAsync(operation.id);
         }
       } else {
-        const created = await createMutation.mutateAsync(values as CashOperationFormData);
+        const created = await createMutation.mutateAsync(cleanedValues as CashOperationFormData);
         if (shouldValidate && created) {
           await validateMutation.mutateAsync(created.id);
         }
@@ -518,7 +530,7 @@ export function CashOperationDialog({
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">Aucun</SelectItem>
+                                <SelectItem value="__none__">Aucun</SelectItem>
                                 {thirdParties?.map((tp) => (
                                   <SelectItem key={tp.id} value={tp.id}>
                                     {tp.code} - {tp.name}
@@ -686,7 +698,7 @@ export function CashOperationDialog({
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">Aucun</SelectItem>
+                                <SelectItem value="__none__">Aucun</SelectItem>
                                 {projects?.map((p) => (
                                   <SelectItem key={p.id} value={p.id}>
                                     {p.code} - {p.name}
@@ -716,7 +728,7 @@ export function CashOperationDialog({
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">Aucun</SelectItem>
+                                <SelectItem value="__none__">Aucun</SelectItem>
                                 {bailleurs?.map((b) => (
                                   <SelectItem key={b.id} value={b.id}>
                                     {b.code} - {b.name}
@@ -747,7 +759,7 @@ export function CashOperationDialog({
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Aucune</SelectItem>
+                              <SelectItem value="__none__">Aucune</SelectItem>
                               {filteredConventions?.map((c) => (
                                 <SelectItem key={c.id} value={c.id}>
                                   {c.code} - {c.name}
@@ -785,7 +797,7 @@ export function CashOperationDialog({
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">Aucun</SelectItem>
+                                <SelectItem value="__none__">Aucun</SelectItem>
                                 {budgets?.map((b) => (
                                   <SelectItem key={b.id} value={b.id}>
                                     {b.code} - {b.name}
@@ -815,7 +827,7 @@ export function CashOperationDialog({
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                <SelectItem value="">Aucune</SelectItem>
+                                <SelectItem value="__none__">Aucune</SelectItem>
                                 {budgetLines?.map((bl) => (
                                   <SelectItem key={bl.id} value={bl.id}>
                                     {bl.description || `Ligne ${bl.line_number}`}
