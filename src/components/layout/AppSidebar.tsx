@@ -334,7 +334,6 @@ export function AppSidebar() {
   };
 
   const filteredMainNavItems = filterNavItems(mainNavItems);
-  const filteredOtherNavItems = filterNavItems(otherNavItems);
   const filteredAdminItems = getFilteredAdminItems();
   const showAdministration = filteredAdminItems.length > 0;
 
@@ -530,10 +529,6 @@ export function AppSidebar() {
 
           {/* Immobilisations Group */}
           {canShowGroup(immobilisationsGroup) && renderNavGroup(immobilisationsGroup, "Immobilisations")}
-
-          {filteredOtherNavItems.map((item) => (
-            <NavItemComponent key={item.href} item={item} />
-          ))}
 
           {/* Décaissements Group */}
           {canShowGroup(decaissementsGroup) && renderNavGroup(decaissementsGroup, "Décaissements")}
