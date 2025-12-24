@@ -103,19 +103,6 @@ const mainNavItems: NavItem[] = [
   { title: "Marchés", href: "/marches", icon: ArrowDownUp, badgeKey: "marches", module: "marches" },
 ];
 
-const otherNavItems: NavItem[] = [
-  { title: "Bailleurs", href: "/bailleurs", icon: Building2, badgeKey: "bailleurs", module: "bailleurs" },
-  {
-    title: "Conventions",
-    href: "/conventions",
-    icon: FileText,
-    badgeKey: "conventions",
-    alertKeys: [{ key: "conventionsExpirees", href: "/conventions?filter=expired", label: "convention(s) expirée(s)" }],
-    module: "conventions",
-  },
-  { title: "Marchés", href: "/marches", icon: ArrowDownUp, badgeKey: "marches", module: "marches" },
-];
-
 const comptabiliteGroup: NavGroup = {
   title: "Comptabilité Générale",
   icon: Calculator,
