@@ -50,13 +50,13 @@ import type { ModuleName } from "@/types/database";
 type AlertKey = "projetsEnRetard" | "projetsBudgetDepasse" | "conventionsExpirees" | "budgetsEnDepassement";
 
 // Types for dropdown groups
-type GroupKey = 
-  | "comptabilite" 
-  | "analytique" 
-  | "budget" 
-  | "immobilisations" 
-  | "rapports" 
-  | "decaissements" 
+type GroupKey =
+  | "comptabilite"
+  | "analytique"
+  | "budget"
+  | "immobilisations"
+  | "rapports"
+  | "decaissements"
   | "administration";
 
 interface NavItem {
@@ -91,6 +91,19 @@ const mainNavItems: NavItem[] = [
     ],
     module: "projets",
   },
+];
+
+const otherNavItems: NavItem[] = [
+  { title: "Bailleurs", href: "/bailleurs", icon: Building2, badgeKey: "bailleurs", module: "bailleurs" },
+  {
+    title: "Conventions",
+    href: "/conventions",
+    icon: FileText,
+    badgeKey: "conventions",
+    alertKeys: [{ key: "conventionsExpirees", href: "/conventions?filter=expired", label: "convention(s) expirée(s)" }],
+    module: "conventions",
+  },
+  { title: "Marchés", href: "/marches", icon: ArrowDownUp, badgeKey: "marches", module: "marches" },
 ];
 
 const comptabiliteGroup: NavGroup = {
@@ -249,7 +262,7 @@ export function AppSidebar() {
     const stored = localStorage.getItem("sidebar_collapsed");
     return stored !== null ? JSON.parse(stored) : false;
   });
-  
+
   // Single state for exclusive dropdown opening
   const [openGroup, setOpenGroup] = useState<GroupKey | null>(() => {
     const stored = getStoredState("openGroup", null);
@@ -279,7 +292,7 @@ export function AppSidebar() {
   // Determine which group should be open based on current route
   const getActiveGroup = useCallback((): GroupKey | null => {
     const path = location.pathname;
-    
+
     if (path.includes("/comptabilite/analytique")) return "analytique";
     if (path.startsWith("/comptabilite")) return "comptabilite";
     if (path.startsWith("/budget")) return "budget";
@@ -287,12 +300,13 @@ export function AppSidebar() {
     if (path.startsWith("/rapports")) return "rapports";
     if (path.startsWith("/decaissements")) return "decaissements";
     if (
-      path.startsWith("/utilisateurs") || 
-      path.startsWith("/securite") || 
-      path.startsWith("/utilitaires") || 
+      path.startsWith("/utilisateurs") ||
+      path.startsWith("/securite") ||
+      path.startsWith("/utilitaires") ||
       path.startsWith("/parametres")
-    ) return "administration";
-    
+    )
+      return "administration";
+
     return null;
   }, [location.pathname]);
 
@@ -306,7 +320,7 @@ export function AppSidebar() {
 
   // Toggle group with exclusive behavior
   const handleGroupToggle = (groupKey: GroupKey) => {
-    setOpenGroup(current => current === groupKey ? null : groupKey);
+    setOpenGroup((current) => (current === groupKey ? null : groupKey));
   };
 
   // Check if a group is active based on current route
@@ -323,7 +337,7 @@ export function AppSidebar() {
     if (!group.module) {
       // For administration group, check if user has access to at least one sub-item
       if (group.groupKey === "administration") {
-        return group.items.some(item => item.module && canAccess(item.module, "read"));
+        return group.items.some((item) => item.module && canAccess(item.module, "read"));
       }
       return true;
     }
@@ -332,9 +346,7 @@ export function AppSidebar() {
 
   // Get filtered administration items based on user permissions
   const getFilteredAdminItems = () => {
-    return administrationGroup.items.filter(item => 
-      item.module && canAccess(item.module, "read")
-    );
+    return administrationGroup.items.filter((item) => item.module && canAccess(item.module, "read"));
   };
 
   const filteredMainNavItems = filterNavItems(mainNavItems);
@@ -429,9 +441,9 @@ export function AppSidebar() {
       // In collapsed mode, show only icon linking to first item
       const firstHref = items[0]?.href || "#";
       return (
-        <Link 
+        <Link
           key={group.groupKey}
-          to={firstHref} 
+          to={firstHref}
           className={cn("sidebar-nav-item group relative", isActive && "active")}
         >
           <Icon className="h-5 w-5 shrink-0" />
@@ -443,11 +455,7 @@ export function AppSidebar() {
     }
 
     return (
-      <Collapsible 
-        key={group.groupKey}
-        open={isOpen} 
-        onOpenChange={() => handleGroupToggle(group.groupKey)}
-      >
+      <Collapsible key={group.groupKey} open={isOpen} onOpenChange={() => handleGroupToggle(group.groupKey)}>
         <CollapsibleTrigger asChild>
           <button className={cn("sidebar-nav-item group w-full justify-between", isActive && "active")}>
             <div className="flex items-center gap-3">
@@ -468,12 +476,7 @@ export function AppSidebar() {
                   {sidebarAlerts[group.alertKey]}
                 </button>
               )}
-              <ChevronDown
-                className={cn(
-                  "h-4 w-4 transition-transform duration-200",
-                  isOpen && "rotate-180"
-                )}
-              />
+              <ChevronDown className={cn("h-4 w-4 transition-transform duration-200", isOpen && "rotate-180")} />
             </div>
           </button>
         </CollapsibleTrigger>
@@ -568,7 +571,6 @@ export function AppSidebar() {
             </>
           )}
         </nav>
-
 
         {/* Collapse Toggle */}
         <div className="border-t border-sidebar-border p-3">
