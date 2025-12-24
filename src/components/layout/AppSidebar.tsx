@@ -80,6 +80,15 @@ interface NavGroup {
 
 const mainNavItems: NavItem[] = [
   { title: "Tableau de bord", href: "/", icon: LayoutDashboard, module: "dashboard" },
+  { title: "Bailleurs", href: "/bailleurs", icon: Building2, badgeKey: "bailleurs", module: "bailleurs" },
+  {
+    title: "Conventions",
+    href: "/conventions",
+    icon: FileText,
+    badgeKey: "conventions",
+    alertKeys: [{ key: "conventionsExpirees", href: "/conventions?filter=expired", label: "convention(s) expirée(s)" }],
+    module: "conventions",
+  },
   {
     title: "Projets",
     href: "/projets",
@@ -90,15 +99,6 @@ const mainNavItems: NavItem[] = [
       { key: "projetsBudgetDepasse", href: "/projets?filter=depassement", label: "dépassement(s) budget" },
     ],
     module: "projets",
-  },
-  { title: "Bailleurs", href: "/bailleurs", icon: Building2, badgeKey: "bailleurs", module: "bailleurs" },
-  {
-    title: "Conventions",
-    href: "/conventions",
-    icon: FileText,
-    badgeKey: "conventions",
-    alertKeys: [{ key: "conventionsExpirees", href: "/conventions?filter=expired", label: "convention(s) expirée(s)" }],
-    module: "conventions",
   },
   { title: "Marchés", href: "/marches", icon: ArrowDownUp, badgeKey: "marches", module: "marches" },
 ];
@@ -235,19 +235,6 @@ const administrationGroup: NavGroup = {
     { title: "Paramètres", href: "/parametres", icon: Settings, module: "parametres" },
   ],
 };
-
-const otherNavItems: NavItem[] = [
-  { title: "Bailleurs", href: "/bailleurs", icon: Building2, badgeKey: "bailleurs", module: "bailleurs" },
-  {
-    title: "Conventions",
-    href: "/conventions",
-    icon: FileText,
-    badgeKey: "conventions",
-    alertKeys: [{ key: "conventionsExpirees", href: "/conventions?filter=expired", label: "convention(s) expirée(s)" }],
-    module: "conventions",
-  },
-  { title: "Marchés", href: "/marches", icon: ArrowDownUp, badgeKey: "marches", module: "marches" },
-];
 
 export function AppSidebar() {
   const getStoredState = (key: string, defaultValue: string | null) => {
