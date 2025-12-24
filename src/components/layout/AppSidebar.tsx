@@ -91,6 +91,16 @@ const mainNavItems: NavItem[] = [
     ],
     module: "projets",
   },
+  { title: "Bailleurs", href: "/bailleurs", icon: Building2, badgeKey: "bailleurs", module: "bailleurs" },
+  {
+    title: "Conventions",
+    href: "/conventions",
+    icon: FileText,
+    badgeKey: "conventions",
+    alertKeys: [{ key: "conventionsExpirees", href: "/conventions?filter=expired", label: "convention(s) expirée(s)" }],
+    module: "conventions",
+  },
+  { title: "Marchés", href: "/marches", icon: ArrowDownUp, badgeKey: "marches", module: "marches" },
 ];
 
 const otherNavItems: NavItem[] = [
