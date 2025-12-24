@@ -51,6 +51,75 @@ import { toast } from 'sonner';
 import { logAction } from '@/hooks/useAuditLogs';
 import { RoleDialog } from './RoleDialog';
 
+// Role descriptions for tooltips - configurable mapping
+const ROLE_DESCRIPTIONS: Record<string, { fullName: string; description: string }> = {
+  admin: {
+    fullName: "Administrateur",
+    description: "Administration globale du système avec tous les accès"
+  },
+  daf: {
+    fullName: "Directeur Administratif et Financier",
+    description: "Supervision financière et administrative, validation des budgets"
+  },
+  comptable: {
+    fullName: "Comptable",
+    description: "Responsable de la saisie et du suivi comptable"
+  },
+  auditeur: {
+    fullName: "Auditeur",
+    description: "Contrôle et audit des opérations et des données"
+  },
+  chef_projet: {
+    fullName: "Chef de Projet",
+    description: "Gestion et suivi des projets, coordination des équipes"
+  },
+  gestionnaire: {
+    fullName: "Gestionnaire",
+    description: "Gestion opérationnelle des données et processus"
+  },
+  consultant: {
+    fullName: "Consultant",
+    description: "Accès en lecture pour consultation et analyse"
+  },
+  directeur: {
+    fullName: "Directeur",
+    description: "Direction générale, validation stratégique et supervision"
+  },
+  responsable_budget: {
+    fullName: "Responsable Budget",
+    description: "Élaboration et suivi des budgets, contrôle budgétaire"
+  },
+  tresorier: {
+    fullName: "Trésorier",
+    description: "Gestion de la trésorerie et des flux financiers"
+  },
+  assistant: {
+    fullName: "Assistant",
+    description: "Support administratif et saisie de données"
+  },
+  validateur: {
+    fullName: "Validateur",
+    description: "Validation des opérations et des documents"
+  },
+  lecteur: {
+    fullName: "Lecteur",
+    description: "Accès en lecture seule aux données"
+  }
+};
+
+// Helper function to get role tooltip info
+const getRoleTooltipInfo = (roleName: string, roleDescription?: string | null) => {
+  const knownRole = ROLE_DESCRIPTIONS[roleName.toLowerCase()];
+  if (knownRole) {
+    return knownRole;
+  }
+  // Fallback for unknown roles - use the role's own description if available
+  return {
+    fullName: roleName.charAt(0).toUpperCase() + roleName.slice(1),
+    description: roleDescription || "Rôle personnalisé"
+  };
+};
+
 // Module config type
 interface ModuleConfigItem {
   label: string;
@@ -465,18 +534,33 @@ export const PermissionsMatrix = () => {
                     <th className="sticky left-0 z-20 bg-muted/50 p-3 text-left font-medium border-b border-r min-w-[200px]">
                       Module / Permission
                     </th>
-                    {filteredRoles.map(role => (
+                    {filteredRoles.map(role => {
+                      const roleInfo = getRoleTooltipInfo(role.name, role.description);
+                      return (
                       <th key={role.id} className="p-3 text-center font-medium border-b min-w-[120px]">
                         <div className="flex flex-col items-center gap-1">
-                          <span className="flex items-center gap-1">
-                            {role.name}
-                            {role.is_system && (
-                              <Badge variant="outline" className="text-[10px] px-1">Sys</Badge>
-                            )}
-                            {role.name === 'admin' && (
-                              <Lock className="h-3 w-3 text-muted-foreground" />
-                            )}
-                          </span>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <span className="flex items-center gap-1 cursor-help">
+                                  {role.name}
+                                  {role.is_system && (
+                                    <Badge variant="outline" className="text-[10px] px-1">Sys</Badge>
+                                  )}
+                                  {role.name === 'admin' && (
+                                    <Lock className="h-3 w-3 text-muted-foreground" />
+                                  )}
+                                  <Info className="h-3 w-3 text-muted-foreground hover:text-primary transition-colors" />
+                                </span>
+                              </TooltipTrigger>
+                              <TooltipContent side="top" className="max-w-[250px]">
+                                <div className="text-sm">
+                                  <p className="font-semibold">{roleInfo.fullName}</p>
+                                  <p className="text-muted-foreground text-xs mt-1">{roleInfo.description}</p>
+                                </div>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
                           <div className="flex gap-1">
                             {role.name !== 'admin' && (
                               <>
@@ -520,7 +604,8 @@ export const PermissionsMatrix = () => {
                           </div>
                         </div>
                       </th>
-                    ))}
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
