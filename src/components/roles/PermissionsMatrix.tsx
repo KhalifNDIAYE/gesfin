@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Switch } from '@/components/ui/switch';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -32,11 +31,7 @@ import {
 import { 
   Shield, 
   Search, 
-  Plus, 
   Copy, 
-  Trash2, 
-  RotateCcw, 
-  Download, 
   FileSpreadsheet,
   Loader2,
   Check,
@@ -44,12 +39,13 @@ import {
   Lock,
   Info
 } from 'lucide-react';
-import { useRoles, Role, usePermissions as useAllPermissions, useGrantPermission, useRevokePermission, useCreateRole, useDeleteRole } from '@/hooks/useRoles';
+import { useRoles, Role, usePermissions as useAllPermissions, useGrantPermission, useRevokePermission } from '@/hooks/useRoles';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { logAction } from '@/hooks/useAuditLogs';
-import { RoleDialog } from './RoleDialog';
+import { RolesListSection } from './RolesListSection';
+import { usePermissions } from '@/hooks/usePermissions';
 
 // Role descriptions for tooltips - configurable mapping
 const ROLE_DESCRIPTIONS: Record<string, { fullName: string; description: string }> = {
@@ -217,10 +213,6 @@ interface RolePermissionsMap {
 export const PermissionsMatrix = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [moduleFilter, setModuleFilter] = useState<string>('all');
-  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
-  const [roleDialogMode, setRoleDialogMode] = useState<'create' | 'edit'>('create');
-  const [selectedRole, setSelectedRole] = useState<Role | null>(null);
-  const [deleteRoleId, setDeleteRoleId] = useState<string | null>(null);
   const [duplicateRole, setDuplicateRole] = useState<Role | null>(null);
   const [duplicateName, setDuplicateName] = useState('');
   const [savingPermission, setSavingPermission] = useState<string | null>(null);
@@ -230,8 +222,10 @@ export const PermissionsMatrix = () => {
   const { data: allPermissions, isLoading: permissionsLoading } = useAllPermissions();
   const grantPermission = useGrantPermission();
   const revokePermission = useRevokePermission();
-  const createRole = useCreateRole();
-  const deleteRole = useDeleteRole();
+  
+  // Check if user can manage roles
+  const { canAccess } = usePermissions();
+  const canManageRoles = canAccess('utilisateurs', 'update');
 
   // Fetch role_permissions mapping
   const { data: rolePermissionsData } = useQuery({
@@ -340,13 +334,6 @@ export const PermissionsMatrix = () => {
       setSavingPermission(null);
     }
   };
-
-  const handleCreateRole = () => {
-    setSelectedRole(null);
-    setRoleDialogMode('create');
-    setRoleDialogOpen(true);
-  };
-
   const handleDuplicateRole = async () => {
     if (!duplicateRole || !duplicateName.trim()) return;
 
@@ -396,36 +383,6 @@ export const PermissionsMatrix = () => {
     } catch (error) {
       toast.error('Erreur lors de la duplication du rôle');
     }
-  };
-
-  const handleDeleteRole = async () => {
-    if (!deleteRoleId) return;
-
-    const roleToDelete = roles?.find(r => r.id === deleteRoleId);
-    if (roleToDelete?.is_system) {
-      toast.error('Impossible de supprimer un rôle système');
-      setDeleteRoleId(null);
-      return;
-    }
-
-    // Check if role has users
-    const { count } = await supabase
-      .from('user_roles')
-      .select('*', { count: 'exact', head: true })
-      .eq('role_id', deleteRoleId);
-
-    if (count && count > 0) {
-      toast.error(`Ce rôle est attribué à ${count} utilisateur(s). Retirez-le d'abord.`);
-      setDeleteRoleId(null);
-      return;
-    }
-
-    await deleteRole.mutateAsync(deleteRoleId);
-    await logAction('role_delete', 'securite', 'role', deleteRoleId, 
-      { roleName: roleToDelete?.name }, 
-      null
-    );
-    setDeleteRoleId(null);
   };
 
   const exportMatrix = async (format: 'csv' | 'json') => {
@@ -507,12 +464,15 @@ export const PermissionsMatrix = () => {
             <FileSpreadsheet className="h-4 w-4 mr-1" />
             Exporter CSV
           </Button>
-          <Button variant="gradient" onClick={handleCreateRole}>
-            <Plus className="h-4 w-4" />
-            Nouveau rôle
-          </Button>
         </div>
       </div>
+
+      {/* Roles List Section */}
+      <RolesListSection 
+        roles={roles || []} 
+        isLoading={rolesLoading} 
+        canManageRoles={canManageRoles} 
+      />
 
       {/* Matrix Card */}
       <Card>
@@ -561,47 +521,26 @@ export const PermissionsMatrix = () => {
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
-                          <div className="flex gap-1">
-                            {role.name !== 'admin' && (
-                              <>
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        className="h-6 w-6"
-                                        onClick={() => {
-                                          setDuplicateRole(role);
-                                          setDuplicateName(`${role.name}_copie`);
-                                        }}
-                                      >
-                                        <Copy className="h-3 w-3" />
-                                      </Button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>Dupliquer</TooltipContent>
-                                  </Tooltip>
-                                </TooltipProvider>
-                                {!role.is_system && (
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button 
-                                          variant="ghost" 
-                                          size="icon" 
-                                          className="h-6 w-6 text-destructive hover:text-destructive"
-                                          onClick={() => setDeleteRoleId(role.id)}
-                                        >
-                                          <Trash2 className="h-3 w-3" />
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>Supprimer</TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                )}
-                              </>
-                            )}
-                          </div>
+                          {canManageRoles && role.name !== 'admin' && (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-6 w-6"
+                                    onClick={() => {
+                                      setDuplicateRole(role);
+                                      setDuplicateName(`${role.name}_copie`);
+                                    }}
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>Dupliquer</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          )}
                         </div>
                       </th>
                       );
@@ -693,36 +632,6 @@ export const PermissionsMatrix = () => {
           </div>
         </CardContent>
       </Card>
-
-      {/* Role Dialog */}
-      <RoleDialog
-        role={selectedRole as any}
-        open={roleDialogOpen}
-        onOpenChange={setRoleDialogOpen}
-        mode={roleDialogMode}
-      />
-
-      {/* Delete Role Confirmation */}
-      <AlertDialog open={!!deleteRoleId} onOpenChange={() => setDeleteRoleId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Supprimer le rôle</AlertDialogTitle>
-            <AlertDialogDescription>
-              Cette action est irréversible. Le rôle sera supprimé définitivement.
-              Assurez-vous qu'aucun utilisateur n'utilise ce rôle.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleDeleteRole}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Supprimer
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       {/* Duplicate Role Dialog */}
       <AlertDialog open={!!duplicateRole} onOpenChange={() => setDuplicateRole(null)}>
