@@ -375,7 +375,7 @@ export const RolesListSection = ({ roles, isLoading, canManageRoles }: RolesList
 
       {/* Role Dialog */}
       <RoleDialog
-        role={selectedRole as any}
+        role={selectedRole}
         open={roleDialogOpen}
         onOpenChange={setRoleDialogOpen}
         mode={roleDialogMode}
