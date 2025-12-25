@@ -7,6 +7,7 @@ export interface Role {
   name: string;
   description: string | null;
   is_system: boolean;
+  is_active: boolean;
   created_at: string;
   updated_at: string;
 }
