@@ -44,8 +44,11 @@ const permissionLabels: Record<string, string> = {
   validate: 'Valider',
 };
 
-// System role names that cannot be used
-const SYSTEM_ROLE_NAMES = ['admin', 'daf', 'dg', 'dt', 'comptable', 'auditeur'];
+// Protected role names that cannot be renamed (super admin only)
+const PROTECTED_ROLE_NAMES = ['admin'];
+
+// Reserved role names that cannot be used for new roles
+const RESERVED_ROLE_NAMES = ['admin', 'superadmin'];
 
 export const RoleDialog: React.FC<RoleDialogProps> = ({ role, open, onOpenChange, mode }) => {
   const [formData, setFormData] = useState({
@@ -86,6 +89,11 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ role, open, onOpenChange
     }
   }, [roleWithPermissions, mode, open]);
 
+  // Check if role name is protected (cannot be renamed)
+  const isProtectedRole = roleWithPermissions?.name 
+    ? PROTECTED_ROLE_NAMES.includes(roleWithPermissions.name.toLowerCase())
+    : false;
+
   // Validate role name
   const validateName = (name: string): string | null => {
     const trimmedName = name.trim().toLowerCase();
@@ -94,8 +102,9 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ role, open, onOpenChange
       return 'Le nom du rôle est obligatoire';
     }
     
-    // Check system role conflict
-    if (SYSTEM_ROLE_NAMES.includes(trimmedName)) {
+    // Check reserved role name conflict (only for new roles or when changing name)
+    if (RESERVED_ROLE_NAMES.includes(trimmedName) && 
+        (mode === 'create' || trimmedName !== roleWithPermissions?.name.toLowerCase())) {
       return 'Ce nom est réservé aux rôles système';
     }
     
@@ -244,7 +253,6 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ role, open, onOpenChange
   };
 
   const isLoading = createRole.isPending || updateRole.isPending || grantPermission.isPending || revokePermission.isPending;
-  const isSystem = roleWithPermissions?.is_system;
   const isDataLoading = mode === 'edit' && (isLoadingRole || isLoadingPermissions);
   const isPermissionsLoading = mode === 'create' && isLoadingPermissions;
 
@@ -283,12 +291,12 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ role, open, onOpenChange
                   id="name"
                   value={formData.name}
                   onChange={(e) => handleNameChange(e.target.value)}
-                  disabled={isSystem}
+                  disabled={isProtectedRole}
                   placeholder="Ex: gestionnaire_projet"
                   className={nameError ? 'border-destructive' : ''}
                   required
                 />
-                {isSystem && (
+                {isProtectedRole && (
                   <p className="text-xs text-muted-foreground">Ce rôle système ne peut pas être renommé</p>
                 )}
                 {nameError && (
@@ -306,7 +314,7 @@ export const RoleDialog: React.FC<RoleDialogProps> = ({ role, open, onOpenChange
                     id="is_active"
                     checked={formData.is_active}
                     onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
-                    disabled={isSystem}
+                    disabled={isProtectedRole}
                   />
                 </div>
               </div>
