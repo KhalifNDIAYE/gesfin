@@ -72,22 +72,30 @@ export const useCreateRole = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { name: string; description?: string }) => {
+    mutationFn: async (data: { name: string; description?: string; is_active?: boolean }) => {
       const { data: role, error } = await supabase
         .from('roles')
-        .insert(data)
+        .insert({
+          name: data.name,
+          description: data.description,
+          is_active: data.is_active ?? true,
+          is_system: false,
+        })
         .select()
         .single();
 
       if (error) throw error;
-      return role;
+      return role as Role;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
-      toast.success('Rôle créé');
     },
-    onError: () => {
-      toast.error('Erreur lors de la création du rôle');
+    onError: (error: any) => {
+      if (error?.code === '23505') {
+        toast.error('Un rôle avec ce nom existe déjà');
+      } else {
+        toast.error('Erreur lors de la création du rôle');
+      }
     },
   });
 };
@@ -96,7 +104,7 @@ export const useUpdateRole = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ roleId, data }: { roleId: string; data: { name?: string; description?: string } }) => {
+    mutationFn: async ({ roleId, data }: { roleId: string; data: { name?: string; description?: string; is_active?: boolean } }) => {
       const { error } = await supabase
         .from('roles')
         .update(data)
@@ -104,12 +112,16 @@ export const useUpdateRole = () => {
 
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['roles'] });
-      toast.success('Rôle mis à jour');
+      queryClient.invalidateQueries({ queryKey: ['role', variables.roleId] });
     },
-    onError: () => {
-      toast.error('Erreur lors de la mise à jour du rôle');
+    onError: (error: any) => {
+      if (error?.code === '23505') {
+        toast.error('Un rôle avec ce nom existe déjà');
+      } else {
+        toast.error('Erreur lors de la mise à jour du rôle');
+      }
     },
   });
 };
