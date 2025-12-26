@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Building2, Mail, Phone, Globe, MapPin, User, TrendingUp, FileText, Edit, Trash2 } from "lucide-react";
 import { AppLayout } from "@/components/layout/AppLayout";
@@ -11,6 +12,7 @@ import { fr } from "date-fns/locale";
 import { Progress } from "@/components/ui/progress";
 import { PermissionGate, useModulePermissions } from "@/components/auth/PermissionButton";
 import { TableExportButtons, ExportColumn } from "@/components/export/TableExportButtons";
+import { BailleurDialog } from "@/components/bailleurs/BailleurDialog";
 
 const bailleurTypeLabels: Record<string, string> = {
   bilateral: "Bilatéral",
@@ -33,6 +35,7 @@ export default function BailleurDetailPage() {
   const { data: conventions } = useConventionsByBailleur(id || "");
   const { data: stats } = useBailleurStats(id || "");
   const { canUpdate, canDelete, canExport } = useModulePermissions('bailleurs');
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   const formatAmount = (amount: number) => new Intl.NumberFormat("fr-FR").format(amount);
   const today = format(new Date(), "yyyy-MM-dd");
@@ -85,7 +88,7 @@ export default function BailleurDetailPage() {
               {bailleur.is_active ? "Actif" : "Inactif"}
             </Badge>
             <PermissionGate module="bailleurs" permission="update">
-              <Button variant="outline" size="sm" onClick={() => navigate(`/bailleurs?edit=${bailleur.id}`)}>
+              <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
                 <Edit className="mr-2 h-4 w-4" /> Modifier
               </Button>
             </PermissionGate>
@@ -293,6 +296,13 @@ export default function BailleurDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Edit Bailleur Modal */}
+      <BailleurDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        bailleur={bailleur}
+      />
     </AppLayout>
   );
 }
