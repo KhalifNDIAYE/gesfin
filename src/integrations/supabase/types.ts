@@ -2341,6 +2341,99 @@ export type Database = {
           },
         ]
       }
+      contract_bailleurs: {
+        Row: {
+          bailleur_id: string
+          contract_id: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          bailleur_id: string
+          contract_id: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          bailleur_id?: string
+          contract_id?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_bailleurs_bailleur_id_fkey"
+            columns: ["bailleur_id"]
+            isOneToOne: false
+            referencedRelation: "bailleur_stats"
+            referencedColumns: ["bailleur_id"]
+          },
+          {
+            foreignKeyName: "contract_bailleurs_bailleur_id_fkey"
+            columns: ["bailleur_id"]
+            isOneToOne: false
+            referencedRelation: "bailleurs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_bailleurs_bailleur_id_fkey"
+            columns: ["bailleur_id"]
+            isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["bailleur_id"]
+          },
+          {
+            foreignKeyName: "contract_bailleurs_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_conventions: {
+        Row: {
+          contract_id: string
+          convention_id: string
+          created_at: string | null
+          id: string
+        }
+        Insert: {
+          contract_id: string
+          convention_id: string
+          created_at?: string | null
+          id?: string
+        }
+        Update: {
+          contract_id?: string
+          convention_id?: string
+          created_at?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_conventions_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contract_conventions_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "convention_project_stats"
+            referencedColumns: ["convention_id"]
+          },
+          {
+            foreignKeyName: "contract_conventions_convention_id_fkey"
+            columns: ["convention_id"]
+            isOneToOne: false
+            referencedRelation: "conventions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_decomptes: {
         Row: {
           amount: number
@@ -2448,6 +2541,50 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      contract_documents: {
+        Row: {
+          contract_id: string
+          created_at: string | null
+          description: string | null
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          contract_id: string
+          created_at?: string | null
+          description?: string | null
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          contract_id?: string
+          created_at?: string | null
+          description?: string | null
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_documents_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
             referencedColumns: ["id"]
           },
         ]
@@ -2643,6 +2780,56 @@ export type Database = {
           },
         ]
       }
+      contract_payment_schedule: {
+        Row: {
+          amount: number
+          contract_id: string
+          created_at: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          milestone_number: number
+          paid_at: string | null
+          percentage: number | null
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          amount?: number
+          contract_id: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          milestone_number: number
+          paid_at?: string | null
+          percentage?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          amount?: number
+          contract_id?: string
+          created_at?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          milestone_number?: number
+          paid_at?: string | null
+          percentage?: number | null
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_payment_schedule_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_payments: {
         Row: {
           amount: number
@@ -2745,8 +2932,13 @@ export type Database = {
       contracts: {
         Row: {
           actual_end_date: string | null
+          amount_ht: number | null
+          attributaire: string | null
           budget_line_id: string | null
+          closed_at: string | null
+          closed_by: string | null
           code: string
+          contract_number: string | null
           contract_type: string
           convention_id: string | null
           created_at: string | null
@@ -2760,6 +2952,7 @@ export type Database = {
           notes: string | null
           object: string
           paid_amount: number | null
+          payment_method: string | null
           progress_percentage: number | null
           project_id: string | null
           remaining_amount: number | null
@@ -2770,13 +2963,22 @@ export type Database = {
           supplier_name: string | null
           total_amount: number
           total_amount_local: number | null
+          tva_amount: number | null
+          tva_rate: number | null
           updated_at: string | null
+          validated_at: string | null
+          validated_by: string | null
           warranty_end_date: string | null
         }
         Insert: {
           actual_end_date?: string | null
+          amount_ht?: number | null
+          attributaire?: string | null
           budget_line_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
           code: string
+          contract_number?: string | null
           contract_type?: string
           convention_id?: string | null
           created_at?: string | null
@@ -2790,6 +2992,7 @@ export type Database = {
           notes?: string | null
           object: string
           paid_amount?: number | null
+          payment_method?: string | null
           progress_percentage?: number | null
           project_id?: string | null
           remaining_amount?: number | null
@@ -2800,13 +3003,22 @@ export type Database = {
           supplier_name?: string | null
           total_amount?: number
           total_amount_local?: number | null
+          tva_amount?: number | null
+          tva_rate?: number | null
           updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
           warranty_end_date?: string | null
         }
         Update: {
           actual_end_date?: string | null
+          amount_ht?: number | null
+          attributaire?: string | null
           budget_line_id?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
           code?: string
+          contract_number?: string | null
           contract_type?: string
           convention_id?: string | null
           created_at?: string | null
@@ -2820,6 +3032,7 @@ export type Database = {
           notes?: string | null
           object?: string
           paid_amount?: number | null
+          payment_method?: string | null
           progress_percentage?: number | null
           project_id?: string | null
           remaining_amount?: number | null
@@ -2830,7 +3043,11 @@ export type Database = {
           supplier_name?: string | null
           total_amount?: number
           total_amount_local?: number | null
+          tva_amount?: number | null
+          tva_rate?: number | null
           updated_at?: string | null
+          validated_at?: string | null
+          validated_by?: string | null
           warranty_end_date?: string | null
         }
         Relationships: [
