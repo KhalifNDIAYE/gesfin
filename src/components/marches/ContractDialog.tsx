@@ -291,14 +291,14 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Ligne budgétaire</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <Select onValueChange={(val) => field.onChange(val === "__none__" ? "" : val)} value={field.value || "__none__"}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner une ligne budgétaire (optionnel)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Aucune ligne budgétaire</SelectItem>
+                      <SelectItem value="__none__">Aucune ligne budgétaire</SelectItem>
                       {budgetLines?.filter(bl => bl.budget?.status === 'validated' || bl.budget?.status === 'approved')
                         .map((line) => {
                           const available = (line.forecast_amount || 0) - (line.committed_amount || 0) - (line.realized_amount || 0);
