@@ -3822,6 +3822,75 @@ export type Database = {
           },
         ]
       }
+      documents: {
+        Row: {
+          category: Database["public"]["Enums"]["document_category"]
+          checksum: string | null
+          created_at: string
+          description: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["document_entity_type"]
+          file_name: string
+          file_size: number
+          file_type: string
+          id: string
+          is_active: boolean
+          mime_type: string
+          storage_path: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          category?: Database["public"]["Enums"]["document_category"]
+          checksum?: string | null
+          created_at?: string
+          description?: string | null
+          entity_id: string
+          entity_type: Database["public"]["Enums"]["document_entity_type"]
+          file_name: string
+          file_size?: number
+          file_type: string
+          id?: string
+          is_active?: boolean
+          mime_type: string
+          storage_path: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["document_category"]
+          checksum?: string | null
+          created_at?: string
+          description?: string | null
+          entity_id?: string
+          entity_type?: Database["public"]["Enums"]["document_entity_type"]
+          file_name?: string
+          file_size?: number
+          file_type?: string
+          id?: string
+          is_active?: boolean
+          mime_type?: string
+          storage_path?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "documents_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "user_names"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       email_alert_recipients: {
         Row: {
           alert_type_id: string | null
@@ -7528,6 +7597,17 @@ export type Database = {
         }
         Returns: undefined
       }
+      log_document_action_unified: {
+        Args: {
+          p_action: string
+          p_document_id: string
+          p_entity_id: string
+          p_entity_type: string
+          p_file_name: string
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       log_sync_action: {
         Args: {
           _action: string
@@ -7680,6 +7760,21 @@ export type Database = {
         | "behavioral"
         | "contextual"
         | "data_sensitive"
+      document_category:
+        | "contract"
+        | "budget"
+        | "annex"
+        | "report"
+        | "invoice"
+        | "correspondence"
+        | "other"
+      document_entity_type:
+        | "project"
+        | "convention"
+        | "contract"
+        | "budget"
+        | "expense"
+        | "asset"
       entry_status: "brouillon" | "valide" | "cloture"
       entry_type:
         | "depense"
@@ -7923,6 +8018,23 @@ export const Constants = {
         "behavioral",
         "contextual",
         "data_sensitive",
+      ],
+      document_category: [
+        "contract",
+        "budget",
+        "annex",
+        "report",
+        "invoice",
+        "correspondence",
+        "other",
+      ],
+      document_entity_type: [
+        "project",
+        "convention",
+        "contract",
+        "budget",
+        "expense",
+        "asset",
       ],
       entry_status: ["brouillon", "valide", "cloture"],
       entry_type: [
