@@ -7,6 +7,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import { SessionTimeoutProvider } from "@/components/auth/SessionTimeoutProvider";
 import { LayoutRegressionAlert } from "@/components/layout/LayoutRegressionAlert";
+import { FaviconSync } from "@/components/layout/FaviconSync";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AccessDenied from "./pages/AccessDenied";
@@ -108,6 +109,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <LayoutRegressionAlert />
+        <FaviconSync />
         <AuthProvider>
           <SessionTimeoutProvider timeoutMinutes={30}>
           <Routes>

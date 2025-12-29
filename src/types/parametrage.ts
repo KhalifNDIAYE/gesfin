@@ -91,12 +91,16 @@ export interface TrackingAxis {
 export interface OrganizationSettings {
   id: string;
   name: string;
+  acronym: string | null;
   address: string | null;
+  country_id: string | null;
+  city: string | null;
   phone: string | null;
   email: string | null;
   website: string | null;
   tax_id: string | null;
   logo_url: string | null;
+  favicon_url: string | null;
   created_at: string;
   updated_at: string;
 }

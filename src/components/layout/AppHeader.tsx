@@ -14,6 +14,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useOrganizationSettings } from "@/hooks/useParametrage";
 
 interface AppHeaderProps {
   title: string;
@@ -23,6 +24,7 @@ interface AppHeaderProps {
 export function AppHeader({ title, subtitle }: AppHeaderProps) {
   const { user, profile, roles, signOut } = useAuth();
   const navigate = useNavigate();
+  const { data: orgSettings } = useOrganizationSettings();
 
   const handleSignOut = async () => {
     try {
@@ -50,9 +52,19 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-border bg-background/95 px-6 backdrop-blur supports-[backdrop-filter]:bg-background/60" data-component="header" data-testid="app-header">
-      <div className="flex flex-col">
-        <h1 className="text-lg font-semibold text-foreground">{title}</h1>
-        {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+      <div className="flex items-center gap-4">
+        {/* Organization Logo */}
+        {orgSettings?.logo_url && (
+          <img 
+            src={orgSettings.logo_url} 
+            alt={orgSettings.name || 'Logo'} 
+            className="h-10 w-auto max-w-[120px] object-contain"
+          />
+        )}
+        <div className="flex flex-col">
+          <h1 className="text-lg font-semibold text-foreground">{title}</h1>
+          {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
+        </div>
       </div>
 
       <div className="flex items-center gap-4">
