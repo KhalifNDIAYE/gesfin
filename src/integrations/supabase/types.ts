@@ -5051,9 +5051,13 @@ export type Database = {
       }
       organization_settings: {
         Row: {
+          acronym: string | null
           address: string | null
+          city: string | null
+          country_id: string | null
           created_at: string | null
           email: string | null
+          favicon_url: string | null
           id: string
           logo_url: string | null
           name: string
@@ -5063,9 +5067,13 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          acronym?: string | null
           address?: string | null
+          city?: string | null
+          country_id?: string | null
           created_at?: string | null
           email?: string | null
+          favicon_url?: string | null
           id?: string
           logo_url?: string | null
           name: string
@@ -5075,9 +5083,13 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          acronym?: string | null
           address?: string | null
+          city?: string | null
+          country_id?: string | null
           created_at?: string | null
           email?: string | null
+          favicon_url?: string | null
           id?: string
           logo_url?: string | null
           name?: string
@@ -5086,7 +5098,15 @@ export type Database = {
           updated_at?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "organization_settings_country_id_fkey"
+            columns: ["country_id"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       permissions: {
         Row: {
