@@ -1,15 +1,16 @@
 import { useEffect } from 'react';
-import { useOrganizationSettings } from '@/hooks/useParametrage';
+import { usePublicBranding } from '@/hooks/usePublicBranding';
 
 /**
  * Component to synchronize the browser favicon with the organization's favicon_url
- * Should be rendered at the app root level
+ * Should be rendered at the app root level.
+ * Uses public branding RPC which is accessible without authentication.
  */
 export function FaviconSync() {
-  const { data: settings } = useOrganizationSettings();
+  const { data: branding } = usePublicBranding();
 
   useEffect(() => {
-    const faviconUrl = settings?.favicon_url;
+    const faviconUrl = branding?.favicon_url;
     if (!faviconUrl) return;
 
     // Update or create favicon link
@@ -22,7 +23,7 @@ export function FaviconSync() {
     }
     
     link.href = faviconUrl;
-  }, [settings?.favicon_url]);
+  }, [branding?.favicon_url]);
 
   return null;
 }

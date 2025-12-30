@@ -7540,6 +7540,7 @@ export type Database = {
         Returns: string
       }
       get_project_kpis: { Args: { _project_id: string }; Returns: Json }
+      get_public_branding: { Args: never; Returns: Json }
       has_permission: {
         Args: {
           _module: Database["public"]["Enums"]["module_name"]
