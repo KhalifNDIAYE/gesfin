@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { useOrganizationSettings } from '@/hooks/useParametrage';
+import { usePublicBranding } from '@/hooks/usePublicBranding';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,7 @@ const Auth = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { signIn, resetPassword, user, isLoading: authLoading } = useAuth();
-  const { data: orgSettings } = useOrganizationSettings();
+  const { data: branding } = usePublicBranding();
   
   const [mode, setMode] = useState<AuthMode>('login');
   const [isLoading, setIsLoading] = useState(false);
@@ -119,12 +119,12 @@ const Auth = () => {
       
       <Card className="relative w-full max-w-md border-border/50 bg-card/80 backdrop-blur-sm">
         <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
-            {orgSettings?.logo_url ? (
+          <div className="mx-auto mb-4 flex items-center justify-center">
+            {branding?.logo_url ? (
               <img 
-                src={orgSettings.logo_url} 
-                alt={orgSettings.name || 'Logo'} 
-                className="h-16 w-auto max-w-[200px] object-contain"
+                src={branding.logo_url} 
+                alt={branding.name || 'Logo'} 
+                className="h-20 w-auto max-w-[200px] object-contain"
               />
             ) : (
               <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
