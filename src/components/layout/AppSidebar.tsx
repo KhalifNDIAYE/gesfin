@@ -39,6 +39,7 @@ import {
   AlertTriangle,
   Cog,
 } from "lucide-react";
+import { usePublicBranding } from "@/hooks/usePublicBranding";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -258,6 +259,7 @@ export function AppSidebar() {
   const { canAccess } = usePermissions();
   const { data: sidebarCounts } = useSidebarCounts();
   const { data: sidebarAlerts } = useSidebarAlerts();
+  const { data: branding } = usePublicBranding();
 
   // Persist collapsed state
   useEffect(() => {
@@ -486,18 +488,36 @@ export function AppSidebar() {
         <div className="flex h-16 items-center justify-between px-4">
           {!collapsed && (
             <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary">
-                <Calculator className="h-5 w-5 text-primary-foreground" />
+              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary overflow-hidden">
+                {branding?.logo_url ? (
+                  <img 
+                    src={branding.logo_url} 
+                    alt={branding.name || "Logo"} 
+                    className="h-7 w-7 object-contain"
+                  />
+                ) : (
+                  <Calculator className="h-5 w-5 text-primary-foreground" />
+                )}
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold text-sidebar-foreground">FinanceFlow</span>
+                <span className="text-sm font-bold text-sidebar-foreground">
+                  {branding?.name || "FinanceFlow"}
+                </span>
                 <span className="text-xs text-sidebar-foreground/50">Gestion Multi-Projets</span>
               </div>
             </div>
           )}
           {collapsed && (
-            <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary">
-              <Calculator className="h-5 w-5 text-primary-foreground" />
+            <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-primary overflow-hidden">
+              {branding?.logo_url ? (
+                <img 
+                  src={branding.logo_url} 
+                  alt={branding.name || "Logo"} 
+                  className="h-7 w-7 object-contain"
+                />
+              ) : (
+                <Calculator className="h-5 w-5 text-primary-foreground" />
+              )}
             </div>
           )}
         </div>
