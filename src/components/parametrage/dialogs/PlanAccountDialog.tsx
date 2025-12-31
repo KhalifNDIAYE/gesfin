@@ -165,14 +165,17 @@ const onSubmit = (data: FormData) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Compte parent</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select 
+                    onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)} 
+                    value={field.value || '__none__'}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Aucun (compte racine)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Aucun (compte racine)</SelectItem>
+                      <SelectItem value="__none__">Aucun (compte racine)</SelectItem>
                       {availableParents.map((account) => (
                         <SelectItem key={account.id} value={account.id}>
                           {account.code} - {account.name}

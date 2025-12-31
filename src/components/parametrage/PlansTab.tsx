@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataTable, Column } from './DataTable';
-import { usePlanAccounts, usePlanAccountMutations } from '@/hooks/useParametrage';
+import { usePlanAccounts, usePlanAccountMutations } from '@/hooks/usePlanAccounts';
 import type { PlanAccount, PlanType } from '@/types/parametrage';
 import { PLAN_TYPE_LABELS } from '@/types/parametrage';
 import { PlanAccountDialog } from './dialogs/PlanAccountDialog';
