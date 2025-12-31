@@ -142,14 +142,17 @@ export const ExpenseCategoryDialog = ({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Catégorie parente</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <Select 
+                    onValueChange={(value) => field.onChange(value === '__none__' ? '' : value)} 
+                    value={field.value || '__none__'}
+                  >
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Aucune (catégorie principale)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Aucune (catégorie principale)</SelectItem>
+                      <SelectItem value="__none__">Aucune (catégorie principale)</SelectItem>
                       {parentOptions.map((cat) => (
                         <SelectItem key={cat.id} value={cat.id}>
                           {cat.code} - {cat.name}
