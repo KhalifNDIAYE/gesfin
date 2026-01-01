@@ -11,6 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { usePermissions } from "@/hooks/usePermissions";
 import { 
   Database, 
   Download, 
@@ -53,15 +54,50 @@ const mockInterfaces = [
 ];
 
 export default function UtilitairesPage() {
+  const { canAccess, isAdmin } = usePermissions();
+  const canEdit = isAdmin || canAccess('parametres', 'update');
+
   const [autoBackupEnabled, setAutoBackupEnabled] = useState(true);
   const [backupFrequency, setBackupFrequency] = useState("daily");
   const [backupTime, setBackupTime] = useState("08:00");
+  const [backupRetention, setBackupRetention] = useState("30");
+  const [backupTables, setBackupTables] = useState("all");
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [isRestoring, setIsRestoring] = useState(false);
   const [importProgress, setImportProgress] = useState(0);
   const [isImporting, setIsImporting] = useState(false);
+  const [selectedBackupId, setSelectedBackupId] = useState<string>("");
+  const [restoreAll, setRestoreAll] = useState(true);
+  const [restoreUsers, setRestoreUsers] = useState(false);
+  const [restoreConfig, setRestoreConfig] = useState(true);
+  const [importDataType, setImportDataType] = useState("journal");
+  const [exportModule, setExportModule] = useState("comptabilite");
+  const [exportStartDate, setExportStartDate] = useState("");
+  const [exportEndDate, setExportEndDate] = useState("");
+  const [autoSync, setAutoSync] = useState(true);
+  const [consolidateEntries, setConsolidateEntries] = useState(true);
+  const [eliminateInterSite, setEliminateInterSite] = useState(false);
+  const [interfaceType, setInterfaceType] = useState("");
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [isSavingBackupSettings, setIsSavingBackupSettings] = useState(false);
+
+  const handleSaveBackupSettings = () => {
+    if (!canEdit) {
+      toast.error("Vous n'avez pas les permissions pour modifier ces paramètres");
+      return;
+    }
+    setIsSavingBackupSettings(true);
+    setTimeout(() => {
+      setIsSavingBackupSettings(false);
+      toast.success("Paramètres de sauvegarde enregistrés");
+    }, 1000);
+  };
 
   const handleManualBackup = () => {
+    if (!canEdit) {
+      toast.error("Vous n'avez pas les permissions pour effectuer cette action");
+      return;
+    }
     setIsBackingUp(true);
     toast.info("Sauvegarde en cours...");
     setTimeout(() => {
@@ -70,7 +106,27 @@ export default function UtilitairesPage() {
     }, 3000);
   };
 
-  const handleRestore = (backupId: string) => {
+  const handleDownloadBackup = (backupName: string) => {
+    toast.success(`Téléchargement de "${backupName}" lancé`);
+  };
+
+  const handleDeleteBackup = (backupId: string, backupName: string) => {
+    if (!canEdit) {
+      toast.error("Vous n'avez pas les permissions pour supprimer cette sauvegarde");
+      return;
+    }
+    toast.success(`Sauvegarde "${backupName}" supprimée`);
+  };
+
+  const handleRestore = () => {
+    if (!canEdit) {
+      toast.error("Vous n'avez pas les permissions pour effectuer cette action");
+      return;
+    }
+    if (!selectedBackupId) {
+      toast.error("Veuillez sélectionner une sauvegarde");
+      return;
+    }
     setIsRestoring(true);
     toast.info("Restauration en cours...");
     setTimeout(() => {
@@ -80,10 +136,15 @@ export default function UtilitairesPage() {
   };
 
   const handleImportExcel = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!canEdit) {
+      toast.error("Vous n'avez pas les permissions pour importer des données");
+      return;
+    }
     const file = event.target.files?.[0];
     if (file) {
       setIsImporting(true);
       setImportProgress(0);
+      toast.info(`Importation de "${file.name}" en cours...`);
       const interval = setInterval(() => {
         setImportProgress(prev => {
           if (prev >= 100) {
@@ -98,12 +159,92 @@ export default function UtilitairesPage() {
     }
   };
 
-  const handleExportExcel = (type: string) => {
-    toast.success(`Export Excel ${type} lancé`);
+  const handleDownloadTemplate = (templateName: string) => {
+    toast.success(`Téléchargement du modèle "${templateName}" lancé`);
   };
 
-  const handleExportPDF = (type: string) => {
-    toast.success(`Export PDF ${type} lancé`);
+  const handleExportExcel = () => {
+    if (!exportStartDate || !exportEndDate) {
+      toast.error("Veuillez sélectionner une période");
+      return;
+    }
+    toast.success(`Export Excel ${exportModule} lancé`);
+  };
+
+  const handleExportPDF = () => {
+    if (!exportStartDate || !exportEndDate) {
+      toast.error("Veuillez sélectionner une période");
+      return;
+    }
+    toast.success(`Export PDF ${exportModule} lancé`);
+  };
+
+  const handleQuickExport = (reportName: string) => {
+    toast.success(`Export "${reportName}" lancé`);
+  };
+
+  const handleSyncSite = (siteName: string) => {
+    if (!canEdit) {
+      toast.error("Vous n'avez pas les permissions pour synchroniser");
+      return;
+    }
+    toast.info(`Synchronisation de "${siteName}" en cours...`);
+    setTimeout(() => {
+      toast.success(`"${siteName}" synchronisé avec succès`);
+    }, 2000);
+  };
+
+  const handleSyncAllSites = () => {
+    if (!canEdit) {
+      toast.error("Vous n'avez pas les permissions pour synchroniser");
+      return;
+    }
+    setIsSyncing(true);
+    toast.info("Synchronisation de tous les sites en cours...");
+    setTimeout(() => {
+      setIsSyncing(false);
+      toast.success("Tous les sites ont été synchronisés");
+    }, 3000);
+  };
+
+  const handleGenerateConsolidatedStatements = () => {
+    toast.info("Génération des états consolidés en cours...");
+    setTimeout(() => {
+      toast.success("États consolidés générés avec succès");
+    }, 2000);
+  };
+
+  const handleConsolidationReport = () => {
+    toast.success("Rapport de consolidation généré");
+  };
+
+  const handleToggleInterface = (interfaceName: string, currentStatus: string) => {
+    if (!canEdit) {
+      toast.error("Vous n'avez pas les permissions pour modifier cette interface");
+      return;
+    }
+    const newStatus = currentStatus === "active" ? "désactivée" : "activée";
+    toast.success(`Interface "${interfaceName}" ${newStatus}`);
+  };
+
+  const handleConfigureInterface = (interfaceName: string) => {
+    toast.info(`Configuration de "${interfaceName}" ouverte`);
+  };
+
+  const handleAddInterface = () => {
+    if (!interfaceType) {
+      toast.error("Veuillez sélectionner un type d'interface");
+      return;
+    }
+    if (!canEdit) {
+      toast.error("Vous n'avez pas les permissions pour ajouter une interface");
+      return;
+    }
+    toast.success(`Configuration de l'interface ${interfaceType} lancée`);
+  };
+
+  const handleManageSchedules = (type: string) => {
+    toast.info(`Gestion des planifications ${type} ouverte`);
   };
 
   return (
@@ -174,7 +315,7 @@ export default function UtilitairesPage() {
 
                 <div className="space-y-2">
                   <Label>Rétention</Label>
-                  <Select defaultValue="30">
+                  <Select value={backupRetention} onValueChange={setBackupRetention}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -187,8 +328,20 @@ export default function UtilitairesPage() {
                   </Select>
                 </div>
 
-                <Button className="w-full" variant="outline">
-                  Enregistrer les paramètres
+                <Button 
+                  className="w-full" 
+                  variant="outline" 
+                  onClick={handleSaveBackupSettings}
+                  disabled={isSavingBackupSettings || !canEdit}
+                >
+                  {isSavingBackupSettings ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Enregistrement...
+                    </>
+                  ) : (
+                    "Enregistrer les paramètres"
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -219,7 +372,7 @@ export default function UtilitairesPage() {
 
                 <div className="space-y-2">
                   <Label>Tables à sauvegarder</Label>
-                  <Select defaultValue="all">
+                  <Select value={backupTables} onValueChange={setBackupTables}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -289,10 +442,10 @@ export default function UtilitairesPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => handleDownloadBackup(backup.name)}>
                             <Download className="h-4 w-4" />
                           </Button>
-                          <Button variant="outline" size="sm" className="text-destructive">
+                          <Button variant="outline" size="sm" className="text-destructive" onClick={() => handleDeleteBackup(backup.id, backup.name)} disabled={!canEdit}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
@@ -331,7 +484,7 @@ export default function UtilitairesPage() {
 
               <div className="space-y-2">
                 <Label>Sélectionner une sauvegarde</Label>
-                <Select>
+                <Select value={selectedBackupId} onValueChange={setSelectedBackupId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Choisir une sauvegarde..." />
                   </SelectTrigger>
@@ -349,15 +502,15 @@ export default function UtilitairesPage() {
                 <Label>Options de restauration</Label>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <Switch id="restore-all" defaultChecked />
+                    <Switch id="restore-all" checked={restoreAll} onCheckedChange={setRestoreAll} />
                     <Label htmlFor="restore-all">Restaurer toutes les tables</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Switch id="restore-users" />
+                    <Switch id="restore-users" checked={restoreUsers} onCheckedChange={setRestoreUsers} />
                     <Label htmlFor="restore-users">Inclure les utilisateurs</Label>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Switch id="restore-config" defaultChecked />
+                    <Switch id="restore-config" checked={restoreConfig} onCheckedChange={setRestoreConfig} />
                     <Label htmlFor="restore-config">Inclure la configuration</Label>
                   </div>
                 </div>
@@ -366,8 +519,8 @@ export default function UtilitairesPage() {
               <Button 
                 variant="destructive" 
                 className="w-full"
-                disabled={isRestoring}
-                onClick={() => handleRestore("1")}
+                disabled={isRestoring || !selectedBackupId || !canEdit}
+                onClick={handleRestore}
               >
                 {isRestoring ? (
                   <>
@@ -399,7 +552,7 @@ export default function UtilitairesPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Type de données</Label>
-                  <Select defaultValue="journal">
+                  <Select value={importDataType} onValueChange={setImportDataType}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -419,6 +572,7 @@ export default function UtilitairesPage() {
                     type="file" 
                     accept=".xlsx,.xls,.csv" 
                     onChange={handleImportExcel}
+                    disabled={!canEdit}
                   />
                 </div>
 
@@ -435,17 +589,17 @@ export default function UtilitairesPage() {
                 <div className="rounded-lg bg-muted/50 p-4">
                   <h4 className="font-medium mb-2">Modèles disponibles</h4>
                   <div className="space-y-1">
-                    <Button variant="link" className="h-auto p-0 text-sm">
+                    <Button variant="link" className="h-auto p-0 text-sm" onClick={() => handleDownloadTemplate("écritures comptables")}>
                       <Download className="mr-1 h-3 w-3" />
                       Modèle écritures comptables
                     </Button>
                     <br />
-                    <Button variant="link" className="h-auto p-0 text-sm">
+                    <Button variant="link" className="h-auto p-0 text-sm" onClick={() => handleDownloadTemplate("lignes budgétaires")}>
                       <Download className="mr-1 h-3 w-3" />
                       Modèle lignes budgétaires
                     </Button>
                     <br />
-                    <Button variant="link" className="h-auto p-0 text-sm">
+                    <Button variant="link" className="h-auto p-0 text-sm" onClick={() => handleDownloadTemplate("tiers")}>
                       <Download className="mr-1 h-3 w-3" />
                       Modèle tiers
                     </Button>
@@ -465,7 +619,7 @@ export default function UtilitairesPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Module</Label>
-                  <Select defaultValue="comptabilite">
+                  <Select value={exportModule} onValueChange={setExportModule}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -482,17 +636,17 @@ export default function UtilitairesPage() {
                 <div className="space-y-2">
                   <Label>Période</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    <Input type="date" />
-                    <Input type="date" />
+                    <Input type="date" value={exportStartDate} onChange={(e) => setExportStartDate(e.target.value)} />
+                    <Input type="date" value={exportEndDate} onChange={(e) => setExportEndDate(e.target.value)} />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-2">
-                  <Button variant="outline" onClick={() => handleExportExcel("comptabilité")}>
+                  <Button variant="outline" onClick={handleExportExcel}>
                     <FileSpreadsheet className="mr-2 h-4 w-4" />
                     Export Excel
                   </Button>
-                  <Button variant="outline" onClick={() => handleExportPDF("comptabilité")}>
+                  <Button variant="outline" onClick={handleExportPDF}>
                     <FileText className="mr-2 h-4 w-4" />
                     Export PDF
                   </Button>
@@ -501,16 +655,16 @@ export default function UtilitairesPage() {
                 <div className="rounded-lg bg-muted/50 p-4">
                   <h4 className="font-medium mb-2">Exports rapides</h4>
                   <div className="grid grid-cols-2 gap-2">
-                    <Button variant="ghost" size="sm" className="justify-start">
+                    <Button variant="ghost" size="sm" className="justify-start" onClick={() => handleQuickExport("Grand Livre")}>
                       Grand Livre
                     </Button>
-                    <Button variant="ghost" size="sm" className="justify-start">
+                    <Button variant="ghost" size="sm" className="justify-start" onClick={() => handleQuickExport("Balance")}>
                       Balance
                     </Button>
-                    <Button variant="ghost" size="sm" className="justify-start">
+                    <Button variant="ghost" size="sm" className="justify-start" onClick={() => handleQuickExport("Journal")}>
                       Journal
                     </Button>
-                    <Button variant="ghost" size="sm" className="justify-start">
+                    <Button variant="ghost" size="sm" className="justify-start" onClick={() => handleQuickExport("Bilan")}>
                       Bilan
                     </Button>
                   </div>
@@ -562,11 +716,11 @@ export default function UtilitairesPage() {
                       <TableCell>{site.lastSync}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => handleSyncSite(site.name)} disabled={!canEdit}>
                             <RefreshCw className="h-4 w-4 mr-1" />
                             Synchroniser
                           </Button>
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => toast.info(`Configuration de "${site.name}" ouverte`)}>
                             <Settings className="h-4 w-4" />
                           </Button>
                         </div>
@@ -589,21 +743,21 @@ export default function UtilitairesPage() {
                     <Label>Synchronisation automatique</Label>
                     <p className="text-sm text-muted-foreground">Synchroniser les données toutes les heures</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch checked={autoSync} onCheckedChange={setAutoSync} disabled={!canEdit} />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>Consolidation des écritures</Label>
                     <p className="text-sm text-muted-foreground">Regrouper les écritures de tous les sites</p>
                   </div>
-                  <Switch defaultChecked />
+                  <Switch checked={consolidateEntries} onCheckedChange={setConsolidateEntries} disabled={!canEdit} />
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>Élimination inter-sites</Label>
                     <p className="text-sm text-muted-foreground">Éliminer les opérations inter-sites</p>
                   </div>
-                  <Switch />
+                  <Switch checked={eliminateInterSite} onCheckedChange={setEliminateInterSite} disabled={!canEdit} />
                 </div>
               </CardContent>
             </Card>
@@ -613,15 +767,24 @@ export default function UtilitairesPage() {
                 <CardTitle>Actions de consolidation</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button className="w-full" variant="outline">
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Synchroniser tous les sites
+                <Button className="w-full" variant="outline" onClick={handleSyncAllSites} disabled={isSyncing || !canEdit}>
+                  {isSyncing ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Synchronisation...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Synchroniser tous les sites
+                    </>
+                  )}
                 </Button>
-                <Button className="w-full" variant="outline">
+                <Button className="w-full" variant="outline" onClick={handleGenerateConsolidatedStatements}>
                   <Database className="mr-2 h-4 w-4" />
                   Générer les états consolidés
                 </Button>
-                <Button className="w-full" variant="outline">
+                <Button className="w-full" variant="outline" onClick={handleConsolidationReport}>
                   <FileText className="mr-2 h-4 w-4" />
                   Rapport de consolidation
                 </Button>
@@ -667,15 +830,15 @@ export default function UtilitairesPage() {
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           {iface.status === "active" ? (
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => handleToggleInterface(iface.name, iface.status)} disabled={!canEdit}>
                               <Pause className="h-4 w-4" />
                             </Button>
                           ) : (
-                            <Button variant="outline" size="sm">
+                            <Button variant="outline" size="sm" onClick={() => handleToggleInterface(iface.name, iface.status)} disabled={!canEdit}>
                               <Play className="h-4 w-4" />
                             </Button>
                           )}
-                          <Button variant="outline" size="sm">
+                          <Button variant="outline" size="sm" onClick={() => handleConfigureInterface(iface.name)}>
                             <Settings className="h-4 w-4" />
                           </Button>
                         </div>
@@ -695,7 +858,7 @@ export default function UtilitairesPage() {
               <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <Label>Type d'interface</Label>
-                  <Select>
+                  <Select value={interfaceType} onValueChange={setInterfaceType}>
                     <SelectTrigger>
                       <SelectValue placeholder="Sélectionner..." />
                     </SelectTrigger>
@@ -707,7 +870,7 @@ export default function UtilitairesPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button className="w-full">
+                <Button className="w-full" onClick={handleAddInterface} disabled={!canEdit}>
                   <Link2 className="mr-2 h-4 w-4" />
                   Configurer
                 </Button>
@@ -727,7 +890,7 @@ export default function UtilitairesPage() {
                   <span className="text-sm">Factures fournisseurs</span>
                   <Badge>Hebdomadaire</Badge>
                 </div>
-                <Button className="w-full" variant="outline">
+                <Button className="w-full" variant="outline" onClick={() => handleManageSchedules("import")}>
                   <Calendar className="mr-2 h-4 w-4" />
                   Gérer les planifications
                 </Button>
@@ -747,7 +910,7 @@ export default function UtilitairesPage() {
                   <span className="text-sm">Rapports bailleurs</span>
                   <Badge>Trimestriel</Badge>
                 </div>
-                <Button className="w-full" variant="outline">
+                <Button className="w-full" variant="outline" onClick={() => handleManageSchedules("export")}>
                   <Calendar className="mr-2 h-4 w-4" />
                   Gérer les planifications
                 </Button>
