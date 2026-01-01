@@ -14,6 +14,42 @@ export type Database = {
   }
   public: {
     Tables: {
+      accounting_settings: {
+        Row: {
+          auto_numbering_enabled: boolean
+          chart_of_accounts: string
+          created_at: string
+          current_fiscal_year: string
+          default_currency: string
+          default_vat_rate: number
+          id: string
+          two_step_validation_enabled: boolean
+          updated_at: string
+        }
+        Insert: {
+          auto_numbering_enabled?: boolean
+          chart_of_accounts?: string
+          created_at?: string
+          current_fiscal_year?: string
+          default_currency?: string
+          default_vat_rate?: number
+          id?: string
+          two_step_validation_enabled?: boolean
+          updated_at?: string
+        }
+        Update: {
+          auto_numbering_enabled?: boolean
+          chart_of_accounts?: string
+          created_at?: string
+          current_fiscal_year?: string
+          default_currency?: string
+          default_vat_rate?: number
+          id?: string
+          two_step_validation_enabled?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_correlated_alerts: {
         Row: {
           acknowledged_at: string | null
