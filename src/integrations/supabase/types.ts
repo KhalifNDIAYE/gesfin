@@ -4518,6 +4518,42 @@ export type Database = {
         }
         Relationships: []
       }
+      interface_settings: {
+        Row: {
+          created_at: string
+          date_format: string
+          id: string
+          language: string
+          number_format: string
+          sidebar_collapsed: boolean
+          timezone: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          date_format?: string
+          id?: string
+          language?: string
+          number_format?: string
+          sidebar_collapsed?: boolean
+          timezone?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          date_format?: string
+          id?: string
+          language?: string
+          number_format?: string
+          sidebar_collapsed?: boolean
+          timezone?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       journal_entries: {
         Row: {
           admin_override_approved: boolean | null
