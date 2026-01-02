@@ -57,6 +57,8 @@ export default function UtilitairesPage() {
   const { canAccess, isAdmin } = usePermissions();
   const canEdit = isAdmin || canAccess('parametres', 'update');
 
+  const [activeTab, setActiveTab] = useState("backup");
+
   const [autoBackupEnabled, setAutoBackupEnabled] = useState(true);
   const [backupFrequency, setBackupFrequency] = useState("daily");
   const [backupTime, setBackupTime] = useState("08:00");
@@ -249,7 +251,7 @@ export default function UtilitairesPage() {
 
   return (
     <AppLayout title="Utilitaires & Sauvegarde" subtitle="Gestion des sauvegardes, imports/exports et interfaces">
-      <Tabs defaultValue="backup" className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="backup" className="flex items-center gap-2">
             <Database className="h-4 w-4" />
