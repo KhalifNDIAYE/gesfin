@@ -5131,6 +5131,7 @@ export type Database = {
           email: string | null
           favicon_url: string | null
           id: string
+          legal_mentions: string | null
           logo_url: string | null
           name: string
           phone: string | null
@@ -5147,6 +5148,7 @@ export type Database = {
           email?: string | null
           favicon_url?: string | null
           id?: string
+          legal_mentions?: string | null
           logo_url?: string | null
           name: string
           phone?: string | null
@@ -5163,6 +5165,7 @@ export type Database = {
           email?: string | null
           favicon_url?: string | null
           id?: string
+          legal_mentions?: string | null
           logo_url?: string | null
           name?: string
           phone?: string | null

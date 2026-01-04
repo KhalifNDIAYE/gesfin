@@ -101,6 +101,7 @@ export interface OrganizationSettings {
   tax_id: string | null;
   logo_url: string | null;
   favicon_url: string | null;
+  legal_mentions: string | null;
   created_at: string;
   updated_at: string;
 }

@@ -39,6 +39,10 @@ export function usePDFGeneration() {
     };
   };
 
+  const getLegalMentions = (): string | undefined => {
+    return (orgSettings as any)?.legal_mentions || undefined;
+  };
+
   const logAuditAction = async (
     action: string,
     resourceType?: string,
@@ -68,9 +72,18 @@ export function usePDFGeneration() {
     buildContent: (ctx: PDFTemplateContext) => void | Promise<void>
   ): Promise<PDFTemplateContext> => {
     const org = getOrganizationInfo();
-    const ctx = await createPDFDocument(config, org);
+    const legalMentions = getLegalMentions();
+    
+    // Merge legal mentions from organization settings
+    const configWithLegal = {
+      ...config,
+      legalMentions: config.legalMentions || legalMentions,
+      showLegalMentions: config.showLegalMentions ?? !!legalMentions,
+    };
+    
+    const ctx = await createPDFDocument(configWithLegal, org);
     await buildContent(ctx);
-    finalizePDF(ctx, config);
+    finalizePDF(ctx, configWithLegal);
     return ctx;
   };
 
@@ -163,6 +176,7 @@ export function usePDFGeneration() {
     downloadPDF,
     getPDFForEmail,
     getOrganizationInfo,
+    getLegalMentions,
   };
 }
 
