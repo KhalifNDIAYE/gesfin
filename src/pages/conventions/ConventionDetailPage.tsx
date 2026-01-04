@@ -14,6 +14,7 @@ import { ReplenishmentDialog } from "@/components/conventions/ReplenishmentDialo
 import { DirectPaymentDialog } from "@/components/conventions/DirectPaymentDialog";
 import { FinancialReportDialog } from "@/components/conventions/FinancialReportDialog";
 import { ConventionDocumentsSection } from "@/components/conventions/ConventionDocumentsSection";
+import { DocumentSignatureActions } from "@/components/signatures/DocumentSignatureActions";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { generateDetailedReportPDF } from "@/utils/reportGenerator";
 import { useOrganizationSettings } from "@/hooks/useParametrage";
@@ -181,6 +182,13 @@ export default function ConventionDetailPage() {
             <Badge variant={statusLabels[convention.status]?.variant || "secondary"} className="text-sm">
               {statusLabels[convention.status]?.label || convention.status}
             </Badge>
+            <DocumentSignatureActions
+              documentType="convention"
+              documentId={convention.id}
+              documentTitle={`Convention ${convention.code}`}
+              module="conventions"
+              variant="default"
+            />
             <PermissionGate module="conventions" permission="update">
               <Button variant="outline" size="sm" onClick={() => navigate(`/conventions?edit=${convention.id}`)}>
                 <Edit className="mr-2 h-4 w-4" /> Modifier
