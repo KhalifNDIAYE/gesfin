@@ -41,6 +41,7 @@ const formSchema = z.object({
   tax_id: z.string().optional(),
   logo_url: z.string().optional(),
   favicon_url: z.string().optional(),
+  legal_mentions: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -71,6 +72,7 @@ export function OrganizationTab() {
       tax_id: '',
       logo_url: '',
       favicon_url: '',
+      legal_mentions: '',
     },
   });
 
@@ -88,6 +90,7 @@ export function OrganizationTab() {
         tax_id: settings.tax_id || '',
         logo_url: settings.logo_url || '',
         favicon_url: settings.favicon_url || '',
+        legal_mentions: (settings as any).legal_mentions || '',
       });
     }
   }, [settings, form]);
@@ -519,6 +522,27 @@ export function OrganizationTab() {
                     </FormControl>
                     <FormDescription>
                       Numéro fiscal, SIRET, registre du commerce ou autre identifiant légal
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="legal_mentions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Mentions légales (pied de page PDF)</FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        placeholder="Mentions légales à afficher dans le pied de page des documents PDF générés..."
+                        {...field} 
+                        disabled={!canEdit}
+                        rows={3}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Ces mentions apparaîtront dans le pied de page de tous les documents PDF générés
                     </FormDescription>
                     <FormMessage />
                   </FormItem>
