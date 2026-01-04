@@ -23,7 +23,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
+import { usePDFGeneration } from "@/hooks/usePDFGeneration";
+import { addTable, addSectionHeader } from "@/utils/pdfTemplate";
 
 export function AnalyticalAllocationsTable() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -102,44 +103,33 @@ export function AnalyticalAllocationsTable() {
     XLSX.writeFile(wb, `affectations_analytiques_${new Date().toISOString().split('T')[0]}.xlsx`);
   };
 
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    
-    doc.setFontSize(16);
-    doc.text('Affectations Analytiques', 14, 20);
-    doc.setFontSize(10);
-    doc.text(`Date: ${new Date().toLocaleDateString('fr-FR')}`, 14, 30);
+  const { downloadPDF } = usePDFGeneration();
 
-    let y = 45;
-    doc.setFontSize(8);
-    
-    // Headers
-    doc.setFont(undefined, 'bold');
-    doc.text('Dépense', 14, y);
-    doc.text('Activité', 60, y);
-    doc.text('Composante', 100, y);
-    doc.text('Zone', 140, y);
-    doc.text('Montant', 170, y);
-    
-    doc.setFont(undefined, 'normal');
-    y += 8;
-
-    filteredAllocations.slice(0, 40).forEach(alloc => {
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
+  const exportToPDF = async () => {
+    await downloadPDF(
+      {
+        title: "Affectations Analytiques",
+        documentDate: new Date(),
+        documentRef: `ANA-${new Date().toISOString().split('T')[0]}`,
+        auditModule: "comptabilite",
+        auditResourceType: "export",
+      },
+      `affectations_analytiques_${new Date().toISOString().split('T')[0]}.pdf`,
+      (ctx) => {
+        addSectionHeader(ctx, "Affectations Analytiques");
+        
+        const headers = ['Dépense', 'Activité', 'Composante', 'Zone', 'Montant'];
+        const rows = filteredAllocations.slice(0, 100).map(alloc => [
+          (alloc.description || "-").substring(0, 25),
+          alloc.activity?.code || "-",
+          alloc.component?.code || "-",
+          alloc.geographic_zone?.code || "-",
+          Number(alloc.amount).toLocaleString('fr-FR')
+        ]);
+        
+        addTable(ctx, headers, rows, [50, 30, 30, 30, 30]);
       }
-      
-      doc.text((alloc.description || "-").substring(0, 25), 14, y);
-      doc.text(alloc.activity?.code || "-", 60, y);
-      doc.text(alloc.component?.code || "-", 100, y);
-      doc.text(alloc.geographic_zone?.code || "-", 140, y);
-      doc.text(Number(alloc.amount).toLocaleString('fr-FR'), 170, y);
-      
-      y += 6;
-    });
-
-    doc.save(`affectations_analytiques_${new Date().toISOString().split('T')[0]}.pdf`);
+    );
   };
 
   const totalAmount = useMemo(() => {

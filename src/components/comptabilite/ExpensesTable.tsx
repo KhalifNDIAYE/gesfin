@@ -2,7 +2,8 @@ import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
+import { usePDFGeneration } from "@/hooks/usePDFGeneration";
+import { addTable, addSectionHeader } from "@/utils/pdfTemplate";
 import {
   Table,
   TableBody,
@@ -171,60 +172,34 @@ export function ExpensesTable({ entries, isLoading, onRefresh }: ExpensesTablePr
     toast({ title: "Export Excel réussi" });
   };
 
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    const pageWidth = doc.internal.pageSize.getWidth();
-    
-    doc.setFontSize(18);
-    doc.text("Liste des Dépenses", pageWidth / 2, 20, { align: "center" });
-    doc.setFontSize(10);
-    doc.text(`Généré le ${format(new Date(), "dd/MM/yyyy à HH:mm")}`, pageWidth / 2, 28, { align: "center" });
+  const { downloadPDF } = usePDFGeneration();
 
-    let y = 40;
-    const lineHeight = 8;
-    const colWidths = [25, 25, 35, 35, 30, 25];
-    const headers = ["Numéro", "Date", "Projet", "Fournisseur", "Montant", "Statut"];
-
-    // Headers
-    doc.setFontSize(9);
-    doc.setFont("helvetica", "bold");
-    let x = 10;
-    headers.forEach((header, i) => {
-      doc.text(header, x, y);
-      x += colWidths[i];
-    });
-    y += lineHeight;
-    doc.line(10, y - 3, pageWidth - 10, y - 3);
-
-    // Data
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-
-    filteredEntries.forEach(entry => {
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
+  const exportToPDF = async () => {
+    await downloadPDF(
+      {
+        title: "Liste des Dépenses",
+        documentDate: new Date(),
+        documentRef: `DEP-${format(new Date(), 'yyyyMMdd')}`,
+        auditModule: "comptabilite",
+        auditResourceType: "export",
+      },
+      `depenses_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`,
+      (ctx) => {
+        addSectionHeader(ctx, "Dépenses");
+        
+        const headers = ["Numéro", "Date", "Projet", "Fournisseur", "Montant", "Statut"];
+        const rows = filteredEntries.map(entry => [
+          entry.entry_number.substring(0, 10),
+          format(new Date(entry.entry_date), "dd/MM/yyyy"),
+          (projects?.find(p => p.id === entry.project_id)?.code || "-").substring(0, 12),
+          (entry.third_party?.name || "-").substring(0, 15),
+          `${(entry.requested_amount || 0).toLocaleString()} ${entry.currency?.code || ""}`,
+          EXPENSE_STATUS_LABELS[(entry.expense_workflow_status || 'brouillon') as ExpenseWorkflowStatus].substring(0, 12),
+        ]);
+        
+        addTable(ctx, headers, rows, [25, 25, 35, 35, 30, 25]);
       }
-
-      x = 10;
-      const row = [
-        entry.entry_number.substring(0, 10),
-        format(new Date(entry.entry_date), "dd/MM/yyyy"),
-        (projects?.find(p => p.id === entry.project_id)?.code || "-").substring(0, 12),
-        (entry.third_party?.name || "-").substring(0, 15),
-        `${(entry.requested_amount || 0).toLocaleString()} ${entry.currency?.code || ""}`,
-        EXPENSE_STATUS_LABELS[(entry.expense_workflow_status || 'brouillon') as ExpenseWorkflowStatus].substring(0, 12),
-      ];
-
-      row.forEach((cell, i) => {
-        doc.text(cell, x, y);
-        x += colWidths[i];
-      });
-      y += lineHeight;
-    });
-
-    doc.save(`depenses_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`);
-    toast({ title: "Export PDF réussi" });
+    );
   };
 
   const getProjectName = (projectId?: string | null) => {

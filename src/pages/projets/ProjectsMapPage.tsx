@@ -12,9 +12,10 @@ import { ProjectsMapStats } from '@/components/projets/map/ProjectsMapStats';
 import ProjectsLeafletMap from '@/components/projets/map/ProjectsLeafletMap';
 import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import * as XLSX from 'xlsx';
 import { formatCurrency } from '@/lib/utils';
+import { usePDFGeneration } from '@/hooks/usePDFGeneration';
+import { addTable, addSectionHeader, checkPageBreak } from '@/utils/pdfTemplate';
 
 export default function ProjectsMapPage() {
   const [filters, setFilters] = useState<MapFilters>({});
@@ -63,6 +64,8 @@ export default function ProjectsMapPage() {
     }
   }, []);
 
+  const { downloadPDF } = usePDFGeneration();
+
   // Export PDF
   const handleExportPDF = useCallback(async () => {
     if (!mapContainerRef.current) return;
@@ -72,35 +75,43 @@ export default function ProjectsMapPage() {
         allowTaint: true,
       });
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('landscape', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
       
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-      
-      // Add project list on new page
-      pdf.addPage();
-      pdf.setFontSize(16);
-      pdf.text('Liste des projets filtrés', 14, 20);
-      
-      let y = 35;
-      pdf.setFontSize(10);
-      projects.forEach((p, i) => {
-        if (y > 280) {
-          pdf.addPage();
-          y = 20;
+      await downloadPDF(
+        {
+          title: "Carte des Projets",
+          documentDate: new Date(),
+          documentRef: `MAP-${new Date().toISOString().split('T')[0]}`,
+          orientation: 'landscape',
+          auditModule: "projets",
+          auditResourceType: "export",
+        },
+        `carte-projets-${new Date().toISOString().split('T')[0]}.pdf`,
+        (ctx) => {
+          // Add map image
+          const pdfWidth = ctx.contentWidth;
+          const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+          ctx.doc.addImage(imgData, 'PNG', ctx.margin, ctx.yPos, pdfWidth, Math.min(pdfHeight, 100));
+          ctx.yPos += Math.min(pdfHeight, 100) + 10;
+          
+          // Add projects table
+          addSectionHeader(ctx, "Liste des projets");
+          
+          const headers = ['#', 'Code', 'Nom', 'Statut', 'Budget'];
+          const rows = projects.slice(0, 50).map((p, i) => [
+            String(i + 1),
+            p.code,
+            p.name.substring(0, 25),
+            projectStatusConfig[p.status]?.label || p.status,
+            formatCurrency(p.total_budget)
+          ]);
+          
+          addTable(ctx, headers, rows, [10, 25, 60, 30, 35]);
         }
-        const statusLabel = projectStatusConfig[p.status]?.label || p.status;
-        pdf.text(`${i + 1}. ${p.code} - ${p.name} (${statusLabel})`, 14, y);
-        y += 7;
-      });
-      
-      pdf.save(`carte-projets-${new Date().toISOString().split('T')[0]}.pdf`);
-      toast.success('PDF exporté');
+      );
     } catch (err) {
       toast.error('Erreur lors de l\'export');
     }
-  }, [projects]);
+  }, [projects, downloadPDF]);
 
   // Export Excel
   const handleExportExcel = useCallback(() => {

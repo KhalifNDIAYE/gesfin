@@ -42,9 +42,10 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { toast } from "sonner";
-import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import * as XLSX from "xlsx";
+import { usePDFGeneration } from "@/hooks/usePDFGeneration";
+import { addTable, addSectionHeader, addKeyValueRow, checkPageBreak } from "@/utils/pdfTemplate";
 
 const COLORS = ['#3b82f6', '#22c55e', '#a855f7', '#f97316', '#ef4444', '#06b6d4', '#eab308', '#ec4899'];
 
@@ -146,6 +147,8 @@ export default function SyntheseAnalytiquePage() {
     return null;
   };
 
+  const { downloadPDF } = usePDFGeneration();
+
   // Export to PDF
   const exportToPDF = async () => {
     if (!contentRef.current) return;
@@ -162,64 +165,40 @@ export default function SyntheseAnalytiquePage() {
       });
       
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-      });
       
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 10;
-      
-      // Add title
-      pdf.setFontSize(16);
-      pdf.text(`Synthèse Analytique - ${selectedFiscalYearName}`, pdfWidth / 2, 15, { align: 'center' });
-      pdf.setFontSize(10);
-      pdf.text(`Généré le ${new Date().toLocaleDateString('fr-FR')}`, pdfWidth / 2, 22, { align: 'center' });
-      
-      // Calculate if we need multiple pages
-      const scaledImgHeight = imgHeight * ratio;
-      const maxHeight = pdfHeight - 30;
-      
-      if (scaledImgHeight <= maxHeight) {
-        pdf.addImage(imgData, 'PNG', imgX, 25, imgWidth * ratio, scaledImgHeight);
-      } else {
-        // Split into multiple pages
-        let remainingHeight = imgHeight;
-        let sourceY = 0;
-        let page = 0;
-        
-        while (remainingHeight > 0) {
-          const sliceHeight = Math.min(remainingHeight, (maxHeight / ratio));
+      await downloadPDF(
+        {
+          title: `Synthèse Analytique - ${selectedFiscalYearName}`,
+          documentDate: new Date(),
+          documentRef: `SYN-${selectedFiscalYearName}`,
+          auditModule: "comptabilite",
+          auditResourceType: "export",
+        },
+        `synthese-analytique-${selectedFiscalYearName}.pdf`,
+        (ctx) => {
+          // Add summary section
+          addSectionHeader(ctx, "Récapitulatif");
+          addKeyValueRow(ctx, "Total", `${(summary?.total || 0).toLocaleString('fr-FR')} FCFA`);
+          addKeyValueRow(ctx, "Par Activité", `${(summary?.by_activity || 0).toLocaleString('fr-FR')} FCFA`);
+          addKeyValueRow(ctx, "Par Composante", `${(summary?.by_component || 0).toLocaleString('fr-FR')} FCFA`);
+          addKeyValueRow(ctx, "Par Zone Géographique", `${(summary?.by_geographic || 0).toLocaleString('fr-FR')} FCFA`);
+          addKeyValueRow(ctx, "Par Centre de Coûts", `${(summary?.by_cost_center || 0).toLocaleString('fr-FR')} FCFA`);
           
-          if (page > 0) {
-            pdf.addPage();
+          ctx.yPos += 10;
+          
+          // Add chart as image if space permits
+          const pdfWidth = ctx.contentWidth;
+          const maxImgHeight = ctx.pageHeight - ctx.yPos - 40;
+          const imgRatio = canvas.width / canvas.height;
+          const imgWidth = Math.min(pdfWidth, maxImgHeight * imgRatio);
+          const imgHeight = imgWidth / imgRatio;
+          
+          if (imgHeight > 0 && imgHeight < maxImgHeight) {
+            ctx.doc.addImage(imgData, 'PNG', ctx.margin, ctx.yPos, imgWidth, imgHeight);
+            ctx.yPos += imgHeight + 10;
           }
-          
-          const tempCanvas = document.createElement('canvas');
-          tempCanvas.width = imgWidth;
-          tempCanvas.height = sliceHeight;
-          const tempCtx = tempCanvas.getContext('2d');
-          
-          if (tempCtx) {
-            tempCtx.drawImage(canvas, 0, sourceY, imgWidth, sliceHeight, 0, 0, imgWidth, sliceHeight);
-            const sliceData = tempCanvas.toDataURL('image/png');
-            pdf.addImage(sliceData, 'PNG', imgX, page === 0 ? 25 : 10, imgWidth * ratio, sliceHeight * ratio);
-          }
-          
-          sourceY += sliceHeight;
-          remainingHeight -= sliceHeight;
-          page++;
         }
-      }
-      
-      pdf.save(`synthese-analytique-${selectedFiscalYearName}.pdf`);
-      toast.success("PDF exporté avec succès");
+      );
     } catch {
       toast.error("Erreur lors de l'export PDF");
     } finally {
