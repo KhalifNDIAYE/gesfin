@@ -64,7 +64,8 @@ import { CreateUserDialog } from "@/components/users/CreateUserDialog";
 import { PermissionsMatrix } from "@/components/roles/PermissionsMatrix";
 import { toast } from "sonner";
 import * as XLSX from "xlsx";
-import jsPDF from "jspdf";
+import { usePDFGeneration } from "@/hooks/usePDFGeneration";
+import { addTable, addSectionHeader } from "@/utils/pdfTemplate";
 
 const roleColors: Record<string, string> = {
   admin: "bg-destructive/10 text-destructive",
@@ -202,66 +203,42 @@ const Utilisateurs = () => {
     toast.success("Export Excel généré");
   };
 
-  const exportToPDF = () => {
-    const doc = new jsPDF();
-    
-    // Title
-    doc.setFontSize(18);
-    doc.text("Liste des Utilisateurs", 14, 22);
-    doc.setFontSize(10);
-    doc.text(`Généré le ${format(new Date(), 'dd/MM/yyyy à HH:mm', { locale: fr })}`, 14, 30);
+  const { downloadPDF } = usePDFGeneration();
 
-    // Table headers
-    const headers = ["Nom", "Email", "Rôles", "Statut", "Connexion", "Création"];
-    const colWidths = [35, 50, 30, 22, 25, 25];
-    let y = 45;
-
-    doc.setFillColor(240, 240, 240);
-    doc.rect(14, y - 6, 182, 8, 'F');
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    
-    let x = 14;
-    headers.forEach((header, i) => {
-      doc.text(header, x, y);
-      x += colWidths[i];
-    });
-
-    // Table rows
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
-    y += 8;
-
-    filteredUsers.forEach((user) => {
-      if (y > 280) {
-        doc.addPage();
-        y = 20;
+  const exportToPDF = async () => {
+    await downloadPDF(
+      {
+        title: "Liste des Utilisateurs",
+        documentDate: new Date(),
+        documentRef: `USERS-${format(new Date(), 'yyyyMMdd')}`,
+        auditModule: "utilisateurs",
+        auditResourceType: "export",
+      },
+      `utilisateurs_${format(new Date(), 'yyyy-MM-dd')}.pdf`,
+      (ctx) => {
+        addSectionHeader(ctx, "Utilisateurs");
+        
+        const headers = ["Nom", "Email", "Rôles", "Statut", "Connexion", "Création"];
+        const rows = filteredUsers.map((user) => {
+          const isLocked = user.locked_until && new Date(user.locked_until) > new Date();
+          const status = isLocked ? "Verrouillé" : user.is_active ? "Actif" : "Inactif";
+          const lastLogin = user.last_login_at 
+            ? format(new Date(user.last_login_at), 'dd/MM/yy', { locale: fr })
+            : 'Jamais';
+          
+          return [
+            (user.full_name || 'Sans nom').substring(0, 20),
+            user.email.substring(0, 28),
+            user.roles.map(r => r.name).join(', ').substring(0, 15) || '-',
+            status,
+            lastLogin,
+            format(new Date(user.created_at), 'dd/MM/yy', { locale: fr })
+          ];
+        });
+        
+        addTable(ctx, headers, rows, [35, 50, 30, 22, 25, 25]);
       }
-
-      const isLocked = user.locked_until && new Date(user.locked_until) > new Date();
-      const status = isLocked ? "Verrouillé" : user.is_active ? "Actif" : "Inactif";
-      const lastLogin = user.last_login_at 
-        ? format(new Date(user.last_login_at), 'dd/MM/yy', { locale: fr })
-        : 'Jamais';
-
-      x = 14;
-      doc.text((user.full_name || 'Sans nom').substring(0, 20), x, y);
-      x += colWidths[0];
-      doc.text(user.email.substring(0, 28), x, y);
-      x += colWidths[1];
-      doc.text(user.roles.map(r => r.name).join(', ').substring(0, 15) || '-', x, y);
-      x += colWidths[2];
-      doc.text(status, x, y);
-      x += colWidths[3];
-      doc.text(lastLogin, x, y);
-      x += colWidths[4];
-      doc.text(format(new Date(user.created_at), 'dd/MM/yy', { locale: fr }), x, y);
-
-      y += 6;
-    });
-
-    doc.save(`utilisateurs_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
-    toast.success("Export PDF généré");
+    );
   };
 
   return (
