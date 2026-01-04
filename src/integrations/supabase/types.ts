@@ -3858,6 +3858,90 @@ export type Database = {
           },
         ]
       }
+      document_signatures: {
+        Row: {
+          consent_text: string | null
+          created_at: string | null
+          created_by: string | null
+          document_hash: string
+          document_id: string
+          document_ref: string | null
+          document_type: string
+          id: string
+          ip_address: unknown
+          is_required: boolean | null
+          legal_consent: boolean | null
+          rejected_at: string | null
+          rejection_reason: string | null
+          signature_image_url: string | null
+          signature_order: number | null
+          signature_status:
+            | Database["public"]["Enums"]["signature_status"]
+            | null
+          signed_at: string | null
+          signer_email: string | null
+          signer_name: string
+          signer_role: string
+          updated_at: string | null
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          consent_text?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          document_hash: string
+          document_id: string
+          document_ref?: string | null
+          document_type: string
+          id?: string
+          ip_address?: unknown
+          is_required?: boolean | null
+          legal_consent?: boolean | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          signature_image_url?: string | null
+          signature_order?: number | null
+          signature_status?:
+            | Database["public"]["Enums"]["signature_status"]
+            | null
+          signed_at?: string | null
+          signer_email?: string | null
+          signer_name: string
+          signer_role: string
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          consent_text?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          document_hash?: string
+          document_id?: string
+          document_ref?: string | null
+          document_type?: string
+          id?: string
+          ip_address?: unknown
+          is_required?: boolean | null
+          legal_consent?: boolean | null
+          rejected_at?: string | null
+          rejection_reason?: string | null
+          signature_image_url?: string | null
+          signature_order?: number | null
+          signature_status?:
+            | Database["public"]["Enums"]["signature_status"]
+            | null
+          signed_at?: string | null
+          signer_email?: string | null
+          signer_name?: string
+          signer_role?: string
+          updated_at?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       documents: {
         Row: {
           category: Database["public"]["Enums"]["document_category"]
@@ -7153,6 +7237,42 @@ export type Database = {
           },
         ]
       }
+      signature_workflows: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          document_type: string
+          id: string
+          is_active: boolean | null
+          name: string
+          required_roles: string[]
+          signature_order_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          document_type: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          required_roles: string[]
+          signature_order_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          document_type?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          required_roles?: string[]
+          signature_order_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       sites: {
         Row: {
           address: string | null
@@ -7928,6 +8048,7 @@ export type Database = {
         | "acces"
         | "sauvegarde"
         | "conservation_donnees"
+      signature_status: "pending" | "signed" | "rejected" | "cancelled"
       third_party_type:
         | "fournisseur"
         | "client"
@@ -8196,6 +8317,7 @@ export const Constants = {
         "sauvegarde",
         "conservation_donnees",
       ],
+      signature_status: ["pending", "signed", "rejected", "cancelled"],
       third_party_type: [
         "fournisseur",
         "client",

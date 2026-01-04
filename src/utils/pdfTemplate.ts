@@ -400,7 +400,18 @@ export function addNotesSection(ctx: PDFTemplateContext, notes: string): void {
 }
 
 /**
- * Add signature blocks
+ * Electronic signature data interface
+ */
+export interface PDFSignatureData {
+  signerName: string;
+  signerRole: string;
+  signedAt: string;
+  status: 'signed' | 'pending' | 'rejected';
+  signatureId?: string;
+}
+
+/**
+ * Add signature blocks (simple version for manual signatures)
  */
 export function addSignatureBlocks(
   ctx: PDFTemplateContext,
@@ -425,6 +436,91 @@ export function addSignatureBlocks(
     ctx.doc.line(x, ctx.yPos + 15, x + sigBoxWidth - 5, ctx.yPos + 15);
     ctx.doc.text("Date: _______________", x + 5, ctx.yPos + 22);
   });
+}
+
+/**
+ * Add electronic signatures section with verified signature data
+ */
+export function addElectronicSignatures(
+  ctx: PDFTemplateContext,
+  signatures: PDFSignatureData[],
+  documentHash?: string
+): void {
+  if (signatures.length === 0) return;
+  
+  checkPageBreak(ctx, 60 + signatures.length * 25);
+  
+  // Section header
+  ctx.doc.setDrawColor(100, 100, 100);
+  ctx.doc.setLineWidth(0.5);
+  ctx.doc.line(ctx.margin, ctx.yPos, ctx.pageWidth - ctx.margin, ctx.yPos);
+  ctx.yPos += 8;
+  
+  ctx.doc.setFontSize(11);
+  ctx.doc.setFont("helvetica", "bold");
+  ctx.doc.setTextColor(60, 60, 60);
+  ctx.doc.text("SIGNATURES ÉLECTRONIQUES", ctx.margin, ctx.yPos);
+  ctx.yPos += 8;
+  
+  // Signature entries
+  ctx.doc.setFontSize(9);
+  ctx.doc.setFont("helvetica", "normal");
+  
+  signatures.forEach((sig, index) => {
+    const isLast = index === signatures.length - 1;
+    
+    // Status indicator
+    if (sig.status === 'signed') {
+      ctx.doc.setTextColor(34, 139, 34); // Green
+      ctx.doc.text("✓", ctx.margin, ctx.yPos);
+    } else if (sig.status === 'rejected') {
+      ctx.doc.setTextColor(220, 20, 60); // Red
+      ctx.doc.text("✗", ctx.margin, ctx.yPos);
+    } else {
+      ctx.doc.setTextColor(255, 165, 0); // Orange
+      ctx.doc.text("○", ctx.margin, ctx.yPos);
+    }
+    
+    ctx.doc.setTextColor(60, 60, 60);
+    
+    // Signer info
+    const signerText = `${sig.signerName} (${sig.signerRole})`;
+    ctx.doc.setFont("helvetica", "bold");
+    ctx.doc.text(signerText, ctx.margin + 8, ctx.yPos);
+    
+    // Date
+    ctx.doc.setFont("helvetica", "normal");
+    if (sig.status === 'signed' && sig.signedAt) {
+      const dateStr = `Signé le ${sig.signedAt}`;
+      ctx.doc.text(dateStr, ctx.margin + 8, ctx.yPos + 5);
+    } else if (sig.status === 'rejected') {
+      ctx.doc.text("Signature refusée", ctx.margin + 8, ctx.yPos + 5);
+    } else {
+      ctx.doc.text("En attente de signature", ctx.margin + 8, ctx.yPos + 5);
+    }
+    
+    // Signature ID on the right
+    if (sig.signatureId) {
+      ctx.doc.setFontSize(7);
+      ctx.doc.setTextColor(128, 128, 128);
+      ctx.doc.text(`ID: ${sig.signatureId.slice(0, 8)}...`, ctx.pageWidth - ctx.margin, ctx.yPos, { align: "right" });
+      ctx.doc.setFontSize(9);
+      ctx.doc.setTextColor(60, 60, 60);
+    }
+    
+    ctx.yPos += isLast ? 12 : 15;
+  });
+  
+  // Document hash (integrity proof)
+  if (documentHash) {
+    ctx.doc.setFontSize(7);
+    ctx.doc.setTextColor(128, 128, 128);
+    ctx.doc.text(`Empreinte du document: ${documentHash.slice(0, 32)}...`, ctx.margin, ctx.yPos);
+    ctx.yPos += 4;
+    ctx.doc.text("Ce document a été signé électroniquement. Toute modification invalide les signatures.", ctx.margin, ctx.yPos);
+  }
+  
+  ctx.yPos += 8;
 }
 
 /**
