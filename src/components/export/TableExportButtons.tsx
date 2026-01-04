@@ -2,8 +2,15 @@ import { Button } from "@/components/ui/button";
 import { Download, FileSpreadsheet, FileText, Printer } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
+import { 
+  createPDFDocument, 
+  finalizePDF, 
+  savePDF, 
+  addTable, 
+  checkPageBreak,
+  PDFOrganizationInfo 
+} from "@/utils/pdfTemplate";
 
 export interface ExportColumn {
   key: string;
@@ -17,6 +24,7 @@ interface TableExportButtonsProps {
   filename: string;
   title?: string;
   subtitle?: string;
+  organization?: PDFOrganizationInfo | null;
 }
 
 // HTML escape function to prevent XSS attacks
@@ -98,132 +106,47 @@ export const exportToExcel = (
   }
 };
 
-export const exportToPDF = (
+export const exportToPDF = async (
   data: any[],
   columns: ExportColumn[],
   filename: string,
   title?: string,
-  subtitle?: string
+  subtitle?: string,
+  organization?: PDFOrganizationInfo | null
 ) => {
   try {
-    const doc = new jsPDF({ orientation: "landscape" });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 15;
-    let yPos = margin;
-
-    // Header with logo placeholder
-    doc.setFillColor(41, 65, 114);
-    doc.rect(0, 0, pageWidth, 30, "F");
-
-    // Logo placeholder (left side)
-    doc.setFillColor(255, 255, 255);
-    doc.roundedRect(margin, 5, 20, 20, 2, 2, "F");
-    doc.setFontSize(8);
-    doc.setTextColor(41, 65, 114);
-    doc.text("LOGO", margin + 10, 17, { align: "center" });
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(16);
-    doc.setFont("helvetica", "bold");
-    doc.text(title || filename, margin + 28, 14);
-
-    if (subtitle) {
-      doc.setFontSize(10);
-      doc.setFont("helvetica", "normal");
-      doc.text(subtitle, margin + 28, 22);
-    }
-
-    doc.setFontSize(9);
-    doc.text(
-      `Exporté le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR")}`,
-      pageWidth - margin,
-      14,
-      { align: "right" }
+    // Create PDF with organization branding using the centralized template
+    const ctx = await createPDFDocument(
+      {
+        title: title || filename,
+        subtitle: subtitle,
+        documentDate: new Date(),
+        orientation: 'landscape',
+      },
+      organization || null
     );
 
-    yPos = 40;
-    doc.setTextColor(0, 0, 0);
-
-    // Calculate column widths
-    const contentWidth = pageWidth - 2 * margin;
-    const colCount = columns.length;
-    const colWidth = contentWidth / colCount;
-
-    // Table header
-    doc.setFillColor(220, 220, 220);
-    doc.rect(margin, yPos, contentWidth, 8, "F");
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "bold");
-
-    columns.forEach((col, i) => {
-      const x = margin + i * colWidth + 2;
-      const truncatedLabel =
-        col.label.length > 15 ? col.label.substring(0, 13) + ".." : col.label;
-      doc.text(truncatedLabel, x, yPos + 6);
-    });
-
-    yPos += 10;
-
-    // Table rows
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(7);
-
-    data.forEach((row, rowIndex) => {
-      // Check for page break
-      if (yPos > pageHeight - 25) {
-        doc.addPage();
-        yPos = margin;
-
-        // Repeat header
-        doc.setFillColor(220, 220, 220);
-        doc.rect(margin, yPos, contentWidth, 8, "F");
-        doc.setFontSize(8);
-        doc.setFont("helvetica", "bold");
-        columns.forEach((col, i) => {
-          const x = margin + i * colWidth + 2;
-          const truncatedLabel =
-            col.label.length > 15 ? col.label.substring(0, 13) + ".." : col.label;
-          doc.text(truncatedLabel, x, yPos + 6);
-        });
-        yPos += 10;
-        doc.setFont("helvetica", "normal");
-        doc.setFontSize(7);
-      }
-
-      // Alternate row colors
-      if (rowIndex % 2 === 0) {
-        doc.setFillColor(250, 250, 250);
-        doc.rect(margin, yPos, contentWidth, 7, "F");
-      }
-
-      columns.forEach((col, i) => {
-        const x = margin + i * colWidth + 2;
+    // Prepare table data
+    const headers = columns.map(col => col.label);
+    const rows = data.map(row => 
+      columns.map(col => {
         const value = getNestedValue(row, col.key);
-        const formattedValue = formatValue(value, col, row);
-        const truncatedValue =
-          formattedValue.length > 20
-            ? formattedValue.substring(0, 18) + ".."
-            : formattedValue;
-        doc.text(truncatedValue, x, yPos + 5);
-      });
+        return formatValue(value, col, row);
+      })
+    );
 
-      yPos += 7;
+    // Calculate column widths based on content
+    const contentWidth = ctx.contentWidth;
+    const numCols = columns.length;
+    const colWidths = Array(numCols).fill(contentWidth / numCols);
+
+    // Add table
+    addTable(ctx, headers, rows, colWidths);
+
+    // Finalize with footer and page numbers
+    finalizePDF(ctx, {
+      title: title || filename,
     });
-
-    // Footer on all pages
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-      doc.setPage(i);
-      doc.setFontSize(8);
-      doc.setTextColor(128, 128, 128);
-      doc.text(
-        `${new Date().toLocaleDateString("fr-FR")} - Page ${i} sur ${pageCount}`,
-        pageWidth / 2,
-        pageHeight - 10,
-        { align: "center" }
-      );
-    }
 
     // Generate filename with date
     const today = new Date().toISOString().split('T')[0];
@@ -231,7 +154,7 @@ export const exportToPDF = (
       ? filename 
       : `${filename.toUpperCase()}-${today}`;
 
-    doc.save(`${finalFilename}.pdf`);
+    savePDF(ctx, finalFilename);
     toast.success("Export PDF réussi");
   } catch (error) {
     console.error("Erreur export PDF:", error);
@@ -243,7 +166,8 @@ export const printTable = (
   data: any[],
   columns: ExportColumn[],
   title?: string,
-  subtitle?: string
+  subtitle?: string,
+  organization?: PDFOrganizationInfo | null
 ) => {
   try {
     const printWindow = window.open("", "_blank");
@@ -255,6 +179,10 @@ export const printTable = (
     // Sanitize all user-controlled data to prevent XSS
     const safeTitle = escapeHtml(title || "Export");
     const safeSubtitle = subtitle ? escapeHtml(subtitle) : "";
+    const safeOrgName = organization?.name ? escapeHtml(organization.name) : "";
+    const safeOrgAddress = organization?.address ? escapeHtml(organization.address) : "";
+    const safeOrgPhone = organization?.phone ? escapeHtml(organization.phone) : "";
+    const safeOrgEmail = organization?.email ? escapeHtml(organization.email) : "";
 
     const tableRows = data
       .map(
@@ -289,14 +217,22 @@ export const printTable = (
             color: white;
             padding: 15px 20px;
             margin: -20px -20px 20px -20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
           }
-          .header h1 {
+          .header-left h1 {
             margin: 0;
             font-size: 18px;
           }
-          .header p {
+          .header-left p {
             margin: 5px 0 0;
             font-size: 12px;
+            opacity: 0.9;
+          }
+          .header-right {
+            text-align: right;
+            font-size: 10px;
             opacity: 0.9;
           }
           .meta {
@@ -336,8 +272,18 @@ export const printTable = (
       </head>
       <body>
         <div class="header">
-          <h1>${safeTitle}</h1>
-          ${safeSubtitle ? `<p>${safeSubtitle}</p>` : ""}
+          <div class="header-left">
+            <h1>${safeTitle}</h1>
+            ${safeSubtitle ? `<p>${safeSubtitle}</p>` : ""}
+          </div>
+          ${organization ? `
+          <div class="header-right">
+            <strong>${safeOrgName}</strong><br/>
+            ${safeOrgAddress ? `${safeOrgAddress}<br/>` : ""}
+            ${safeOrgPhone ? `Tél: ${safeOrgPhone}<br/>` : ""}
+            ${safeOrgEmail ? `${safeOrgEmail}` : ""}
+          </div>
+          ` : ""}
         </div>
         <div class="meta">
           Imprimé le ${new Date().toLocaleDateString("fr-FR")} à ${new Date().toLocaleTimeString("fr-FR")} | ${data.length} enregistrement(s)
@@ -379,6 +325,7 @@ export const TableExportButtons = ({
   filename,
   title,
   subtitle,
+  organization,
 }: TableExportButtonsProps) => {
   return (
     <DropdownMenu>
@@ -396,13 +343,13 @@ export const TableExportButtons = ({
           Export Excel
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => exportToPDF(data, columns, filename, title, subtitle)}
+          onClick={() => exportToPDF(data, columns, filename, title, subtitle, organization)}
         >
           <FileText className="mr-2 h-4 w-4 text-destructive" />
           Export PDF
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => printTable(data, columns, title, subtitle)}
+          onClick={() => printTable(data, columns, title, subtitle, organization)}
         >
           <Printer className="mr-2 h-4 w-4" />
           Imprimer

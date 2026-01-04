@@ -16,6 +16,7 @@ import { FinancialReportDialog } from "@/components/conventions/FinancialReportD
 import { ConventionDocumentsSection } from "@/components/conventions/ConventionDocumentsSection";
 import { useExpenseCategories } from "@/hooks/useExpenseCategories";
 import { generateDetailedReportPDF } from "@/utils/reportGenerator";
+import { useOrganizationSettings } from "@/hooks/useParametrage";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -50,6 +51,7 @@ export default function ConventionDetailPage() {
   const { data: financialReports } = useFinancialReports(id);
   
   const { data: expenseCategories = [] } = useExpenseCategories();
+  const { data: orgSettings } = useOrganizationSettings();
   const { canUpdate, canDelete, canExport, canCreate } = useModulePermissions('conventions');
   
   const deleteReplenishment = useDeleteReplenishment();
@@ -80,11 +82,25 @@ export default function ConventionDetailPage() {
         return;
       }
 
-      generateDetailedReportPDF(
+      // Pass organization settings for branding
+      const organizationInfo = orgSettings ? {
+        name: orgSettings.name,
+        acronym: orgSettings.acronym,
+        address: orgSettings.address,
+        city: orgSettings.city,
+        phone: orgSettings.phone,
+        email: orgSettings.email,
+        website: orgSettings.website,
+        tax_id: orgSettings.tax_id,
+        logo_url: orgSettings.logo_url,
+      } : null;
+
+      await generateDetailedReportPDF(
         report,
         convention!,
         reportLines || [],
-        expenseCategories
+        expenseCategories,
+        organizationInfo
       );
       
       toast.success('Rapport PDF généré avec succès');
