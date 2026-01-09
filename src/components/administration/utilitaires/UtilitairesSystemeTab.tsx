@@ -10,6 +10,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { PurgeDataDialog } from "./PurgeDataDialog";
 import {
   Shield,
   Activity,
@@ -30,7 +32,8 @@ import {
   FileText,
   Zap,
   Power,
-  Lock
+  Lock,
+  ShieldAlert
 } from "lucide-react";
 
 interface UtilitairesSystemeTabProps {
@@ -68,6 +71,8 @@ const mockMaintenanceTasks = [
 
 export function UtilitairesSystemeTab({ canEdit }: UtilitairesSystemeTabProps) {
   const [activeSubTab, setActiveSubTab] = useState("securite");
+  const [purgeDialogOpen, setPurgeDialogOpen] = useState(false);
+  const { isAdmin } = useAuth();
   
   // Security state
   const [logFilter, setLogFilter] = useState("all");
@@ -791,6 +796,68 @@ export function UtilitairesSystemeTab({ canEdit }: UtilitairesSystemeTabProps) {
                 <Database className="mr-2 h-4 w-4" />
                 Réindexation globale
               </Button>
+
+              {/* Purge button - Only visible for admins */}
+              {isAdmin && (
+                <div className="pt-4 border-t mt-4">
+                  <Button
+                    className="w-full justify-start"
+                    variant="destructive"
+                    onClick={() => setPurgeDialogOpen(true)}
+                disabled={!canEdit}
+                  >
+                    <ShieldAlert className="mr-2 h-4 w-4" />
+                    Purger toutes les données
+                  </Button>
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Action irréversible réservée aux administrateurs
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Tâches planifiées
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Tâche</TableHead>
+                    <TableHead>Prochaine exéc.</TableHead>
+                    <TableHead className="text-right">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {mockMaintenanceTasks.map((task) => (
+                    <TableRow key={task.id}>
+                      <TableCell className="font-medium text-sm">{task.name}</TableCell>
+                      <TableCell className="text-sm">{task.nextRun}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleRunMaintenanceTask(task.name)}
+                          disabled={!canEdit}
+                        >
+                          Exécuter
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Purge Dialog */}
+        <PurgeDataDialog open={purgeDialogOpen} onOpenChange={setPurgeDialogOpen} />
             </CardContent>
           </Card>
 
