@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import {
   Dialog,
   DialogContent,
@@ -109,7 +109,10 @@ export function PurgeDataDialog({ open, onOpenChange }: PurgeDataDialogProps) {
     }
   };
 
-  const handleProceedToConfirmation = () => {
+  const handleProceedToConfirmation = (e: MouseEvent) => {
+    // Prevent Radix AlertDialogAction from auto-closing the dialog.
+    // We want to transition to the next step instead.
+    e.preventDefault();
     setStep("confirmation");
   };
 
@@ -190,7 +193,12 @@ export function PurgeDataDialog({ open, onOpenChange }: PurgeDataDialogProps) {
   };
 
   const renderWarningStep = () => (
-    <AlertDialog open={step === "warning" && open} onOpenChange={handleClose}>
+    <AlertDialog
+      open={step === "warning" && open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen) handleClose();
+      }}
+    >
       <AlertDialogContent className="max-w-2xl">
         <AlertDialogHeader>
           <div className="flex items-center gap-3 text-destructive">
