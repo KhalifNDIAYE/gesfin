@@ -858,47 +858,6 @@ export function UtilitairesSystemeTab({ canEdit }: UtilitairesSystemeTabProps) {
 
         {/* Purge Dialog */}
         <PurgeDataDialog open={purgeDialogOpen} onOpenChange={setPurgeDialogOpen} />
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Clock className="h-5 w-5" />
-                Tâches planifiées
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tâche</TableHead>
-                    <TableHead>Prochaine exéc.</TableHead>
-                    <TableHead className="text-right">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockMaintenanceTasks.map((task) => (
-                    <TableRow key={task.id}>
-                      <TableCell className="font-medium text-sm">{task.name}</TableCell>
-                      <TableCell className="text-sm">{task.nextRun}</TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleRunMaintenanceTask(task.name)}
-                          disabled={!canEdit}
-                        >
-                          Exécuter
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </div>
       </TabsContent>
 
       {/* Paramètres Tab */}
