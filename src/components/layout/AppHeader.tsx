@@ -1,4 +1,5 @@
-import { Search, HelpCircle, LogOut, User, Settings, KeyRound, ChevronDown } from "lucide-react";
+import { useState, useRef } from "react";
+import { Search, HelpCircle, LogOut, User, ChevronDown, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
@@ -14,6 +15,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { useGlobalSearch } from "@/hooks/useGlobalSearch";
+import { GlobalSearchResults } from "@/components/search/GlobalSearchResults";
 
 
 interface AppHeaderProps {
@@ -23,6 +27,9 @@ interface AppHeaderProps {
 
 export function AppHeader({ title, subtitle }: AppHeaderProps) {
   const { user, profile, roles, signOut } = useAuth();
+  const { query, setQuery, results, isLoading, hasResults, clearSearch } = useGlobalSearch();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -57,11 +64,59 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Search */}
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input type="search" placeholder="Rechercher..." className="w-64 pl-9" />
-        </div>
+        {/* Global Search */}
+        <Popover open={searchOpen} onOpenChange={setSearchOpen}>
+          <PopoverTrigger asChild>
+            <div className="relative hidden md:block">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground pointer-events-none z-10" />
+              <Input
+                ref={searchInputRef}
+                type="text"
+                placeholder="Rechercher projets, conventions..."
+                className="w-72 pl-9 pr-8"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  if (e.target.value.length >= 2) {
+                    setSearchOpen(true);
+                  }
+                }}
+                onFocus={() => {
+                  if (query.length >= 2) {
+                    setSearchOpen(true);
+                  }
+                }}
+              />
+              {query.length > 0 && (
+                <button
+                  onClick={() => {
+                    clearSearch();
+                    setSearchOpen(false);
+                  }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+          </PopoverTrigger>
+          <PopoverContent 
+            className="w-[400px] p-0" 
+            align="start" 
+            sideOffset={8}
+            onOpenAutoFocus={(e) => e.preventDefault()}
+          >
+            <GlobalSearchResults
+              results={results}
+              isLoading={isLoading}
+              query={query}
+              onSelect={() => {
+                setSearchOpen(false);
+                clearSearch();
+              }}
+            />
+          </PopoverContent>
+        </Popover>
 
         {/* Notifications Center */}
         <NotificationCenter />
