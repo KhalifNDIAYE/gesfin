@@ -15,20 +15,27 @@ interface UserPermissions {
 }
 
 export const usePermissions = () => {
-  const { user, isAdmin, roles } = useAuth();
+  const { user, isAdmin, roles, isLoading: authLoading } = useAuth();
   const [permissions, setPermissions] = useState<UserPermissions>({});
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchPermissions = async () => {
+      // Wait for auth to finish loading before checking permissions
+      if (authLoading) {
+        return;
+      }
+
       if (!user) {
         setPermissions({});
         setIsLoading(false);
         return;
       }
 
-      // Admin has all permissions
-      if (isAdmin) {
+      // Admin has all permissions - check roles array directly for reliability
+      const userIsAdmin = isAdmin || roles.some(role => role.name === 'admin');
+      
+      if (userIsAdmin) {
         const allPerms = { read: true, create: true, update: true, delete: true, validate: true, export: true };
         const allPermissions: UserPermissions = {
           dashboard: allPerms,
@@ -96,17 +103,20 @@ export const usePermissions = () => {
     };
 
     fetchPermissions();
-  }, [user, isAdmin]);
+  }, [user, isAdmin, roles, authLoading]);
 
   const canAccess = useCallback((module: ModuleName, permission: PermissionType = 'read'): boolean => {
-    if (isAdmin) return true;
+    // Check both isAdmin from context and roles array for reliability
+    const userIsAdmin = isAdmin || roles.some(role => role.name === 'admin');
+    if (userIsAdmin) return true;
     return permissions[module]?.[permission] ?? false;
-  }, [permissions, isAdmin]);
+  }, [permissions, isAdmin, roles]);
 
   const canAccessAny = useCallback((modules: ModuleName[], permission: PermissionType = 'read'): boolean => {
-    if (isAdmin) return true;
+    const userIsAdmin = isAdmin || roles.some(role => role.name === 'admin');
+    if (userIsAdmin) return true;
     return modules.some(module => permissions[module]?.[permission] ?? false);
-  }, [permissions, isAdmin]);
+  }, [permissions, isAdmin, roles]);
 
   return {
     permissions,
