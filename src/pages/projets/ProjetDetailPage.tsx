@@ -1,6 +1,8 @@
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { useProject } from "@/hooks/useProjects";
+import { usePermissions } from "@/hooks/usePermissions";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,7 +20,8 @@ import {
   TrendingUp,
   Loader2,
   FileSignature,
-  BarChart3
+  BarChart3,
+  Pencil
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ProjectConventionsTab } from "@/components/projets/ProjectConventionsTab";
@@ -27,6 +30,7 @@ import { ProjectBudgetsTab } from "@/components/projets/ProjectBudgetsTab";
 import { ProjectHistoryTab } from "@/components/projets/ProjectHistoryTab";
 import { ProjectBailleursTab } from "@/components/projets/ProjectBailleursTab";
 import { ProjectKPIsDashboard } from "@/components/projets/ProjectKPIsDashboard";
+import { ProjectDialog } from "@/components/projets/ProjectDialog";
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: "Brouillon", className: "bg-muted text-muted-foreground" },
@@ -41,6 +45,11 @@ export default function ProjetDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data: project, isLoading } = useProject(id);
+  const { canAccess, isAdmin } = usePermissions();
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+
+  // Check if user can edit the project (Admin or has update permission on projets module)
+  const canEditProject = isAdmin || canAccess("projets", "update");
 
   if (isLoading) {
     return (
@@ -77,15 +86,28 @@ export default function ProjetDetailPage() {
       subtitle={`Code: ${project.code}`}
     >
       <div className="space-y-6">
-        {/* Header with back button and status */}
+        {/* Header with back button, status and edit button */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" onClick={() => navigate("/projets")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Retour
           </Button>
-          <Badge className={cn("text-sm px-3 py-1", status.className)}>
-            {status.label}
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Badge className={cn("text-sm px-3 py-1", status.className)}>
+              {status.label}
+            </Badge>
+            {canEditProject && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setEditDialogOpen(true)}
+                className="gap-2"
+              >
+                <Pencil className="h-4 w-4" />
+                Modifier
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Summary Cards */}
@@ -321,6 +343,13 @@ export default function ProjetDetailPage() {
             <ProjectHistoryTab projectId={id!} />
           </TabsContent>
         </Tabs>
+
+        {/* Edit Project Dialog */}
+        <ProjectDialog 
+          open={editDialogOpen} 
+          onOpenChange={setEditDialogOpen} 
+          project={project} 
+        />
       </div>
     </AppLayout>
   );
