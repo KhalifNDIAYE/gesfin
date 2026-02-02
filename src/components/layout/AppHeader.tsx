@@ -18,7 +18,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { useGlobalSearch } from "@/hooks/useGlobalSearch";
 import { GlobalSearchResults } from "@/components/search/GlobalSearchResults";
-
+import { HelpDrawer } from "@/components/help/HelpDrawer";
 
 interface AppHeaderProps {
   title: string;
@@ -29,6 +29,7 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
   const { user, profile, roles, signOut } = useAuth();
   const { query, setQuery, results, isLoading, hasResults, clearSearch } = useGlobalSearch();
   const [searchOpen, setSearchOpen] = useState(false);
+  const [helpOpen, setHelpOpen] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
@@ -121,10 +122,11 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
         {/* Notifications Center */}
         <NotificationCenter />
 
-        {/* Help */}
-        <Button variant="ghost" size="icon" onClick={() => window.open("https://docs.lovable.dev/", "_blank")}>
+        {/* Help Drawer */}
+        <Button variant="ghost" size="icon" onClick={() => setHelpOpen(true)}>
           <HelpCircle className="h-5 w-5" />
         </Button>
+        <HelpDrawer open={helpOpen} onOpenChange={setHelpOpen} />
 
         {/* User Section - Only visible when logged in */}
         {user && (
