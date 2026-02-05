@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { calculateRemainingAmount } from '@/lib/contractCalculations';
 
 export interface Contract {
   id: string;
@@ -164,9 +165,11 @@ export function useContractStats() {
       const inProgress = contracts.filter(c => c.status === 'in_progress').length;
       const completed = contracts.filter(c => c.status === 'completed').length;
       const disputed = contracts.filter(c => c.status === 'disputed').length;
-      const totalAmount = contracts.reduce((sum, c) => sum + (c.total_amount || 0), 0);
-      const engagedAmount = contracts.reduce((sum, c) => sum + (c.engaged_amount || 0), 0);
-      const paidAmount = contracts.reduce((sum, c) => sum + (c.paid_amount || 0), 0);
+      
+      // Use rounded values for all amounts
+      const totalAmount = contracts.reduce((sum, c) => sum + Math.round(Number(c.total_amount) || 0), 0);
+      const engagedAmount = contracts.reduce((sum, c) => sum + Math.round(Number(c.engaged_amount) || 0), 0);
+      const paidAmount = contracts.reduce((sum, c) => sum + Math.round(Number(c.paid_amount) || 0), 0);
       
       return { total, inProgress, completed, disputed, totalAmount, engagedAmount, paidAmount };
     },
@@ -319,6 +322,29 @@ export function usePaymentMutations() {
         .select()
         .single();
       if (error) throw error;
+      
+      // Update contract paid_amount and remaining_amount
+      if (payment.contract_id && payment.amount) {
+        const { data: contract } = await supabase
+          .from('contracts')
+          .select('total_amount, paid_amount')
+          .eq('id', payment.contract_id)
+          .single();
+        
+        if (contract) {
+          const newPaidAmount = (contract.paid_amount || 0) + Number(payment.amount);
+          const newRemainingAmount = calculateRemainingAmount(contract.total_amount, newPaidAmount);
+          
+          await supabase
+            .from('contracts')
+            .update({
+              paid_amount: Math.round(newPaidAmount),
+              remaining_amount: Math.round(newRemainingAmount),
+            })
+            .eq('id', payment.contract_id);
+        }
+      }
+      
       return data;
     },
     onSuccess: () => {

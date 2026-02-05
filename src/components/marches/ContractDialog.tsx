@@ -24,6 +24,7 @@ import { Lock, AlertTriangle, Ban, CheckCircle, FileText, Calendar, Building2, D
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { differenceInDays } from 'date-fns';
+import { calculateTVAAmount, calculateTotalTTC, formatContractAmount, validateContractAmounts } from '@/lib/contractCalculations';
 
 const contractSchema = z.object({
   code: z.string().optional(),
@@ -155,14 +156,14 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
   const watchedStartDate = useWatch({ control: form.control, name: 'start_date' });
   const watchedEndDate = useWatch({ control: form.control, name: 'end_date' });
 
-  // Calculate TVA and TTC amounts
+  // Calculate TVA and TTC amounts using centralized calculations
   const tvaAmount = useMemo(() => {
-    return (watchedAmountHT || 0) * ((watchedTvaRate || 0) / 100);
+    return calculateTVAAmount(watchedAmountHT || 0, watchedTvaRate || 0);
   }, [watchedAmountHT, watchedTvaRate]);
 
   const totalAmountTTC = useMemo(() => {
-    return (watchedAmountHT || 0) + tvaAmount;
-  }, [watchedAmountHT, tvaAmount]);
+    return calculateTotalTTC(watchedAmountHT || 0, watchedTvaRate || 0);
+  }, [watchedAmountHT, watchedTvaRate]);
 
   // Calculate duration
   const duration = useMemo(() => {
@@ -329,6 +330,22 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
       return;
     }
 
+    // Validate amounts before saving
+    const amountValidation = validateContractAmounts({
+      amountHT: values.amount_ht,
+      tvaRate: values.tva_rate || 0,
+      totalTTC: totalAmountTTC,
+    });
+
+    if (!amountValidation.isValid) {
+      toast({ 
+        title: 'Erreur de validation', 
+        description: amountValidation.errors.join('. '), 
+        variant: 'destructive' 
+      });
+      return;
+    }
+
     try {
       const { code, bailleur_ids, convention_ids, budget_line_id, ...restValues } = values;
       
@@ -355,12 +372,17 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
         }
       }
 
+      // Build contract data with properly calculated amounts
       const contractData = {
         ...restValues,
         budget_line_id: budget_line_id && budget_line_id !== '__none__' ? budget_line_id : null,
-        total_amount: totalAmountTTC,
-        tva_amount: tvaAmount,
+        total_amount: Math.round(totalAmountTTC), // Ensure whole number
+        tva_amount: Math.round(tvaAmount), // Ensure whole number
+        amount_ht: Math.round(values.amount_ht), // Store HT amount
         supplier_name: values.attributaire,
+        remaining_amount: Math.round(totalAmountTTC), // Initially, remaining = total
+        paid_amount: 0,
+        engaged_amount: 0,
         created_by: user?.id,
       };
 
