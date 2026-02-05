@@ -21,6 +21,7 @@ import { PaymentDialog } from '@/components/marches/PaymentDialog';
 import { GuaranteeDialog } from '@/components/marches/GuaranteeDialog';
 import { EngagementDialog } from '@/components/marches/EngagementDialog';
 import { formatCurrency } from '@/lib/utils';
+import { getContractFinancialSummary } from '@/lib/contractCalculations';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
@@ -76,6 +77,9 @@ export default function ContractDetailPage() {
   }
 
   const status = statusConfig[contract.status] || statusConfig.draft;
+  
+  // Use centralized financial calculations for consistency
+  const financials = getContractFinancialSummary(contract);
 
   return (
     <AppLayout title={contract.code} subtitle={contract.object}>
@@ -99,12 +103,12 @@ export default function ContractDetailPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-blue-100">
-                  <DollarSign className="h-5 w-5 text-blue-600" />
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <DollarSign className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Montant total</p>
-                  <p className="font-bold">{formatCurrency(contract.total_amount)} FCFA</p>
+                  <p className="font-bold">{formatCurrency(financials.totalAmount)}</p>
                 </div>
               </div>
             </CardContent>
@@ -112,12 +116,12 @@ export default function ContractDetailPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-green-100">
-                  <FileText className="h-5 w-5 text-green-600" />
+                <div className="p-2 rounded-lg bg-success/10">
+                  <FileText className="h-5 w-5 text-success" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Montant engagé</p>
-                  <p className="font-bold">{formatCurrency(contract.engaged_amount || 0)} FCFA</p>
+                  <p className="font-bold">{formatCurrency(financials.engagedAmount)}</p>
                 </div>
               </div>
             </CardContent>
@@ -125,12 +129,12 @@ export default function ContractDetailPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-purple-100">
-                  <DollarSign className="h-5 w-5 text-purple-600" />
+                <div className="p-2 rounded-lg bg-info/10">
+                  <DollarSign className="h-5 w-5 text-info" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Montant payé</p>
-                  <p className="font-bold">{formatCurrency(contract.paid_amount || 0)} FCFA</p>
+                  <p className="font-bold">{formatCurrency(financials.paidAmount)}</p>
                 </div>
               </div>
             </CardContent>
@@ -138,12 +142,12 @@ export default function ContractDetailPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-orange-100">
-                  <DollarSign className="h-5 w-5 text-orange-600" />
+                <div className="p-2 rounded-lg bg-warning/10">
+                  <DollarSign className="h-5 w-5 text-warning" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Reste à payer</p>
-                  <p className="font-bold">{formatCurrency(contract.remaining_amount || 0)} FCFA</p>
+                  <p className="font-bold">{formatCurrency(financials.remainingAmount)}</p>
                 </div>
               </div>
             </CardContent>
@@ -155,9 +159,9 @@ export default function ContractDetailPage() {
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Avancement global</span>
-              <span className="text-sm font-bold">{contract.progress_percentage || 0}%</span>
+              <span className="text-sm font-bold">{financials.progressPercentage}%</span>
             </div>
-            <Progress value={contract.progress_percentage || 0} className="h-3" />
+            <Progress value={financials.progressPercentage} className="h-3" />
           </CardContent>
         </Card>
 

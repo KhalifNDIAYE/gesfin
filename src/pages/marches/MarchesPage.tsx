@@ -15,6 +15,7 @@ import { useContracts, useContractStats, Contract, useContractMutations } from '
 import { useProjects } from '@/hooks/useProjects';
 import { ContractDialog } from '@/components/marches/ContractDialog';
 import { formatCurrency } from '@/lib/utils';
+import { getContractFinancialSummary } from '@/lib/contractCalculations';
 import { useNavigate } from 'react-router-dom';
 import {
   AlertDialog,
@@ -236,18 +237,22 @@ export default function MarchesPage() {
               </Button>
               <div className="flex gap-2">
                 <TableExportButtons
-                  data={filteredContracts.map(c => ({
-                    ...c,
-                    projectName: projects?.find(p => p.id === c.project_id)?.name || "-",
-                    statusLabel: contractStatusConfig[c.status]?.label || c.status,
-                    paidAmount: c.paid_amount || 0,
-                    remainingAmount: c.remaining_amount || (c.total_amount - (c.paid_amount || 0)),
-                  }))}
+                  data={filteredContracts.map(c => {
+                    const fin = getContractFinancialSummary(c);
+                    return {
+                      ...c,
+                      projectName: projects?.find(p => p.id === c.project_id)?.name || "-",
+                      statusLabel: contractStatusConfig[c.status]?.label || c.status,
+                      totalAmount: fin.totalAmount,
+                      paidAmount: fin.paidAmount,
+                      remainingAmount: fin.remainingAmount,
+                    };
+                  })}
                   columns={[
                     { key: "code", label: "Numéro" },
                     { key: "supplier_name", label: "Fournisseur" },
                     { key: "projectName", label: "Projet" },
-                    { key: "total_amount", label: "Montant", format: (v) => formatCurrency(v) },
+                    { key: "totalAmount", label: "Montant", format: (v) => formatCurrency(v) },
                     { key: "paidAmount", label: "Payé", format: (v) => formatCurrency(v) },
                     { key: "remainingAmount", label: "Reste", format: (v) => formatCurrency(v) },
                     { key: "statusLabel", label: "Statut" },
@@ -294,8 +299,9 @@ export default function MarchesPage() {
                     {filteredContracts.map((contract) => {
                       const statusConfig = contractStatusConfig[contract.status] || contractStatusConfig.draft;
                       const project = projects?.find(p => p.id === contract.project_id);
-                      const paidAmount = contract.paid_amount || 0;
-                      const remainingAmount = contract.remaining_amount || (contract.total_amount - paidAmount);
+                      
+                      // Use centralized financial calculations for consistency
+                      const financials = getContractFinancialSummary(contract);
 
                       return (
                         <TableRow key={contract.id}>
@@ -314,13 +320,13 @@ export default function MarchesPage() {
                             {project?.name || <span className="text-muted-foreground">-</span>}
                           </TableCell>
                           <TableCell className="text-right font-mono font-medium">
-                            {formatCurrency(contract.total_amount)}
+                            {formatCurrency(financials.totalAmount)}
                           </TableCell>
                           <TableCell className="text-right font-mono text-success">
-                            {formatCurrency(paidAmount)}
+                            {formatCurrency(financials.paidAmount)}
                           </TableCell>
                           <TableCell className="text-right font-mono text-warning">
-                            {formatCurrency(remainingAmount)}
+                            {formatCurrency(financials.remainingAmount)}
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className={statusConfig.className}>
