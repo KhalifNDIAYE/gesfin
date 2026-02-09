@@ -188,10 +188,12 @@ export function useContractMutations() {
         .select()
         .single();
       if (error) throw error;
-      return data;
+      return data as Contract;
     },
     onSuccess: () => {
+      // Invalidate list and stats after creation
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts', 'stats'] });
       toast({ title: 'Marché créé avec succès' });
     },
     onError: (error: Error) => {
@@ -208,10 +210,13 @@ export function useContractMutations() {
         .select()
         .single();
       if (error) throw error;
-      return data;
+      return data as Contract;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Invalidate both the list AND the specific contract detail queries
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts', data.id] });
+      queryClient.invalidateQueries({ queryKey: ['contracts', 'stats'] });
       toast({ title: 'Marché mis à jour avec succès' });
     },
     onError: (error: Error) => {
@@ -223,9 +228,13 @@ export function useContractMutations() {
     mutationFn: async (id: string) => {
       const { error } = await supabase.from('contracts').delete().eq('id', id);
       if (error) throw error;
+      return id;
     },
-    onSuccess: () => {
+    onSuccess: (id) => {
+      // Invalidate list, detail, and stats after deletion
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts', id] });
+      queryClient.invalidateQueries({ queryKey: ['contracts', 'stats'] });
       toast({ title: 'Marché supprimé avec succès' });
     },
     onError: (error: Error) => {
