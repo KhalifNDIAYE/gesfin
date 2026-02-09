@@ -2968,6 +2968,9 @@ export type Database = {
       contracts: {
         Row: {
           actual_end_date: string | null
+          additional_fees: number | null
+          advances: number | null
+          after_discount_amount: number | null
           amount_ht: number | null
           attributaire: string | null
           budget_line_id: string | null
@@ -2981,16 +2984,24 @@ export type Database = {
           created_by: string | null
           currency_id: string | null
           description: string | null
+          discount_amount: number | null
+          discount_rate: number | null
           end_date: string | null
           engaged_amount: number | null
           exchange_rate: number | null
+          execution_rate: number | null
+          financial_status: string | null
+          gross_amount: number | null
           id: string
+          net_amount: number | null
           notes: string | null
           object: string
           paid_amount: number | null
           payment_method: string | null
+          penalties: number | null
           progress_percentage: number | null
           project_id: string | null
+          quantity: number | null
           remaining_amount: number | null
           signing_date: string | null
           start_date: string | null
@@ -3001,6 +3012,7 @@ export type Database = {
           total_amount_local: number | null
           tva_amount: number | null
           tva_rate: number | null
+          unit_price: number | null
           updated_at: string | null
           validated_at: string | null
           validated_by: string | null
@@ -3008,6 +3020,9 @@ export type Database = {
         }
         Insert: {
           actual_end_date?: string | null
+          additional_fees?: number | null
+          advances?: number | null
+          after_discount_amount?: number | null
           amount_ht?: number | null
           attributaire?: string | null
           budget_line_id?: string | null
@@ -3021,16 +3036,24 @@ export type Database = {
           created_by?: string | null
           currency_id?: string | null
           description?: string | null
+          discount_amount?: number | null
+          discount_rate?: number | null
           end_date?: string | null
           engaged_amount?: number | null
           exchange_rate?: number | null
+          execution_rate?: number | null
+          financial_status?: string | null
+          gross_amount?: number | null
           id?: string
+          net_amount?: number | null
           notes?: string | null
           object: string
           paid_amount?: number | null
           payment_method?: string | null
+          penalties?: number | null
           progress_percentage?: number | null
           project_id?: string | null
+          quantity?: number | null
           remaining_amount?: number | null
           signing_date?: string | null
           start_date?: string | null
@@ -3041,6 +3064,7 @@ export type Database = {
           total_amount_local?: number | null
           tva_amount?: number | null
           tva_rate?: number | null
+          unit_price?: number | null
           updated_at?: string | null
           validated_at?: string | null
           validated_by?: string | null
@@ -3048,6 +3072,9 @@ export type Database = {
         }
         Update: {
           actual_end_date?: string | null
+          additional_fees?: number | null
+          advances?: number | null
+          after_discount_amount?: number | null
           amount_ht?: number | null
           attributaire?: string | null
           budget_line_id?: string | null
@@ -3061,16 +3088,24 @@ export type Database = {
           created_by?: string | null
           currency_id?: string | null
           description?: string | null
+          discount_amount?: number | null
+          discount_rate?: number | null
           end_date?: string | null
           engaged_amount?: number | null
           exchange_rate?: number | null
+          execution_rate?: number | null
+          financial_status?: string | null
+          gross_amount?: number | null
           id?: string
+          net_amount?: number | null
           notes?: string | null
           object?: string
           paid_amount?: number | null
           payment_method?: string | null
+          penalties?: number | null
           progress_percentage?: number | null
           project_id?: string | null
+          quantity?: number | null
           remaining_amount?: number | null
           signing_date?: string | null
           start_date?: string | null
@@ -3081,6 +3116,7 @@ export type Database = {
           total_amount_local?: number | null
           tva_amount?: number | null
           tva_rate?: number | null
+          unit_price?: number | null
           updated_at?: string | null
           validated_at?: string | null
           validated_by?: string | null

@@ -243,9 +243,9 @@ export default function MarchesPage() {
                       ...c,
                       projectName: projects?.find(p => p.id === c.project_id)?.name || "-",
                       statusLabel: contractStatusConfig[c.status]?.label || c.status,
-                      totalAmount: fin.totalAmount,
+                      totalAmount: fin.calculated.total_amount,
                       paidAmount: fin.paidAmount,
-                      remainingAmount: fin.remainingAmount,
+                      remainingAmount: fin.calculated.remaining_amount,
                     };
                   })}
                   columns={[
@@ -320,13 +320,13 @@ export default function MarchesPage() {
                             {project?.name || <span className="text-muted-foreground">-</span>}
                           </TableCell>
                           <TableCell className="text-right font-mono font-medium">
-                            {formatCurrency(financials.totalAmount)}
+                            {formatCurrency(financials.calculated.total_amount)}
                           </TableCell>
-                          <TableCell className="text-right font-mono text-success">
+                          <TableCell className="text-right font-mono text-green-600">
                             {formatCurrency(financials.paidAmount)}
                           </TableCell>
-                          <TableCell className="text-right font-mono text-warning">
-                            {formatCurrency(financials.remainingAmount)}
+                          <TableCell className="text-right font-mono text-orange-600">
+                            {formatCurrency(financials.calculated.remaining_amount)}
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className={statusConfig.className}>
