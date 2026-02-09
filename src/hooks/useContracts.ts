@@ -1,8 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { calculateRemainingAmount } from '@/lib/contractCalculations';
 
+/**
+ * Contract interface - All calculated fields come from the database trigger
+ * NO calculations should be done in the frontend - SSOT principle
+ */
 export interface Contract {
   id: string;
   code: string;
@@ -14,14 +17,34 @@ export interface Contract {
   project_id: string | null;
   convention_id: string | null;
   budget_line_id: string | null;
+  
+  // Source data (inputs) - trigger calculates from these
+  quantity: number | null;
+  unit_price: number | null;
+  tva_rate: number | null;
+  discount_rate: number | null;
+  additional_fees: number | null;
+  advances: number | null;
+  penalties: number | null;
+  
+  // Calculated values (computed by database trigger)
+  gross_amount: number | null;
+  discount_amount: number | null;
+  after_discount_amount: number | null;
+  tva_amount: number | null;
   total_amount: number;
+  net_amount: number | null;
+  remaining_amount: number | null;
+  execution_rate: number | null;
+  progress_percentage: number | null;
+  financial_status: string | null;
+  
+  // Legacy fields
   total_amount_local: number | null;
   currency_id: string | null;
   exchange_rate: number | null;
   engaged_amount: number | null;
   paid_amount: number | null;
-  remaining_amount: number | null;
-  progress_percentage: number | null;
   signing_date: string | null;
   start_date: string | null;
   end_date: string | null;
@@ -332,33 +355,34 @@ export function usePaymentMutations() {
         .single();
       if (error) throw error;
       
-      // Update contract paid_amount and remaining_amount
+      // Update paid_amount - the database trigger will recalculate remaining_amount
       if (payment.contract_id && payment.amount) {
         const { data: contract } = await supabase
           .from('contracts')
-          .select('total_amount, paid_amount')
+          .select('paid_amount')
           .eq('id', payment.contract_id)
           .single();
         
         if (contract) {
-          const newPaidAmount = (contract.paid_amount || 0) + Number(payment.amount);
-          const newRemainingAmount = calculateRemainingAmount(contract.total_amount, newPaidAmount);
+          const newPaidAmount = Math.round((contract.paid_amount || 0) + Number(payment.amount));
           
+          // Only update paid_amount - trigger handles remaining_amount
           await supabase
             .from('contracts')
-            .update({
-              paid_amount: Math.round(newPaidAmount),
-              remaining_amount: Math.round(newRemainingAmount),
-            })
+            .update({ paid_amount: newPaidAmount })
             .eq('id', payment.contract_id);
         }
       }
       
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['contract_payments'] });
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      if (variables.contract_id) {
+        queryClient.invalidateQueries({ queryKey: ['contracts', variables.contract_id] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['contracts', 'stats'] });
       toast({ title: 'Règlement créé avec succès' });
     },
     onError: (error: Error) => {

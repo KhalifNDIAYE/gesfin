@@ -24,7 +24,7 @@ import { Lock, AlertTriangle, Ban, CheckCircle, FileText, Calendar, Building2, D
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { differenceInDays } from 'date-fns';
-import { calculateTVAAmount, calculateTotalTTC, formatContractAmount, validateContractAmounts } from '@/lib/contractCalculations';
+// SSOT: No calculations in frontend - all values come from database trigger
 
 const contractSchema = z.object({
   code: z.string().optional(),
@@ -45,14 +45,19 @@ const contractSchema = z.object({
   start_date: z.string().optional(),
   end_date: z.string().optional(),
   
-  // Financial data
-  amount_ht: z.coerce.number().min(0, 'Le montant HT doit être positif'),
-  tva_rate: z.coerce.number().min(0).max(100).optional(),
+  // Financial source data (inputs for backend calculation)
+  quantity: z.coerce.number().min(1, 'La quantité doit être au moins 1').default(1),
+  unit_price: z.coerce.number().min(0, 'Le prix unitaire doit être positif'),
+  tva_rate: z.coerce.number().min(0).max(100).default(18),
+  discount_rate: z.coerce.number().min(0).max(100).default(0),
+  additional_fees: z.coerce.number().min(0).default(0),
+  advances: z.coerce.number().min(0).default(0),
+  penalties: z.coerce.number().min(0).default(0),
+  
+  // Legacy fields
   currency_id: z.string().optional(),
   exchange_rate: z.coerce.number().min(0).optional(),
   budget_line_id: z.string().optional(),
-  
-  // Payment
   payment_method: z.string().optional(),
   
   // Notes
@@ -139,8 +144,15 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
       signing_date: '',
       start_date: '',
       end_date: '',
-      amount_ht: 0,
+      // Financial source fields
+      quantity: 1,
+      unit_price: 0,
       tva_rate: 18,
+      discount_rate: 0,
+      additional_fees: 0,
+      advances: 0,
+      penalties: 0,
+      // Legacy
       currency_id: '',
       exchange_rate: 1,
       budget_line_id: '',
@@ -151,19 +163,36 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
 
   const watchedProjectId = useWatch({ control: form.control, name: 'project_id' });
   const watchedBudgetLineId = useWatch({ control: form.control, name: 'budget_line_id' });
-  const watchedAmountHT = useWatch({ control: form.control, name: 'amount_ht' });
-  const watchedTvaRate = useWatch({ control: form.control, name: 'tva_rate' });
   const watchedStartDate = useWatch({ control: form.control, name: 'start_date' });
   const watchedEndDate = useWatch({ control: form.control, name: 'end_date' });
+  
+  // Watch financial source fields for preview calculations (display only)
+  const watchedQuantity = useWatch({ control: form.control, name: 'quantity' }) || 1;
+  const watchedUnitPrice = useWatch({ control: form.control, name: 'unit_price' }) || 0;
+  const watchedTvaRate = useWatch({ control: form.control, name: 'tva_rate' }) || 0;
+  const watchedDiscountRate = useWatch({ control: form.control, name: 'discount_rate' }) || 0;
+  const watchedAdditionalFees = useWatch({ control: form.control, name: 'additional_fees' }) || 0;
+  const watchedAdvances = useWatch({ control: form.control, name: 'advances' }) || 0;
+  const watchedPenalties = useWatch({ control: form.control, name: 'penalties' }) || 0;
 
-  // Calculate TVA and TTC amounts using centralized calculations
-  const tvaAmount = useMemo(() => {
-    return calculateTVAAmount(watchedAmountHT || 0, watchedTvaRate || 0);
-  }, [watchedAmountHT, watchedTvaRate]);
-
-  const totalAmountTTC = useMemo(() => {
-    return calculateTotalTTC(watchedAmountHT || 0, watchedTvaRate || 0);
-  }, [watchedAmountHT, watchedTvaRate]);
+  // Preview calculations (for display only - actual values come from DB trigger)
+  const previewCalculations = useMemo(() => {
+    const grossAmount = Math.round(watchedQuantity * watchedUnitPrice);
+    const discountAmount = Math.round(grossAmount * watchedDiscountRate / 100);
+    const afterDiscountAmount = grossAmount - discountAmount;
+    const tvaAmount = Math.round(afterDiscountAmount * watchedTvaRate / 100);
+    const totalTTC = afterDiscountAmount + tvaAmount + watchedAdditionalFees;
+    const netAmount = totalTTC - watchedAdvances - watchedPenalties;
+    
+    return {
+      grossAmount,
+      discountAmount,
+      afterDiscountAmount,
+      tvaAmount,
+      totalTTC,
+      netAmount,
+    };
+  }, [watchedQuantity, watchedUnitPrice, watchedTvaRate, watchedDiscountRate, watchedAdditionalFees, watchedAdvances, watchedPenalties]);
 
   // Calculate duration
   const duration = useMemo(() => {
@@ -186,13 +215,13 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
     return conventions.filter(conv => selectedBailleurs.includes(conv.bailleur_id));
   }, [conventions, selectedBailleurs]);
 
-  // Budget control validation
+  // Budget control validation - use preview TTC for validation
   const budgetControlResult = useMemo(() => {
-    if (!watchedBudgetLineId || watchedBudgetLineId === '__none__' || !totalAmountTTC) {
+    if (!watchedBudgetLineId || watchedBudgetLineId === '__none__' || !previewCalculations.totalTTC) {
       return null;
     }
-    return validateContractEngagement(watchedBudgetLineId, totalAmountTTC, budgetLines);
-  }, [watchedBudgetLineId, totalAmountTTC, budgetLines]);
+    return validateContractEngagement(watchedBudgetLineId, previewCalculations.totalTTC, budgetLines);
+  }, [watchedBudgetLineId, previewCalculations.totalTTC, budgetLines]);
 
   const isBlocked = budgetControlResult?.isBlocked || (budgetControlResult && !budgetControlResult.isAvailable);
   const isClosedContract = contract?.status === 'completed' || contract?.status === 'terminated';
@@ -245,8 +274,15 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
         signing_date: contract.signing_date || '',
         start_date: contract.start_date || '',
         end_date: contract.end_date || '',
-        amount_ht: (contract as any).amount_ht || contract.total_amount || 0,
-        tva_rate: (contract as any).tva_rate || 18,
+        // Use source data from contract
+        quantity: contract.quantity || 1,
+        unit_price: contract.unit_price || contract.total_amount || 0,
+        tva_rate: contract.tva_rate || 18,
+        discount_rate: contract.discount_rate || 0,
+        additional_fees: contract.additional_fees || 0,
+        advances: contract.advances || 0,
+        penalties: contract.penalties || 0,
+        // Legacy
         currency_id: contract.currency_id || '',
         exchange_rate: contract.exchange_rate || 1,
         budget_line_id: contract.budget_line_id || '',
@@ -269,8 +305,15 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
         signing_date: '',
         start_date: '',
         end_date: '',
-        amount_ht: 0,
+        // Financial source fields
+        quantity: 1,
+        unit_price: 0,
         tva_rate: 18,
+        discount_rate: 0,
+        additional_fees: 0,
+        advances: 0,
+        penalties: 0,
+        // Legacy
         currency_id: '',
         exchange_rate: 1,
         budget_line_id: '',
@@ -330,17 +373,11 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
       return;
     }
 
-    // Validate amounts before saving
-    const amountValidation = validateContractAmounts({
-      amountHT: values.amount_ht,
-      tvaRate: values.tva_rate || 0,
-      totalTTC: totalAmountTTC,
-    });
-
-    if (!amountValidation.isValid) {
+    // Basic validation - amounts are validated by DB trigger
+    if (values.unit_price < 0 || values.quantity < 1) {
       toast({ 
         title: 'Erreur de validation', 
-        description: amountValidation.errors.join('. '), 
+        description: 'Le prix unitaire et la quantité doivent être positifs', 
         variant: 'destructive' 
       });
       return;
@@ -353,7 +390,7 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
       if (budget_line_id && budget_line_id !== '__none__') {
         const { canProceed } = await validateContractWithBudgetControl(
           budget_line_id,
-          totalAmountTTC,
+          previewCalculations.totalTTC,
           budgetLines,
           user?.id,
           values.object
@@ -372,17 +409,19 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
         }
       }
 
-      // Build contract data with properly calculated amounts
+      // Build contract data - only source fields, trigger calculates the rest
       const contractData = {
         ...restValues,
         budget_line_id: budget_line_id && budget_line_id !== '__none__' ? budget_line_id : null,
-        total_amount: Math.round(totalAmountTTC), // Ensure whole number
-        tva_amount: Math.round(tvaAmount), // Ensure whole number
-        amount_ht: Math.round(values.amount_ht), // Store HT amount
         supplier_name: values.attributaire,
-        remaining_amount: Math.round(totalAmountTTC), // Initially, remaining = total
-        paid_amount: 0,
-        engaged_amount: 0,
+        // Source fields for backend calculation (trigger handles all derived values)
+        quantity: values.quantity,
+        unit_price: values.unit_price,
+        tva_rate: values.tva_rate,
+        discount_rate: values.discount_rate,
+        additional_fees: values.additional_fees,
+        advances: values.advances,
+        penalties: values.penalties,
         created_by: user?.id,
       };
 
@@ -706,17 +745,32 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
                   </div>
                 </TabsContent>
 
-                {/* TAB: Financial Data */}
+                {/* TAB: Financial Data - SSOT: Source fields only, trigger calculates */}
                 <TabsContent value="financial" className="space-y-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4">
+                  {/* Source data inputs */}
+                  <div className="grid grid-cols-3 gap-4">
                     <FormField
                       control={form.control}
-                      name="amount_ht"
+                      name="quantity"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Montant HT *</FormLabel>
+                          <FormLabel>Quantité *</FormLabel>
                           <FormControl>
-                            <Input type="number" placeholder="0" {...field} disabled={isClosedContract} />
+                            <Input type="number" min="1" placeholder="1" {...field} disabled={isClosedContract} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="unit_price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Prix unitaire (FCFA) *</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="0" placeholder="0" {...field} disabled={isClosedContract} />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
@@ -738,23 +792,105 @@ export function ContractDialog({ open, onOpenChange, contract }: ContractDialogP
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-3 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="discount_rate"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Remise (%)</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="0" max="100" placeholder="0" {...field} disabled={isClosedContract} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
+                    <FormField
+                      control={form.control}
+                      name="additional_fees"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Frais annexes (FCFA)</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="0" placeholder="0" {...field} disabled={isClosedContract} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    
                     <div className="space-y-2">
-                      <FormLabel>Montant TVA</FormLabel>
+                      <FormLabel>Montant brut</FormLabel>
                       <Input 
-                        value={tvaAmount.toLocaleString('fr-FR')} 
+                        value={previewCalculations.grossAmount.toLocaleString('fr-FR')} 
                         disabled 
                         className="bg-muted font-mono"
                       />
                     </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="advances"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Avances (FCFA)</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="0" placeholder="0" {...field} disabled={isClosedContract} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     
-                    <div className="space-y-2">
-                      <FormLabel>Montant TTC</FormLabel>
-                      <Input 
-                        value={totalAmountTTC.toLocaleString('fr-FR')} 
-                        disabled 
-                        className="bg-muted font-mono font-bold"
-                      />
+                    <FormField
+                      control={form.control}
+                      name="penalties"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Pénalités (FCFA)</FormLabel>
+                          <FormControl>
+                            <Input type="number" min="0" placeholder="0" {...field} disabled={isClosedContract} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+
+                  <Separator />
+
+                  {/* Calculated amounts preview (display only - actual values from DB) */}
+                  <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
+                    <p className="text-sm font-medium text-muted-foreground">Aperçu des montants calculés</p>
+                    <div className="grid grid-cols-3 gap-4 text-sm">
+                      <div>
+                        <span className="text-muted-foreground">Remise:</span>
+                        <p className="font-mono">{previewCalculations.discountAmount.toLocaleString('fr-FR')} FCFA</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Après remise:</span>
+                        <p className="font-mono">{previewCalculations.afterDiscountAmount.toLocaleString('fr-FR')} FCFA</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">TVA:</span>
+                        <p className="font-mono">{previewCalculations.tvaAmount.toLocaleString('fr-FR')} FCFA</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 pt-2 border-t">
+                      <div>
+                        <span className="text-muted-foreground font-medium">Montant TTC:</span>
+                        <p className="font-mono font-bold text-lg">{previewCalculations.totalTTC.toLocaleString('fr-FR')} FCFA</p>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground font-medium">Net à payer:</span>
+                        <p className="font-mono font-bold text-lg">{previewCalculations.netAmount.toLocaleString('fr-FR')} FCFA</p>
+                      </div>
                     </div>
                   </div>
 

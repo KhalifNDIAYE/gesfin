@@ -27,6 +27,7 @@ import { fr } from 'date-fns/locale';
 
 const statusConfig: Record<string, { label: string; className: string }> = {
   draft: { label: 'Brouillon', className: 'bg-gray-100 text-gray-700' },
+  validated: { label: 'Validé', className: 'bg-blue-100 text-blue-700' },
   in_progress: { label: 'En cours', className: 'bg-green-100 text-green-700' },
   completed: { label: 'Terminé', className: 'bg-emerald-100 text-emerald-700' },
   suspended: { label: 'Suspendu', className: 'bg-yellow-100 text-yellow-700' },
@@ -78,7 +79,7 @@ export default function ContractDetailPage() {
 
   const status = statusConfig[contract.status] || statusConfig.draft;
   
-  // Use centralized financial calculations for consistency
+  // SSOT: All financial values come directly from the database
   const financials = getContractFinancialSummary(contract);
 
   return (
@@ -98,7 +99,7 @@ export default function ContractDetailPage() {
           </Button>
         </div>
 
-        {/* Summary Cards */}
+        {/* Summary Cards - SSOT: All values from database */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
@@ -107,8 +108,8 @@ export default function ContractDetailPage() {
                   <DollarSign className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Montant total</p>
-                  <p className="font-bold">{formatCurrency(financials.totalAmount)}</p>
+                  <p className="text-sm text-muted-foreground">Montant TTC</p>
+                  <p className="font-bold">{formatCurrency(financials.calculated.total_amount)}</p>
                 </div>
               </div>
             </CardContent>
@@ -116,12 +117,12 @@ export default function ContractDetailPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-success/10">
-                  <FileText className="h-5 w-5 text-success" />
+                <div className="p-2 rounded-lg bg-blue-500/10">
+                  <FileText className="h-5 w-5 text-blue-500" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Montant engagé</p>
-                  <p className="font-bold">{formatCurrency(financials.engagedAmount)}</p>
+                  <p className="text-sm text-muted-foreground">Net à payer</p>
+                  <p className="font-bold">{formatCurrency(financials.calculated.net_amount)}</p>
                 </div>
               </div>
             </CardContent>
@@ -129,8 +130,8 @@ export default function ContractDetailPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-info/10">
-                  <DollarSign className="h-5 w-5 text-info" />
+                <div className="p-2 rounded-lg bg-green-500/10">
+                  <DollarSign className="h-5 w-5 text-green-500" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Montant payé</p>
@@ -142,26 +143,31 @@ export default function ContractDetailPage() {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-warning/10">
-                  <DollarSign className="h-5 w-5 text-warning" />
+                <div className="p-2 rounded-lg bg-orange-500/10">
+                  <DollarSign className="h-5 w-5 text-orange-500" />
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Reste à payer</p>
-                  <p className="font-bold">{formatCurrency(financials.remainingAmount)}</p>
+                  <p className="font-bold">{formatCurrency(financials.calculated.remaining_amount)}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Progress */}
+        {/* Progress and Financial Status */}
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium">Avancement global</span>
-              <span className="text-sm font-bold">{financials.progressPercentage}%</span>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Taux d'exécution</span>
+                <Badge variant={financials.calculated.financial_status === 'Soldé' ? 'default' : 'outline'}>
+                  {financials.calculated.financial_status}
+                </Badge>
+              </div>
+              <span className="text-sm font-bold">{financials.calculated.execution_rate}%</span>
             </div>
-            <Progress value={financials.progressPercentage} className="h-3" />
+            <Progress value={financials.calculated.progress_percentage} className="h-3" />
           </CardContent>
         </Card>
 
