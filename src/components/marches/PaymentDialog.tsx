@@ -7,10 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { usePaymentMutations } from '@/hooks/useContracts';
+import { usePaymentMutations, ContractPayment } from '@/hooks/useContracts';
+import { useEffect } from 'react';
 
 const paymentSchema = z.object({
-  code: z.string().min(1, 'Le code est requis'),
   amount: z.coerce.number().min(0, 'Le montant doit être positif'),
   payment_date: z.string().min(1, 'La date est requise'),
   payment_method: z.string().min(1, 'La méthode est requise'),
@@ -26,6 +26,7 @@ interface PaymentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contractId: string;
+  payment?: ContractPayment | null;
 }
 
 const paymentMethods = [
@@ -40,13 +41,13 @@ const paymentStatuses = [
   { value: 'cancelled', label: 'Annulé' },
 ];
 
-export function PaymentDialog({ open, onOpenChange, contractId }: PaymentDialogProps) {
-  const { createPayment } = usePaymentMutations();
+export function PaymentDialog({ open, onOpenChange, contractId, payment }: PaymentDialogProps) {
+  const { createPayment, updatePayment } = usePaymentMutations();
+  const isEdit = !!payment;
   
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
-      code: '',
       amount: 0,
       payment_date: new Date().toISOString().split('T')[0],
       payment_method: 'transfer',
@@ -57,12 +58,45 @@ export function PaymentDialog({ open, onOpenChange, contractId }: PaymentDialogP
     },
   });
 
+  useEffect(() => {
+    if (payment) {
+      form.reset({
+        amount: payment.amount,
+        payment_date: payment.payment_date,
+        payment_method: payment.payment_method || 'transfer',
+        bank_reference: payment.bank_reference || '',
+        beneficiary_name: payment.beneficiary_name || '',
+        status: payment.status,
+        description: payment.description || '',
+      });
+    } else {
+      form.reset({
+        amount: 0,
+        payment_date: new Date().toISOString().split('T')[0],
+        payment_method: 'transfer',
+        bank_reference: '',
+        beneficiary_name: '',
+        status: 'pending',
+        description: '',
+      });
+    }
+  }, [payment, form]);
+
   const onSubmit = async (values: PaymentFormValues) => {
     try {
-      await createPayment.mutateAsync({
-        ...values,
-        contract_id: contractId,
-      });
+      if (isEdit) {
+        await updatePayment.mutateAsync({
+          id: payment.id,
+          ...values,
+          contract_id: contractId,
+          oldAmount: payment.amount,
+        });
+      } else {
+        await createPayment.mutateAsync({
+          ...values,
+          contract_id: contractId,
+        });
+      }
       form.reset();
       onOpenChange(false);
     } catch {
@@ -70,28 +104,17 @@ export function PaymentDialog({ open, onOpenChange, contractId }: PaymentDialogP
     }
   };
 
+  const isPending = isEdit ? updatePayment.isPending : createPayment.isPending;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Nouveau règlement</DialogTitle>
+          <DialogTitle>{isEdit ? 'Modifier le règlement' : 'Nouveau règlement'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="REG-001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="amount"
@@ -105,9 +128,6 @@ export function PaymentDialog({ open, onOpenChange, contractId }: PaymentDialogP
                   </FormItem>
                 )}
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="payment_date"
@@ -121,6 +141,9 @@ export function PaymentDialog({ open, onOpenChange, contractId }: PaymentDialogP
                   </FormItem>
                 )}
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="payment_method"
@@ -141,22 +164,6 @@ export function PaymentDialog({ open, onOpenChange, contractId }: PaymentDialogP
                         ))}
                       </SelectContent>
                     </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="bank_reference"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Référence bancaire</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -187,19 +194,34 @@ export function PaymentDialog({ open, onOpenChange, contractId }: PaymentDialogP
               />
             </div>
 
-            <FormField
-              control={form.control}
-              name="beneficiary_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Bénéficiaire</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="bank_reference"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Référence bancaire</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="beneficiary_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Bénéficiaire</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
@@ -219,8 +241,8 @@ export function PaymentDialog({ open, onOpenChange, contractId }: PaymentDialogP
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={createPayment.isPending}>
-                Créer
+              <Button type="submit" disabled={isPending}>
+                {isEdit ? 'Enregistrer' : 'Créer'}
               </Button>
             </div>
           </form>

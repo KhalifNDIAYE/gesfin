@@ -7,13 +7,16 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { 
   ArrowLeft, Edit, FileText, DollarSign, Shield, Calendar,
-  Building2, Plus
+  Building2, Plus, Pencil, Trash2
 } from 'lucide-react';
 import { 
   useContract, useContractDecomptes, useContractPayments, 
-  useContractGuarantees, useContractEngagements 
+  useContractGuarantees, useContractEngagements,
+  useDecompteMutations, usePaymentMutations, useGuaranteeMutations, useEngagementMutations,
+  ContractDecompte, ContractPayment, ContractGuarantee, ContractEngagement
 } from '@/hooks/useContracts';
 import { ContractDialog } from '@/components/marches/ContractDialog';
 import { DecompteDialog } from '@/components/marches/DecompteDialog';
@@ -51,11 +54,23 @@ export default function ContractDetailPage() {
   const { data: guarantees = [] } = useContractGuarantees(id);
   const { data: engagements = [] } = useContractEngagements(id);
 
+  const { deleteDecompte } = useDecompteMutations();
+  const { deletePayment } = usePaymentMutations();
+  const { deleteGuarantee } = useGuaranteeMutations();
+  const { deleteEngagement } = useEngagementMutations();
+
   const [contractDialogOpen, setContractDialogOpen] = useState(false);
   const [decompteDialogOpen, setDecompteDialogOpen] = useState(false);
   const [paymentDialogOpen, setPaymentDialogOpen] = useState(false);
   const [guaranteeDialogOpen, setGuaranteeDialogOpen] = useState(false);
   const [engagementDialogOpen, setEngagementDialogOpen] = useState(false);
+
+  const [editingDecompte, setEditingDecompte] = useState<ContractDecompte | null>(null);
+  const [editingPayment, setEditingPayment] = useState<ContractPayment | null>(null);
+  const [editingGuarantee, setEditingGuarantee] = useState<ContractGuarantee | null>(null);
+  const [editingEngagement, setEditingEngagement] = useState<ContractEngagement | null>(null);
+
+  const [deleteConfirm, setDeleteConfirm] = useState<{ type: string; id: string; label: string; amount?: number } | null>(null);
 
   if (isLoading) {
     return (
@@ -78,9 +93,69 @@ export default function ContractDetailPage() {
   }
 
   const status = statusConfig[contract.status] || statusConfig.draft;
-  
-  // SSOT: All financial values come directly from the database
   const financials = getContractFinancialSummary(contract);
+
+  const handleEdit = (type: string, item: any) => {
+    switch (type) {
+      case 'decompte':
+        setEditingDecompte(item);
+        setDecompteDialogOpen(true);
+        break;
+      case 'payment':
+        setEditingPayment(item);
+        setPaymentDialogOpen(true);
+        break;
+      case 'guarantee':
+        setEditingGuarantee(item);
+        setGuaranteeDialogOpen(true);
+        break;
+      case 'engagement':
+        setEditingEngagement(item);
+        setEngagementDialogOpen(true);
+        break;
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteConfirm) return;
+    const { type, id: itemId, amount } = deleteConfirm;
+    switch (type) {
+      case 'decompte':
+        await deleteDecompte.mutateAsync({ id: itemId, contractId: contract.id });
+        break;
+      case 'payment':
+        await deletePayment.mutateAsync({ id: itemId, contractId: contract.id, amount: amount || 0 });
+        break;
+      case 'guarantee':
+        await deleteGuarantee.mutateAsync({ id: itemId });
+        break;
+      case 'engagement':
+        await deleteEngagement.mutateAsync({ id: itemId, contractId: contract.id });
+        break;
+    }
+    setDeleteConfirm(null);
+  };
+
+  const handleAddNew = (type: string) => {
+    switch (type) {
+      case 'decompte':
+        setEditingDecompte(null);
+        setDecompteDialogOpen(true);
+        break;
+      case 'payment':
+        setEditingPayment(null);
+        setPaymentDialogOpen(true);
+        break;
+      case 'guarantee':
+        setEditingGuarantee(null);
+        setGuaranteeDialogOpen(true);
+        break;
+      case 'engagement':
+        setEditingEngagement(null);
+        setEngagementDialogOpen(true);
+        break;
+    }
+  };
 
   return (
     <AppLayout title={contract.code} subtitle={contract.object}>
@@ -99,7 +174,7 @@ export default function ContractDetailPage() {
           </Button>
         </div>
 
-        {/* Summary Cards - SSOT: All values from database */}
+        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4">
@@ -155,7 +230,7 @@ export default function ContractDetailPage() {
           </Card>
         </div>
 
-        {/* Progress and Financial Status */}
+        {/* Progress */}
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
@@ -231,11 +306,12 @@ export default function ContractDetailPage() {
                 <TabsTrigger value="engagements">Engagements</TabsTrigger>
               </TabsList>
 
+              {/* DECOMPTES */}
               <TabsContent value="decomptes" className="mt-4">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-lg">Décomptes</CardTitle>
-                    <Button size="sm" onClick={() => setDecompteDialogOpen(true)}>
+                    <Button size="sm" onClick={() => handleAddNew('decompte')}>
                       <Plus className="h-4 w-4 mr-1" />
                       Ajouter
                     </Button>
@@ -244,30 +320,41 @@ export default function ContractDetailPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead>Code</TableHead>
                           <TableHead>N°</TableHead>
                           <TableHead>Type</TableHead>
                           <TableHead>Montant</TableHead>
                           <TableHead>Statut</TableHead>
                           <TableHead>Date</TableHead>
+                          <TableHead className="w-[80px]">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {decomptes.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={5} className="text-center text-muted-foreground">
+                            <TableCell colSpan={7} className="text-center text-muted-foreground">
                               Aucun décompte
                             </TableCell>
                           </TableRow>
                         ) : (
                           decomptes.map((d) => (
                             <TableRow key={d.id}>
+                              <TableCell className="font-medium text-xs text-muted-foreground">{d.code}</TableCell>
                               <TableCell className="font-medium">{d.decompte_number}</TableCell>
                               <TableCell>{d.decompte_type}</TableCell>
                               <TableCell>{formatCurrency(d.amount)}</TableCell>
-                              <TableCell>
-                                <Badge variant="outline">{d.status}</Badge>
-                              </TableCell>
+                              <TableCell><Badge variant="outline">{d.status}</Badge></TableCell>
                               <TableCell>{d.submission_date}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-1">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit('decompte', d)}>
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteConfirm({ type: 'decompte', id: d.id, label: d.code })}>
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </TableCell>
                             </TableRow>
                           ))
                         )}
@@ -277,11 +364,12 @@ export default function ContractDetailPage() {
                 </Card>
               </TabsContent>
 
+              {/* PAYMENTS */}
               <TabsContent value="payments" className="mt-4">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-lg">Règlements</CardTitle>
-                    <Button size="sm" onClick={() => setPaymentDialogOpen(true)}>
+                    <Button size="sm" onClick={() => handleAddNew('payment')}>
                       <Plus className="h-4 w-4 mr-1" />
                       Ajouter
                     </Button>
@@ -295,12 +383,13 @@ export default function ContractDetailPage() {
                           <TableHead>Méthode</TableHead>
                           <TableHead>Statut</TableHead>
                           <TableHead>Date</TableHead>
+                          <TableHead className="w-[80px]">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {payments.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={5} className="text-center text-muted-foreground">
+                            <TableCell colSpan={6} className="text-center text-muted-foreground">
                               Aucun règlement
                             </TableCell>
                           </TableRow>
@@ -310,10 +399,18 @@ export default function ContractDetailPage() {
                               <TableCell className="font-medium">{p.code}</TableCell>
                               <TableCell>{formatCurrency(p.amount)}</TableCell>
                               <TableCell>{p.payment_method}</TableCell>
-                              <TableCell>
-                                <Badge variant="outline">{p.status}</Badge>
-                              </TableCell>
+                              <TableCell><Badge variant="outline">{p.status}</Badge></TableCell>
                               <TableCell>{p.payment_date}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-1">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit('payment', p)}>
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteConfirm({ type: 'payment', id: p.id, label: p.code, amount: p.amount })}>
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </TableCell>
                             </TableRow>
                           ))
                         )}
@@ -323,11 +420,12 @@ export default function ContractDetailPage() {
                 </Card>
               </TabsContent>
 
+              {/* GUARANTEES */}
               <TabsContent value="guarantees" className="mt-4">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-lg">Garanties</CardTitle>
-                    <Button size="sm" onClick={() => setGuaranteeDialogOpen(true)}>
+                    <Button size="sm" onClick={() => handleAddNew('guarantee')}>
                       <Plus className="h-4 w-4 mr-1" />
                       Ajouter
                     </Button>
@@ -336,30 +434,41 @@ export default function ContractDetailPage() {
                     <Table>
                       <TableHeader>
                         <TableRow>
+                          <TableHead>Code</TableHead>
                           <TableHead>Type</TableHead>
                           <TableHead>Montant</TableHead>
                           <TableHead>Émetteur</TableHead>
                           <TableHead>Statut</TableHead>
                           <TableHead>Expiration</TableHead>
+                          <TableHead className="w-[80px]">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {guarantees.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={5} className="text-center text-muted-foreground">
+                            <TableCell colSpan={7} className="text-center text-muted-foreground">
                               Aucune garantie
                             </TableCell>
                           </TableRow>
                         ) : (
                           guarantees.map((g) => (
                             <TableRow key={g.id}>
+                              <TableCell className="font-medium text-xs text-muted-foreground">{g.code}</TableCell>
                               <TableCell className="font-medium">{g.guarantee_type}</TableCell>
                               <TableCell>{formatCurrency(g.amount)}</TableCell>
                               <TableCell>{g.issuer_name}</TableCell>
-                              <TableCell>
-                                <Badge variant="outline">{g.status}</Badge>
-                              </TableCell>
+                              <TableCell><Badge variant="outline">{g.status}</Badge></TableCell>
                               <TableCell>{g.expiry_date}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-1">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit('guarantee', g)}>
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteConfirm({ type: 'guarantee', id: g.id, label: g.code })}>
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </TableCell>
                             </TableRow>
                           ))
                         )}
@@ -369,11 +478,12 @@ export default function ContractDetailPage() {
                 </Card>
               </TabsContent>
 
+              {/* ENGAGEMENTS */}
               <TabsContent value="engagements" className="mt-4">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="text-lg">Engagements</CardTitle>
-                    <Button size="sm" onClick={() => setEngagementDialogOpen(true)}>
+                    <Button size="sm" onClick={() => handleAddNew('engagement')}>
                       <Plus className="h-4 w-4 mr-1" />
                       Ajouter
                     </Button>
@@ -387,12 +497,13 @@ export default function ContractDetailPage() {
                           <TableHead>Montant</TableHead>
                           <TableHead>Statut</TableHead>
                           <TableHead>Date</TableHead>
+                          <TableHead className="w-[80px]">Actions</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
                         {engagements.length === 0 ? (
                           <TableRow>
-                            <TableCell colSpan={5} className="text-center text-muted-foreground">
+                            <TableCell colSpan={6} className="text-center text-muted-foreground">
                               Aucun engagement
                             </TableCell>
                           </TableRow>
@@ -402,10 +513,18 @@ export default function ContractDetailPage() {
                               <TableCell className="font-medium">{e.code}</TableCell>
                               <TableCell>{e.engagement_type}</TableCell>
                               <TableCell>{formatCurrency(e.amount)}</TableCell>
-                              <TableCell>
-                                <Badge variant="outline">{e.status}</Badge>
-                              </TableCell>
+                              <TableCell><Badge variant="outline">{e.status}</Badge></TableCell>
                               <TableCell>{e.engagement_date}</TableCell>
+                              <TableCell>
+                                <div className="flex items-center gap-1">
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEdit('engagement', e)}>
+                                    <Pencil className="h-3.5 w-3.5" />
+                                  </Button>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive" onClick={() => setDeleteConfirm({ type: 'engagement', id: e.id, label: e.code })}>
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                </div>
+                              </TableCell>
                             </TableRow>
                           ))
                         )}
@@ -426,24 +545,46 @@ export default function ContractDetailPage() {
         />
         <DecompteDialog 
           open={decompteDialogOpen} 
-          onOpenChange={setDecompteDialogOpen} 
+          onOpenChange={(open) => { setDecompteDialogOpen(open); if (!open) setEditingDecompte(null); }}
           contractId={contract.id}
+          decompte={editingDecompte}
         />
         <PaymentDialog 
           open={paymentDialogOpen} 
-          onOpenChange={setPaymentDialogOpen} 
+          onOpenChange={(open) => { setPaymentDialogOpen(open); if (!open) setEditingPayment(null); }}
           contractId={contract.id}
+          payment={editingPayment}
         />
         <GuaranteeDialog 
           open={guaranteeDialogOpen} 
-          onOpenChange={setGuaranteeDialogOpen} 
+          onOpenChange={(open) => { setGuaranteeDialogOpen(open); if (!open) setEditingGuarantee(null); }}
           contractId={contract.id}
+          guarantee={editingGuarantee}
         />
         <EngagementDialog 
           open={engagementDialogOpen} 
-          onOpenChange={setEngagementDialogOpen} 
+          onOpenChange={(open) => { setEngagementDialogOpen(open); if (!open) setEditingEngagement(null); }}
           contractId={contract.id}
+          engagement={editingEngagement}
         />
+
+        {/* Delete Confirmation Dialog */}
+        <AlertDialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
+              <AlertDialogDescription>
+                Êtes-vous sûr de vouloir supprimer {deleteConfirm?.label} ? Cette action est irréversible et les indicateurs financiers du marché seront recalculés.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDeleteConfirm} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Supprimer
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </AppLayout>
   );
