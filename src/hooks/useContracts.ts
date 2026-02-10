@@ -288,16 +288,19 @@ export function useDecompteMutations() {
 
   const createDecompte = useMutation({
     mutationFn: async (decompte: Partial<ContractDecompte>) => {
+      const { code, ...rest } = decompte as any;
       const { data, error } = await supabase
         .from('contract_decomptes')
-        .insert(decompte as any)
+        .insert(rest)
         .select()
         .single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['contract_decomptes'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      if (variables.contract_id) queryClient.invalidateQueries({ queryKey: ['contracts', variables.contract_id] });
       toast({ title: 'Décompte créé avec succès' });
     },
     onError: (error: Error) => {
@@ -307,17 +310,20 @@ export function useDecompteMutations() {
 
   const updateDecompte = useMutation({
     mutationFn: async ({ id, ...updates }: Partial<ContractDecompte> & { id: string }) => {
+      const { code, ...rest } = updates as any;
       const { data, error } = await supabase
         .from('contract_decomptes')
-        .update(updates)
+        .update(rest)
         .eq('id', id)
         .select()
         .single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['contract_decomptes'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      if (variables.contract_id) queryClient.invalidateQueries({ queryKey: ['contracts', variables.contract_id] });
       toast({ title: 'Décompte mis à jour avec succès' });
     },
     onError: (error: Error) => {
@@ -325,7 +331,24 @@ export function useDecompteMutations() {
     },
   });
 
-  return { createDecompte, updateDecompte };
+  const deleteDecompte = useMutation({
+    mutationFn: async ({ id, contractId }: { id: string; contractId: string }) => {
+      const { error } = await supabase.from('contract_decomptes').delete().eq('id', id);
+      if (error) throw error;
+      return { id, contractId };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['contract_decomptes'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts', data.contractId] });
+      toast({ title: 'Décompte supprimé avec succès' });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  return { createDecompte, updateDecompte, deleteDecompte };
 }
 
 // Payments hooks
@@ -348,9 +371,10 @@ export function usePaymentMutations() {
 
   const createPayment = useMutation({
     mutationFn: async (payment: Partial<ContractPayment>) => {
+      const { code, ...rest } = payment as any;
       const { data, error } = await supabase
         .from('contract_payments')
-        .insert(payment as any)
+        .insert(rest)
         .select()
         .single();
       if (error) throw error;
@@ -365,8 +389,6 @@ export function usePaymentMutations() {
         
         if (contract) {
           const newPaidAmount = Math.round((contract.paid_amount || 0) + Number(payment.amount));
-          
-          // Only update paid_amount - trigger handles remaining_amount
           await supabase
             .from('contracts')
             .update({ paid_amount: newPaidAmount })
@@ -379,9 +401,7 @@ export function usePaymentMutations() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['contract_payments'] });
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
-      if (variables.contract_id) {
-        queryClient.invalidateQueries({ queryKey: ['contracts', variables.contract_id] });
-      }
+      if (variables.contract_id) queryClient.invalidateQueries({ queryKey: ['contracts', variables.contract_id] });
       queryClient.invalidateQueries({ queryKey: ['contracts', 'stats'] });
       toast({ title: 'Règlement créé avec succès' });
     },
@@ -390,7 +410,79 @@ export function usePaymentMutations() {
     },
   });
 
-  return { createPayment };
+  const updatePayment = useMutation({
+    mutationFn: async ({ id, oldAmount, ...updates }: Partial<ContractPayment> & { id: string; oldAmount?: number }) => {
+      const { code, ...rest } = updates as any;
+      const { data, error } = await supabase
+        .from('contract_payments')
+        .update(rest)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+
+      // Recalculate paid_amount on the contract if amount changed
+      if (updates.contract_id && updates.amount !== undefined && oldAmount !== undefined) {
+        const { data: contract } = await supabase
+          .from('contracts')
+          .select('paid_amount')
+          .eq('id', updates.contract_id)
+          .single();
+        if (contract) {
+          const newPaidAmount = Math.round((contract.paid_amount || 0) - (oldAmount || 0) + Number(updates.amount));
+          await supabase
+            .from('contracts')
+            .update({ paid_amount: Math.max(0, newPaidAmount) })
+            .eq('id', updates.contract_id);
+        }
+      }
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['contract_payments'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      if (variables.contract_id) queryClient.invalidateQueries({ queryKey: ['contracts', variables.contract_id] });
+      queryClient.invalidateQueries({ queryKey: ['contracts', 'stats'] });
+      toast({ title: 'Règlement mis à jour avec succès' });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const deletePayment = useMutation({
+    mutationFn: async ({ id, contractId, amount }: { id: string; contractId: string; amount: number }) => {
+      const { error } = await supabase.from('contract_payments').delete().eq('id', id);
+      if (error) throw error;
+
+      // Subtract from paid_amount
+      const { data: contract } = await supabase
+        .from('contracts')
+        .select('paid_amount')
+        .eq('id', contractId)
+        .single();
+      if (contract) {
+        const newPaidAmount = Math.max(0, Math.round((contract.paid_amount || 0) - amount));
+        await supabase
+          .from('contracts')
+          .update({ paid_amount: newPaidAmount })
+          .eq('id', contractId);
+      }
+      return { id, contractId };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['contract_payments'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts', data.contractId] });
+      queryClient.invalidateQueries({ queryKey: ['contracts', 'stats'] });
+      toast({ title: 'Règlement supprimé avec succès' });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  return { createPayment, updatePayment, deletePayment };
 }
 
 // Guarantees hooks
@@ -413,9 +505,10 @@ export function useGuaranteeMutations() {
 
   const createGuarantee = useMutation({
     mutationFn: async (guarantee: Partial<ContractGuarantee>) => {
+      const { code, ...rest } = guarantee as any;
       const { data, error } = await supabase
         .from('contract_guarantees')
-        .insert(guarantee as any)
+        .insert(rest)
         .select()
         .single();
       if (error) throw error;
@@ -430,7 +523,43 @@ export function useGuaranteeMutations() {
     },
   });
 
-  return { createGuarantee };
+  const updateGuarantee = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<ContractGuarantee> & { id: string }) => {
+      const { code, ...rest } = updates as any;
+      const { data, error } = await supabase
+        .from('contract_guarantees')
+        .update(rest)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contract_guarantees'] });
+      toast({ title: 'Garantie mise à jour avec succès' });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const deleteGuarantee = useMutation({
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await supabase.from('contract_guarantees').delete().eq('id', id);
+      if (error) throw error;
+      return id;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contract_guarantees'] });
+      toast({ title: 'Garantie supprimée avec succès' });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  return { createGuarantee, updateGuarantee, deleteGuarantee };
 }
 
 // Engagements hooks
@@ -453,17 +582,19 @@ export function useEngagementMutations() {
 
   const createEngagement = useMutation({
     mutationFn: async (engagement: Partial<ContractEngagement>) => {
+      const { code, ...rest } = engagement as any;
       const { data, error } = await supabase
         .from('contract_engagements')
-        .insert(engagement as any)
+        .insert(rest)
         .select()
         .single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['contract_engagements'] });
       queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      if (variables.contract_id) queryClient.invalidateQueries({ queryKey: ['contracts', variables.contract_id] });
       toast({ title: 'Engagement créé avec succès' });
     },
     onError: (error: Error) => {
@@ -471,5 +602,45 @@ export function useEngagementMutations() {
     },
   });
 
-  return { createEngagement };
+  const updateEngagement = useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<ContractEngagement> & { id: string }) => {
+      const { code, ...rest } = updates as any;
+      const { data, error } = await supabase
+        .from('contract_engagements')
+        .update(rest)
+        .eq('id', id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['contract_engagements'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      if (variables.contract_id) queryClient.invalidateQueries({ queryKey: ['contracts', variables.contract_id] });
+      toast({ title: 'Engagement mis à jour avec succès' });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  const deleteEngagement = useMutation({
+    mutationFn: async ({ id, contractId }: { id: string; contractId: string }) => {
+      const { error } = await supabase.from('contract_engagements').delete().eq('id', id);
+      if (error) throw error;
+      return { id, contractId };
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['contract_engagements'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      queryClient.invalidateQueries({ queryKey: ['contracts', data.contractId] });
+      toast({ title: 'Engagement supprimé avec succès' });
+    },
+    onError: (error: Error) => {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  return { createEngagement, updateEngagement, deleteEngagement };
 }

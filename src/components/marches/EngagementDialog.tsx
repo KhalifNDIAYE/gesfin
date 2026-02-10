@@ -7,10 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useEngagementMutations } from '@/hooks/useContracts';
+import { useEngagementMutations, ContractEngagement } from '@/hooks/useContracts';
+import { useEffect } from 'react';
 
 const engagementSchema = z.object({
-  code: z.string().min(1, 'Le code est requis'),
   engagement_type: z.string().min(1, 'Le type est requis'),
   amount: z.coerce.number().min(0, 'Le montant doit être positif'),
   engagement_date: z.string().min(1, 'La date est requise'),
@@ -25,6 +25,7 @@ interface EngagementDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contractId: string;
+  engagement?: ContractEngagement | null;
 }
 
 const engagementTypes = [
@@ -39,13 +40,13 @@ const engagementStatuses = [
   { value: 'cancelled', label: 'Annulé' },
 ];
 
-export function EngagementDialog({ open, onOpenChange, contractId }: EngagementDialogProps) {
-  const { createEngagement } = useEngagementMutations();
+export function EngagementDialog({ open, onOpenChange, contractId, engagement }: EngagementDialogProps) {
+  const { createEngagement, updateEngagement } = useEngagementMutations();
+  const isEdit = !!engagement;
   
   const form = useForm<EngagementFormValues>({
     resolver: zodResolver(engagementSchema),
     defaultValues: {
-      code: '',
       engagement_type: 'initial',
       amount: 0,
       engagement_date: new Date().toISOString().split('T')[0],
@@ -55,13 +56,44 @@ export function EngagementDialog({ open, onOpenChange, contractId }: EngagementD
     },
   });
 
+  useEffect(() => {
+    if (engagement) {
+      form.reset({
+        engagement_type: engagement.engagement_type,
+        amount: engagement.amount,
+        engagement_date: engagement.engagement_date,
+        reference: engagement.reference || '',
+        status: engagement.status,
+        description: engagement.description || '',
+      });
+    } else {
+      form.reset({
+        engagement_type: 'initial',
+        amount: 0,
+        engagement_date: new Date().toISOString().split('T')[0],
+        reference: '',
+        status: 'active',
+        description: '',
+      });
+    }
+  }, [engagement, form]);
+
   const onSubmit = async (values: EngagementFormValues) => {
     try {
-      await createEngagement.mutateAsync({
-        ...values,
-        contract_id: contractId,
-        remaining_amount: values.amount,
-      });
+      if (isEdit) {
+        await updateEngagement.mutateAsync({
+          id: engagement.id,
+          ...values,
+          contract_id: contractId,
+          remaining_amount: values.amount,
+        });
+      } else {
+        await createEngagement.mutateAsync({
+          ...values,
+          contract_id: contractId,
+          remaining_amount: values.amount,
+        });
+      }
       form.reset();
       onOpenChange(false);
     } catch {
@@ -69,28 +101,17 @@ export function EngagementDialog({ open, onOpenChange, contractId }: EngagementD
     }
   };
 
+  const isPending = isEdit ? updateEngagement.isPending : createEngagement.isPending;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Nouvel engagement</DialogTitle>
+          <DialogTitle>{isEdit ? "Modifier l'engagement" : 'Nouvel engagement'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ENG-001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="engagement_type"
@@ -115,9 +136,6 @@ export function EngagementDialog({ open, onOpenChange, contractId }: EngagementD
                   </FormItem>
                 )}
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="amount"
@@ -131,6 +149,9 @@ export function EngagementDialog({ open, onOpenChange, contractId }: EngagementD
                   </FormItem>
                 )}
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="engagement_date"
@@ -139,22 +160,6 @@ export function EngagementDialog({ open, onOpenChange, contractId }: EngagementD
                     <FormLabel>Date d'engagement *</FormLabel>
                     <FormControl>
                       <Input type="date" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="reference"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Référence</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -188,6 +193,20 @@ export function EngagementDialog({ open, onOpenChange, contractId }: EngagementD
 
             <FormField
               control={form.control}
+              name="reference"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Référence</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
@@ -204,8 +223,8 @@ export function EngagementDialog({ open, onOpenChange, contractId }: EngagementD
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={createEngagement.isPending}>
-                Créer
+              <Button type="submit" disabled={isPending}>
+                {isEdit ? 'Enregistrer' : 'Créer'}
               </Button>
             </div>
           </form>

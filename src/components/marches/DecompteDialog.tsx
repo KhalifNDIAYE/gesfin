@@ -7,10 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useDecompteMutations } from '@/hooks/useContracts';
+import { useDecompteMutations, ContractDecompte } from '@/hooks/useContracts';
+import { useEffect } from 'react';
 
 const decompteSchema = z.object({
-  code: z.string().min(1, 'Le code est requis'),
   decompte_number: z.coerce.number().min(1, 'Le numéro est requis'),
   decompte_type: z.string().min(1, 'Le type est requis'),
   amount: z.coerce.number().min(0, 'Le montant doit être positif'),
@@ -29,6 +29,7 @@ interface DecompteDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contractId: string;
+  decompte?: ContractDecompte | null;
 }
 
 const decompteTypes = [
@@ -45,13 +46,13 @@ const decompteStatuses = [
   { value: 'rejected', label: 'Rejeté' },
 ];
 
-export function DecompteDialog({ open, onOpenChange, contractId }: DecompteDialogProps) {
-  const { createDecompte } = useDecompteMutations();
+export function DecompteDialog({ open, onOpenChange, contractId, decompte }: DecompteDialogProps) {
+  const { createDecompte, updateDecompte } = useDecompteMutations();
+  const isEdit = !!decompte;
   
   const form = useForm<DecompteFormValues>({
     resolver: zodResolver(decompteSchema),
     defaultValues: {
-      code: '',
       decompte_number: 1,
       decompte_type: 'progress',
       amount: 0,
@@ -65,13 +66,52 @@ export function DecompteDialog({ open, onOpenChange, contractId }: DecompteDialo
     },
   });
 
+  useEffect(() => {
+    if (decompte) {
+      form.reset({
+        decompte_number: decompte.decompte_number,
+        decompte_type: decompte.decompte_type,
+        amount: decompte.amount,
+        cumulative_amount: decompte.cumulative_amount || 0,
+        previous_amount: decompte.previous_amount || 0,
+        deduction_amount: decompte.deduction_amount || 0,
+        progress_percentage: decompte.progress_percentage || 0,
+        submission_date: decompte.submission_date,
+        status: decompte.status,
+        description: decompte.description || '',
+      });
+    } else {
+      form.reset({
+        decompte_number: 1,
+        decompte_type: 'progress',
+        amount: 0,
+        cumulative_amount: 0,
+        previous_amount: 0,
+        deduction_amount: 0,
+        progress_percentage: 0,
+        submission_date: new Date().toISOString().split('T')[0],
+        status: 'submitted',
+        description: '',
+      });
+    }
+  }, [decompte, form]);
+
   const onSubmit = async (values: DecompteFormValues) => {
     try {
-      await createDecompte.mutateAsync({
-        ...values,
-        contract_id: contractId,
-        net_amount: values.amount - (values.deduction_amount || 0),
-      });
+      if (isEdit) {
+        await updateDecompte.mutateAsync({
+          id: decompte.id,
+          ...values,
+          contract_id: contractId,
+          net_amount: values.amount - (values.deduction_amount || 0),
+        });
+      } else {
+        await createDecompte.mutateAsync({
+          ...values,
+          contract_id: contractId,
+          net_amount: values.amount - (values.deduction_amount || 0),
+        });
+      }
       form.reset();
       onOpenChange(false);
     } catch {
@@ -79,28 +119,17 @@ export function DecompteDialog({ open, onOpenChange, contractId }: DecompteDialo
     }
   };
 
+  const isPending = isEdit ? updateDecompte.isPending : createDecompte.isPending;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Nouveau décompte</DialogTitle>
+          <DialogTitle>{isEdit ? 'Modifier le décompte' : 'Nouveau décompte'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="DC-001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="decompte_number"
@@ -114,9 +143,6 @@ export function DecompteDialog({ open, onOpenChange, contractId }: DecompteDialo
                   </FormItem>
                 )}
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="decompte_type"
@@ -137,6 +163,22 @@ export function DecompteDialog({ open, onOpenChange, contractId }: DecompteDialo
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Montant *</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -170,19 +212,6 @@ export function DecompteDialog({ open, onOpenChange, contractId }: DecompteDialo
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="amount"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Montant *</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="submission_date"
                 render={({ field }) => (
                   <FormItem>
@@ -194,21 +223,20 @@ export function DecompteDialog({ open, onOpenChange, contractId }: DecompteDialo
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name="progress_percentage"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Avancement (%)</FormLabel>
+                    <FormControl>
+                      <Input type="number" min="0" max="100" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
-
-            <FormField
-              control={form.control}
-              name="progress_percentage"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Avancement (%)</FormLabel>
-                  <FormControl>
-                    <Input type="number" min="0" max="100" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}
@@ -228,8 +256,8 @@ export function DecompteDialog({ open, onOpenChange, contractId }: DecompteDialo
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={createDecompte.isPending}>
-                Créer
+              <Button type="submit" disabled={isPending}>
+                {isEdit ? 'Enregistrer' : 'Créer'}
               </Button>
             </div>
           </form>

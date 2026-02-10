@@ -7,10 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useGuaranteeMutations } from '@/hooks/useContracts';
+import { useGuaranteeMutations, ContractGuarantee } from '@/hooks/useContracts';
+import { useEffect } from 'react';
 
 const guaranteeSchema = z.object({
-  code: z.string().min(1, 'Le code est requis'),
   guarantee_type: z.string().min(1, 'Le type est requis'),
   amount: z.coerce.number().min(0, 'Le montant doit être positif'),
   percentage: z.coerce.number().min(0).max(100).optional(),
@@ -28,6 +28,7 @@ interface GuaranteeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   contractId: string;
+  guarantee?: ContractGuarantee | null;
 }
 
 const guaranteeTypes = [
@@ -44,13 +45,13 @@ const guaranteeStatuses = [
   { value: 'expired', label: 'Expirée' },
 ];
 
-export function GuaranteeDialog({ open, onOpenChange, contractId }: GuaranteeDialogProps) {
-  const { createGuarantee } = useGuaranteeMutations();
+export function GuaranteeDialog({ open, onOpenChange, contractId, guarantee }: GuaranteeDialogProps) {
+  const { createGuarantee, updateGuarantee } = useGuaranteeMutations();
+  const isEdit = !!guarantee;
   
   const form = useForm<GuaranteeFormValues>({
     resolver: zodResolver(guaranteeSchema),
     defaultValues: {
-      code: '',
       guarantee_type: 'performance',
       amount: 0,
       percentage: 0,
@@ -63,12 +64,48 @@ export function GuaranteeDialog({ open, onOpenChange, contractId }: GuaranteeDia
     },
   });
 
+  useEffect(() => {
+    if (guarantee) {
+      form.reset({
+        guarantee_type: guarantee.guarantee_type,
+        amount: guarantee.amount,
+        percentage: guarantee.percentage || 0,
+        issuer_name: guarantee.issuer_name || '',
+        reference_number: guarantee.reference_number || '',
+        issue_date: guarantee.issue_date,
+        expiry_date: guarantee.expiry_date || '',
+        status: guarantee.status,
+        description: guarantee.description || '',
+      });
+    } else {
+      form.reset({
+        guarantee_type: 'performance',
+        amount: 0,
+        percentage: 0,
+        issuer_name: '',
+        reference_number: '',
+        issue_date: new Date().toISOString().split('T')[0],
+        expiry_date: '',
+        status: 'active',
+        description: '',
+      });
+    }
+  }, [guarantee, form]);
+
   const onSubmit = async (values: GuaranteeFormValues) => {
     try {
-      await createGuarantee.mutateAsync({
-        ...values,
-        contract_id: contractId,
-      });
+      if (isEdit) {
+        await updateGuarantee.mutateAsync({
+          id: guarantee.id,
+          ...values,
+          contract_id: contractId,
+        });
+      } else {
+        await createGuarantee.mutateAsync({
+          ...values,
+          contract_id: contractId,
+        });
+      }
       form.reset();
       onOpenChange(false);
     } catch {
@@ -76,28 +113,17 @@ export function GuaranteeDialog({ open, onOpenChange, contractId }: GuaranteeDia
     }
   };
 
+  const isPending = isEdit ? updateGuarantee.isPending : createGuarantee.isPending;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Nouvelle garantie</DialogTitle>
+          <DialogTitle>{isEdit ? 'Modifier la garantie' : 'Nouvelle garantie'}</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="code"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Code *</FormLabel>
-                    <FormControl>
-                      <Input placeholder="GAR-001" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
               <FormField
                 control={form.control}
                 name="guarantee_type"
@@ -122,9 +148,6 @@ export function GuaranteeDialog({ open, onOpenChange, contractId }: GuaranteeDia
                   </FormItem>
                 )}
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="amount"
@@ -138,6 +161,9 @@ export function GuaranteeDialog({ open, onOpenChange, contractId }: GuaranteeDia
                   </FormItem>
                 )}
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="percentage"
@@ -151,9 +177,6 @@ export function GuaranteeDialog({ open, onOpenChange, contractId }: GuaranteeDia
                   </FormItem>
                 )}
               />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="issuer_name"
@@ -167,6 +190,9 @@ export function GuaranteeDialog({ open, onOpenChange, contractId }: GuaranteeDia
                   </FormItem>
                 )}
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="reference_number"
@@ -176,6 +202,30 @@ export function GuaranteeDialog({ open, onOpenChange, contractId }: GuaranteeDia
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Statut *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {guaranteeStatuses.map((status) => (
+                          <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -213,31 +263,6 @@ export function GuaranteeDialog({ open, onOpenChange, contractId }: GuaranteeDia
 
             <FormField
               control={form.control}
-              name="status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Statut *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {guaranteeStatuses.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                          {status.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
@@ -254,8 +279,8 @@ export function GuaranteeDialog({ open, onOpenChange, contractId }: GuaranteeDia
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Annuler
               </Button>
-              <Button type="submit" disabled={createGuarantee.isPending}>
-                Créer
+              <Button type="submit" disabled={isPending}>
+                {isEdit ? 'Enregistrer' : 'Créer'}
               </Button>
             </div>
           </form>
