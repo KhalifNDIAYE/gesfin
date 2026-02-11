@@ -7770,6 +7770,7 @@ export type Database = {
         Args: { _fiscal_year_id: string; _journal_code: string }
         Returns: string
       }
+      get_budget_tracking_data: { Args: { p_months?: number }; Returns: Json }
       get_project_kpis: { Args: { _project_id: string }; Returns: Json }
       get_public_branding: { Args: never; Returns: Json }
       has_permission: {

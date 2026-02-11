@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { format, subMonths, startOfMonth, endOfMonth } from 'date-fns';
+import { format, subMonths, startOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
 export interface DashboardStats {
@@ -124,62 +124,16 @@ export const useBudgetChartData = () => {
   return useQuery({
     queryKey: ['budget-chart-data'],
     queryFn: async () => {
-      // Get last 6 months
-      const months: { name: string; start: Date; end: Date }[] = [];
-      for (let i = 5; i >= 0; i--) {
-        const date = subMonths(new Date(), i);
-        months.push({
-          name: format(date, 'MMM', { locale: fr }),
-          start: startOfMonth(date),
-          end: endOfMonth(date),
-        });
-      }
+      const { data, error } = await supabase.rpc('get_budget_tracking_data' as any, { p_months: 6 });
 
-      const chartData: BudgetChartData[] = [];
+      if (error) throw error;
 
-      for (const month of months) {
-        // Get budget forecasts for the month
-        const { data: forecasts } = await supabase
-          .from('budget_movements')
-          .select('amount')
-          .eq('movement_type', 'forecast')
-          .gte('movement_date', month.start.toISOString().split('T')[0])
-          .lte('movement_date', month.end.toISOString().split('T')[0]);
-
-        // Get realized expenses for the month
-        const { data: realizations } = await supabase
-          .from('budget_movements')
-          .select('amount')
-          .eq('movement_type', 'realization')
-          .gte('movement_date', month.start.toISOString().split('T')[0])
-          .lte('movement_date', month.end.toISOString().split('T')[0]);
-
-        // Also get cash operations for the month (sorties = dépenses)
-        const { data: cashOperations } = await supabase
-          .from('cash_operations')
-          .select('amount, operation_type')
-          .eq('status', 'validated')
-          .gte('operation_date', month.start.toISOString().split('T')[0])
-          .lte('operation_date', month.end.toISOString().split('T')[0]);
-
-        const budgetAmount = forecasts?.reduce((sum, f) => sum + (f.amount || 0), 0) || 0;
-        const realizationAmount = realizations?.reduce((sum, r) => sum + (r.amount || 0), 0) || 0;
-        
-        // Add cash operation expenses
-        const cashExpenses = cashOperations
-          ?.filter(op => op.operation_type === 'sortie')
-          .reduce((sum, op) => sum + (op.amount || 0), 0) || 0;
-
-        const totalExpenses = realizationAmount + cashExpenses;
-
-        chartData.push({
-          month: month.name.charAt(0).toUpperCase() + month.name.slice(1),
-          budget: budgetAmount,
-          depenses: totalExpenses,
-        });
-      }
-
-      return chartData;
+      return ((data as any[]) || []).map((item: any) => ({
+        month: format(new Date(item.month_start), 'MMM', { locale: fr })
+          .replace(/^./, (c: string) => c.toUpperCase()),
+        budget: item.budget || 0,
+        depenses: item.depenses || 0,
+      })) as BudgetChartData[];
     },
     enabled: !!user,
     staleTime: 60000,
@@ -594,6 +548,8 @@ export const useDashboardRealtime = (onUpdate: () => void) => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'journal_entries' }, onUpdate)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'replenishments' }, onUpdate)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'direct_payments' }, onUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contract_payments' }, onUpdate)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'contract_engagements' }, onUpdate)
       .subscribe();
 
     return () => {
