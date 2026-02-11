@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePublicBranding } from '@/hooks/usePublicBranding';
+import { AppFooter } from '@/components/layout/AppFooter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -111,114 +112,117 @@ const Auth = () => {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-background via-background to-muted/50 p-4">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-primary/5 blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-primary/5 blur-3xl" />
-      </div>
-      
-      <Card className="relative w-full max-w-md border-border/50 bg-card/80 backdrop-blur-sm">
-        <CardHeader className="text-center">
-          <div className="mx-auto mb-4 flex items-center justify-center">
-            {branding?.logo_url ? (
-              <img 
-                src={branding.logo_url} 
-                alt={branding.name || 'Logo'} 
-                className="h-20 w-auto max-w-[200px] object-contain"
-              />
-            ) : (
-              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
-                <Shield className="h-7 w-7 text-primary" />
-              </div>
-            )}
-          </div>
-          <CardTitle className="text-2xl font-bold">
-            {mode === 'login' && 'Connexion'}
-            {mode === 'reset' && 'Réinitialiser le mot de passe'}
-          </CardTitle>
-          <CardDescription>
-            {mode === 'login' && 'Accédez à votre espace de gestion financière'}
-            {mode === 'reset' && 'Entrez votre email pour recevoir un lien de réinitialisation'}
-          </CardDescription>
-        </CardHeader>
+    <div className="flex min-h-screen flex-col bg-gradient-to-br from-background via-background to-muted/50">
+      <div className="relative flex flex-1 items-center justify-center p-4">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 h-80 w-80 rounded-full bg-primary/5 blur-3xl" />
+          <div className="absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-primary/5 blur-3xl" />
+        </div>
         
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="vous@exemple.com"
-                  className="pl-10"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+        <Card className="relative w-full max-w-md border-border/50 bg-card/80 backdrop-blur-sm">
+          <CardHeader className="text-center">
+            <div className="mx-auto mb-4 flex items-center justify-center">
+              {branding?.logo_url ? (
+                <img 
+                  src={branding.logo_url} 
+                  alt={branding.name || 'Logo'} 
+                  className="h-20 w-auto max-w-[200px] object-contain"
                 />
-              </div>
-              {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
+              ) : (
+                <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10">
+                  <Shield className="h-7 w-7 text-primary" />
+                </div>
+              )}
             </div>
-            
-            {mode !== 'reset' && (
+            <CardTitle className="text-2xl font-bold">
+              {mode === 'login' && 'Connexion'}
+              {mode === 'reset' && 'Réinitialiser le mot de passe'}
+            </CardTitle>
+            <CardDescription>
+              {mode === 'login' && 'Accédez à votre espace de gestion financière'}
+              {mode === 'reset' && 'Entrez votre email pour recevoir un lien de réinitialisation'}
+            </CardDescription>
+          </CardHeader>
+          
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              
               <div className="space-y-2">
-                <Label htmlFor="password">Mot de passe</Label>
+                <Label htmlFor="email">Email</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Mail className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                   <Input
-                    id="password"
-                    type="password"
-                    placeholder="••••••••"
+                    id="email"
+                    type="email"
+                    placeholder="vous@exemple.com"
                     className="pl-10"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
                 </div>
-                {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                {errors.email && <p className="text-sm text-destructive">{errors.email}</p>}
               </div>
-            )}
+              
+              {mode !== 'reset' && (
+                <div className="space-y-2">
+                  <Label htmlFor="password">Mot de passe</Label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      type="password"
+                      placeholder="••••••••"
+                      className="pl-10"
+                      value={formData.password}
+                      onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                    />
+                  </div>
+                  {errors.password && <p className="text-sm text-destructive">{errors.password}</p>}
+                </div>
+              )}
+              
+              
+              <Button type="submit" variant="gradient" className="w-full" disabled={isLoading}>
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <>
+                    {mode === 'login' && 'Se connecter'}
+                    {mode === 'reset' && 'Envoyer le lien'}
+                  </>
+                )}
+              </Button>
+            </form>
             
-            
-            <Button type="submit" variant="gradient" className="w-full" disabled={isLoading}>
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
+            <div className="mt-6 space-y-2 text-center text-sm">
+              {mode === 'login' && (
                 <>
-                  {mode === 'login' && 'Se connecter'}
-                  {mode === 'reset' && 'Envoyer le lien'}
+                  <button
+                    type="button"
+                    onClick={() => setMode('reset')}
+                    className="text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Mot de passe oublié ?
+                  </button>
                 </>
               )}
-            </Button>
-          </form>
-          
-          <div className="mt-6 space-y-2 text-center text-sm">
-            {mode === 'login' && (
-              <>
+              
+              
+              {mode === 'reset' && (
                 <button
                   type="button"
-                  onClick={() => setMode('reset')}
-                  className="text-muted-foreground hover:text-primary transition-colors"
+                  onClick={() => setMode('login')}
+                  className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
                 >
-                  Mot de passe oublié ?
+                  <ArrowLeft className="h-4 w-4" />
+                  Retour à la connexion
                 </button>
-              </>
-            )}
-            
-            
-            {mode === 'reset' && (
-              <button
-                type="button"
-                onClick={() => setMode('login')}
-                className="inline-flex items-center gap-1 text-muted-foreground hover:text-primary transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Retour à la connexion
-              </button>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      <AppFooter />
     </div>
   );
 };
