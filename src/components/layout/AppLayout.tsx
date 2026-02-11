@@ -1,6 +1,7 @@
 import { ReactNode, useEffect } from "react";
 import { AppSidebar } from "./AppSidebar";
 import { AppHeader } from "./AppHeader";
+import { AppFooter } from "./AppFooter";
 import { useNotificationSync } from "@/hooks/useNotificationSync";
 
 interface AppLayoutProps {
@@ -14,13 +15,14 @@ export function AppLayout({ children, title, subtitle }: AppLayoutProps) {
   useNotificationSync();
 
   return (
-    <div className="min-h-screen bg-background" data-layout="app" data-testid="app-layout">
+    <div className="min-h-screen bg-background flex flex-col" data-layout="app" data-testid="app-layout">
       <AppSidebar />
-      <div className="pl-64 transition-all duration-300">
+      <div className="pl-64 transition-all duration-300 flex flex-col flex-1">
         <AppHeader title={title} subtitle={subtitle} />
-        <main className="p-6" data-component="main-content" data-testid="main-content">
+        <main className="p-6 flex-1" data-component="main-content" data-testid="main-content">
           {children}
         </main>
+        <AppFooter />
       </div>
     </div>
   );
