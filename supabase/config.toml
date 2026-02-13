@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.import-world-regions]
 verify_jwt = true
+
+[functions.purge-all-data]
+verify_jwt = false
