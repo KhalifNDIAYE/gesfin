@@ -92,7 +92,7 @@ export function useCashOperations(filters?: CashOperationsFilters) {
   return useQuery({
     queryKey: ['cash-operations', filters],
     queryFn: async () => {
-      let query = supabase
+      let query: any = supabase
         .from('cash_operations')
         .select(`
           *,
@@ -148,7 +148,7 @@ export function useCashOperation(id: string | null) {
     queryKey: ['cash-operation', id],
     queryFn: async () => {
       if (!id) return null;
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('cash_operations')
         .select(`
           *,
@@ -304,7 +304,7 @@ export function useUpdateCashOperation() {
 
       const { data, error } = await supabase
         .from('cash_operations')
-        .update(updateData)
+        .update(updateData as never)
         .eq('id', id)
         .select()
         .single();
@@ -390,7 +390,7 @@ export function useValidateCashOperation() {
         message: `L'opération ${operation.code} a été validée`,
         type: 'info',
         link: `/comptabilite/caisse`,
-      });
+      } as never);
 
       return data;
     },

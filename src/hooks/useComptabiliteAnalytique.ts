@@ -79,7 +79,7 @@ export function useCostCenterMutations() {
     mutationFn: async (data: Omit<CostCenter, 'id' | 'created_at' | 'updated_at'>) => {
       const { data: result, error } = await supabase
         .from('cost_centers')
-        .insert(data)
+        .insert(data as never)
         .select()
         .single();
       
@@ -99,7 +99,7 @@ export function useCostCenterMutations() {
     mutationFn: async ({ id, ...data }: Partial<CostCenter> & { id: string }) => {
       const { data: result, error } = await supabase
         .from('cost_centers')
-        .update(data)
+        .update(data as never)
         .eq('id', id)
         .select()
         .single();
@@ -181,7 +181,7 @@ export function useAnalyticalAllocationMutations() {
     mutationFn: async (data: Omit<AnalyticalAllocation, 'id' | 'created_at' | 'updated_at'>) => {
       const { data: result, error } = await supabase
         .from('analytical_allocations')
-        .insert(data)
+        .insert(data as never)
         .select()
         .single();
       
@@ -201,7 +201,7 @@ export function useAnalyticalAllocationMutations() {
     mutationFn: async ({ id, ...data }: Partial<AnalyticalAllocation> & { id: string }) => {
       const { data: result, error } = await supabase
         .from('analytical_allocations')
-        .update(data)
+        .update(data as never)
         .eq('id', id)
         .select()
         .single();
@@ -268,7 +268,7 @@ export function useDistributionRuleMutations() {
     }) => {
       const { data: rule, error: ruleError } = await supabase
         .from('distribution_rules')
-        .insert(data.rule)
+        .insert(data.rule as never)
         .select()
         .single();
       

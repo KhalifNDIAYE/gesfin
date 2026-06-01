@@ -7794,6 +7794,10 @@ export type Database = {
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_budget_frozen: { Args: { p_budget_id: string }; Returns: Json }
       is_expense_validated: { Args: { _expense_id: string }; Returns: boolean }
+      is_signature_participant: {
+        Args: { _document_id: string; _document_type: string }
+        Returns: boolean
+      }
       log_audit_event: {
         Args: {
           _action: string

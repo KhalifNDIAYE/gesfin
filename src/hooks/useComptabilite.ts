@@ -321,7 +321,7 @@ export const useJournalEntryMutations = () => {
           ...entry,
           entry_number: entryNumber,
           created_by: user?.id,
-        })
+        } as never)
         .select()
         .single();
 
@@ -368,7 +368,7 @@ export const useJournalEntryMutations = () => {
       // Update entry
       const { error: entryError } = await supabase
         .from('journal_entries')
-        .update(entry)
+        .update(entry as never)
         .eq('id', entryId);
 
       if (entryError) throw entryError;

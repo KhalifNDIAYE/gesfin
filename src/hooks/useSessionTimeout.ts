@@ -15,8 +15,8 @@ export const useSessionTimeout = ({
   enabled = true 
 }: UseSessionTimeoutOptions = {}) => {
   const { user, signOut } = useAuth();
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const warningRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const warningRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastActivityRef = useRef<number>(Date.now());
 
   const timeoutMs = timeoutMinutes * 60 * 1000;
