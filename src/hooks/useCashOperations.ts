@@ -92,7 +92,7 @@ export function useCashOperations(filters?: CashOperationsFilters) {
   return useQuery({
     queryKey: ['cash-operations', filters],
     queryFn: async () => {
-      let query: any = supabase
+      let query: any = (supabase as any)
         .from('cash_operations')
         .select(`
           *,
