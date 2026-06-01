@@ -68,7 +68,7 @@ export function BudgetAlertsTab() {
         .update({
           ...updates,
           updated_at: new Date().toISOString(),
-        })
+        } as never)
         .eq('id', id);
       if (error) throw error;
     },

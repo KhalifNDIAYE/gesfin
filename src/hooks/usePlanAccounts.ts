@@ -46,7 +46,7 @@ export function usePlanAccountMutations() {
     mutationFn: async ({ id, ...account }: Partial<PlanAccount> & { id: string }) => {
       const { data, error } = await supabase
         .from('plan_accounts')
-        .update(account)
+        .update(account as never)
         .eq('id', id)
         .select()
         .single();

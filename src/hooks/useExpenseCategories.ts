@@ -37,7 +37,7 @@ export const useExpenseCategoryMutations = () => {
     mutationFn: async (data: Omit<ExpenseCategory, 'id' | 'created_at' | 'updated_at'>) => {
       const { data: result, error } = await supabase
         .from('expense_categories')
-        .insert(data)
+        .insert(data as never)
         .select()
         .single();
       
@@ -57,7 +57,7 @@ export const useExpenseCategoryMutations = () => {
     mutationFn: async ({ id, ...data }: Partial<ExpenseCategory> & { id: string }) => {
       const { data: result, error } = await supabase
         .from('expense_categories')
-        .update(data)
+        .update(data as never)
         .eq('id', id)
         .select()
         .single();

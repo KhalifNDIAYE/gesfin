@@ -269,7 +269,7 @@ export function useUpdateBudget() {
     mutationFn: async ({ id, ...budget }: Partial<Budget> & { id: string }) => {
       const { data, error } = await supabase
         .from('budgets')
-        .update(budget)
+        .update(budget as never)
         .eq('id', id)
         .select()
         .single();
@@ -335,7 +335,7 @@ export function useUpdateBudgetLine() {
     mutationFn: async ({ id, ...line }: Partial<BudgetLine> & { id: string }) => {
       const { data, error } = await supabase
         .from('budget_lines')
-        .update(line)
+        .update(line as never)
         .eq('id', id)
         .select()
         .single();

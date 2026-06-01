@@ -117,7 +117,7 @@ export const useEmailNotificationMutations = () => {
     mutationFn: async ({ id, ...updates }: Partial<EmailAlertType> & { id: string }) => {
       const { error } = await supabase
         .from('email_alert_types')
-        .update(updates)
+        .update(updates as never)
         .eq('id', id);
       if (error) throw error;
     },

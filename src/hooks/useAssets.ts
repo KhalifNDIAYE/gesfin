@@ -281,7 +281,7 @@ export const useAssetMutations = () => {
 
       const { data, error } = await supabase
         .from('assets')
-        .update(updateData)
+        .update(updateData as never)
         .eq('id', id)
         .select()
         .single();
@@ -371,7 +371,7 @@ export const useAssetMovementMutations = () => {
 
         await supabase
           .from('assets')
-          .update(updateData)
+          .update(updateData as never)
           .eq('id', movement.asset_id);
       }
 
